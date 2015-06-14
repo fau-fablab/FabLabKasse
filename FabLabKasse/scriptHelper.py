@@ -81,10 +81,10 @@ def setupGraphicalExceptHook():
         sys.exit(1)
     sys.excepthook=myNewExceptionHook
 
-def getConfig():
+def getConfig(path="./"):
     cfg = ConfigParser()
     try:
-        cfg.readfp(codecs.open('config.ini', 'r', 'utf8'))
+        cfg.readfp(codecs.open(path + 'config.ini', 'r', 'utf8'))
     except IOError:
         raise Exception("Cannot open configuration file. If you want to try the program and do not have a config, start ./run.py --example or just copy config.ini.example to config.ini")
     return cfg
