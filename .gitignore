@@ -1,0 +1,13 @@
+consumptionMoney.txt
+*~
+*.pyc
+*.sqlite3
+*.csv
+*.log
+*.lock
+*.log.20*
+config.ini
+.directory
+
+#PyCharm IDE configuration
+.idea

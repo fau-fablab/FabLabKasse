@@ -1,0 +1,2 @@
+#!/bin/sh
+PYTHONIOENCODING=utf8 PYTHONPATH=.. python2.7 -m FabLabKasse.cashPayment.cashState $@

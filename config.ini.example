@@ -1,0 +1,78 @@
+[general]
+; Path to sqlite3 file
+db_file = development.sqlite3
+
+; This asks the user to manually enter the payment into the kassenbuch
+request_backup = on
+
+; Hide mouse cursor (useful only with touchscreens)
+hide_cursor = off
+
+; Allow receipt printing (on user request)
+receipt = yes
+
+; Collect user statistics
+; currently not implemented
+collect_stats = yes
+collect_userids = no ; if stats are collect, should userids also be read from serial interface
+userid_serial_interface = test123 ; path to sercial interface
+
+
+[backend]
+; which payment is used for products, categories, order storage, ...
+backend=dummy
+; FAU FabLab: backend=legacy_offline_kassenbuch
+
+
+[receipt]
+header: FAU FabLab
+    Friedrich-Alexander-Universti채t
+    Erlangen-N체rnberg
+
+footer: Vielen Dank und bis bald!
+    https://fablab.fau.de
+
+host = localhost
+port = 4242
+logo = FAU_FABLAB_kassenlogo.png
+
+[payup_methods]
+; Enabled payment methods
+; usually you want either cash or cash_manual, not both...
+cash = on
+cash_manual = on
+FAUcard = off
+client = on
+; set these to products costing 1€ each
+; "Donation" (user decided to pay more)
+overpayment_product_id=9999
+; "Payout impossible" (user wanted to abort, but some part could not be paid back)
+payout_impossible_product_id=9994
+
+[cash_payment]
+; only used when cash=on in [payup_methods]
+; devices (*.py files in cashPayment/server/)
+; please read README.cashPayment ! larger devices first, because they are used first for payout.
+;device1=exampleServer
+;device1_name=example1
+;device2=mdbCoinChanger
+;device2_name=muenz
+;device2_port=/dev/ttyACM123
+;device3_port=hwgrep://USB\ VID\:PID\=10c4\:ea60\ SNR\=0001
+; and options
+;device1_foo=baz
+;device2=blab
+;...
+
+[openerp]
+server = xn--eichhrnchen-vfb.fablab.fau.de
+port = 443
+database = production_test
+user = kassenterminal
+password = foooobaaaar
+base_category_id = 1
+pos_config_id = 2
+pricelist_id = 1
+version = 7.0
+anonymous_partner_id = 87
+strip_location = TODO

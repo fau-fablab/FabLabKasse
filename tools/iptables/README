@@ -1,0 +1,1 @@
+iptables rules for filtering all incoming connections except SSH and ICMP echo request
