@@ -125,8 +125,10 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         assert abs(rechnung.summe - total) < Decimal("0.01"), "sum mismatch when converting to rechnung"
         # rounding can cause a difference of up to 1 cent between the non-rounded Rechnung() object and our rounding get_total() function
         if rechnung.summe != total:
+            # TODO hardcoded product id
             rechnung.add_position("Rundung", Decimal(1), anzahl=(total - rechnung.summe), einheit="Euro", produkt_ref="9996")
         assert rechnung.summe == total
+        print rechnung.positionen
         return rechnung
     
     def print_receipt(self, order_id):

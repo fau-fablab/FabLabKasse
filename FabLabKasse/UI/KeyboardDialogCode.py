@@ -40,7 +40,7 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
         self.pushButton_shift.clicked.connect(self.shift)
     
     def text(self):
-        return self.lineEdit.text()
+        return unicode(self.lineEdit.text())
     
     def charKey(self):
         pos = self.lineEdit.cursorPosition()
