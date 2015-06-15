@@ -133,7 +133,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         order = self._get_order_by_id(order_id)
         assert hasattr(order, "rechnung_for_receipt"), "given order is not ready for printing the receipt"
         try:
-            self._get_current_order_obj().rechnung_for_receipt.print_receipt(cfg=scriptHelper.getConfig())
+            order.rechnung_for_receipt.print_receipt(cfg=scriptHelper.getConfig())
         except socket.error, e:
             raise PrinterError("Socket error: " + str(e))
             
