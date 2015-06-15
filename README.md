@@ -27,9 +27,10 @@ and click "continue" a few times
 
 # Code structure overview
 
-- run.py is the launcher, it starts gui.py
+- run.py is the launcher, it starts FabLabKasse/gui.py
+- the rest of the code is in folder FabLabKasse
 - kassenbuch.py (currently still german) accounting CLI for legacy_offline_kassenbuch shopping backend
-- produkt.py is in the main folder for legacy reasons
+- produkt.py is directly in FabLabKasse-folder for legacy reasons
 - cashPayment: automated cash payment - coin and banknote acceptors. see README.cashPayment
   - client: interface towards the GUI that connects with the device drivers
      - PaymentDevicesManager: manages all (multiple) payment devices, used by the GUI (as self.cashPayment)
