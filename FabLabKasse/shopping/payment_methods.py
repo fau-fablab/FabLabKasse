@@ -90,10 +90,13 @@ class AbstractPaymentMethod(object):
         update attributes for return state:
         
         self.successful
+        if False the payment-process has to be retried, otherwise the transaction is complete
         
         self.amount_paid
+        describes the amount of money, which has been inserted into the machine
         
         self.amount_returned
+        describes the amount of money, that the machine returned to the user
         
         
         there are four possible cases of return values:
