@@ -138,7 +138,10 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
             order.rechnung_for_receipt.print_receipt(cfg=scriptHelper.getConfig())
         except socket.error, e:
             raise PrinterError("Socket error: " + str(e))
-            
+
+    def get_orders(self):
+        # TODO implement this function, currently not used by GUI
+        raise NotImplementedError()
     
     def _store_client_payment(self, client):
         kunde = Kunde.load_from_id(client.client_id, self._kasse.cur)
