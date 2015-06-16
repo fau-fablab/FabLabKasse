@@ -113,8 +113,8 @@ class AbstractPaymentMethod(object):
         self._show_dialog()
         assert self.amount_paid >= self.amount_returned
         if not self.successful:
-            not_paid_back = self.amount_paid - self.amount_returned
-            if not_paid_back == 0:
+            amount_not_paid_back = self.amount_paid - self.amount_returned
+            if amount_not_paid_back == 0:
                 # completely refunded aborted payment - no receipt necessary
                 self.print_receipt = False
             else:
@@ -131,7 +131,7 @@ class AbstractPaymentMethod(object):
                 self.shopping_backend.set_current_order(new_order)
                 # todo add to cfg tests at startup
                 prod_id = scriptHelper.getConfig().getint('payup_methods', 'payout_impossible_product_id')
-                self.shopping_backend.add_order_line(prod_id, not_paid_back)
+                self.shopping_backend.add_order_line(prod_id, amount_not_paid_back)
                 self.shopping_backend.pay_order(type(self), self.amount_paid, self.amount_returned)
                 
                 # switch back to old order
