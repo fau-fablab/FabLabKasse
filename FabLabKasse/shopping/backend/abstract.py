@@ -144,8 +144,7 @@ class AbstractShoppingBackend(object):
         return u'{} €'.format(formatted).replace('.', ',')
         
     def qty_to_str(self, qty):
-        # TODO here the 1E+2-bug probably occurs
-        s = str(qty).replace(".", ",")
+        s = str(float(qty)).replace(".", ",")
         if s.endswith(",0"):
             s = s[:-2]
         return s
