@@ -309,7 +309,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             dialog=QtGui.QMessageBox(self)
             dialog.setText(u"Der Automat ist wegen Wartungsarbeiten für kurze Zeit nicht verfügbar.\nBitte wende dich zur Bezahlung an einen Betreuer.\n\n(zum Entsperren: ./enableServiceMode ausführen und OK drücken)")
             dialog.addButton(QtGui.QMessageBox.Ok)
-            dialog.setStyleSheet("background-color:red; color:white; font-weight:bold;");
+            dialog.setStyleSheet("background-color:red; color:white; font-weight:bold;")
             dialog.exec_()
             if checkServiceModeEnabled(showErrorMessage=False):
                 return
@@ -461,7 +461,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             price = QtGui.QStandardItem(self.shoppingBackend.format_money(p.price))
             prod_model.setItem(i, 3, price)
         
-        prod_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("Artikel"));
+        prod_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("Artikel"))
         prod_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Lagerort"))
         prod_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Einheit"))
         prod_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Einzelpreis"))        

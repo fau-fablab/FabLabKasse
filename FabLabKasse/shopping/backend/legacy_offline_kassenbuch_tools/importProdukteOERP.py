@@ -115,7 +115,7 @@ def saveToDir(data, outputdir):
             if d[6]:
                 # weitere Verkaufseinheiten
                 for einheit in d[6]:
-                    s += '\t%s;%s;%s;%s\n' % einheit;
+                    s += '\t%s;%s;%s;%s\n' % einheit
             return s
         
         for l in map(lambda d: formatiereOutput(d), data[g]):
