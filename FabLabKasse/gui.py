@@ -753,7 +753,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
         # Initialize basic model for table
         order_model = QtGui.QStandardItemModel(len(order_lines), 4)
-        order_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("Anzahl"));
+        order_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("Anzahl"))
         order_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Einheit"))
         order_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Artikel"))
         order_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Einzelpreis"))
