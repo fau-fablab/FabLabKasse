@@ -392,12 +392,14 @@ class Kasse:
         konten = []
         daten = set()
         for b in buchungen:
+            assert isinstance(b.betrag, (Decimal, int)), "amount must be Decimal"
+            assert b.betrag % Decimal("0.01") == 0, "amount must be a multiple of 0.01 - half cents are not allowed"
             saldo += b.betrag
             konten.append(b.konto)
             daten.add(b.datum)
 
         assert len(konten) >= 2, "Ein Buchungsfall muss mindestens zwei Konten umfassen."
-        assert saldo.quantize(Decimal('1.00000')).is_zero(), "Ein Buchungsfall muss ein Saldo von genau Null haben."
+        assert saldo == 0, "Ein Buchungsfall muss ein Saldo von genau Null haben."
         assert len(daten) == 1, "Alle Buchungen in einem Buchungsfall muessen das selbe Datum haben."
 
         for b in buchungen:
