@@ -46,6 +46,7 @@ import functools
 from UI.uic_generated.Kassenterminal import Ui_Kassenterminal
 from UI.PaymentMethodDialogCode import PaymentMethodDialog
 from UI.KeyboardDialogCode import KeyboardDialog
+from UI.LoadFromMobileAppDialogCode import LoadFromMobileAppDialog
 
 import scriptHelper
 from cashPayment.client.PaymentDevicesManager import PaymentDevicesManager
@@ -232,6 +233,8 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.cashPollTimer.setInterval(500) # start with fast interval, later reduced
         self.cashPollTimer.timeout.connect(self.pollCashDevices)
         self.cashPollTimer.start()
+
+        self.pushButton_load_cart_from_app.setVisible(cfg.has_option("mobile_app","enabled") and cfg.getboolean("mobile_app","enabled"))
 
     def restart(self):
         dialog=QtGui.QMessageBox(self)
@@ -576,36 +579,78 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
     def payViaApp(self):
         # check that current cart is empty
         if self.shoppingBackend.get_current_order() != None:
-            if  self.shoppingBackend.get_current_total() == 0:
+            if  self.shoppingBackend.get_current_total() != 0:
                 QtGui.QMessageBox.warning(self, "Fehler",
-                   u"Der aktuell am Automat ausgewählte Warenkorb ist nicht leer.\n"+
-                   "Bitte zahle zuerst diese Produkte oder lösche sie aus dem Warenkorb.\n")
+                   u"Im Warenkorb am Automat liegen Produkte.\n"+
+                   u"Bitte zahle zuerst diese Produkte oder lösche sie aus dem Warenkorb.\n")
                 return
             self.shoppingBackend.delete_current_order()
-        new_order = self.shoppingBackend.create_order()
-        self.shoppingBackend.set_current_order(new_order)
-        print "random code: 1234"
-        print "show QR code, fetch cart"
-        # if aborted: return
-        
-        # cart received        
-        self.shoppingBackend.add_order_line(prod_id=9999, qty=Decimal(12.34), comment="")
-        
-        # check total sum
-        if self.shoppingBackend.get_current_total != Decimal("12.34"):
-            QtGui.QMessageBox.warning(self, "Fehler",
-                   u"Die Gesamtsumme konnte leider nicht richtig importiert werden.")
-            self.shoppingBackend.delete_current_order()
             self.shoppingBackend.set_current_order(None)
-            return
+
+        random_code = "1234"
+        diag = LoadFromMobileAppDialog(self, str(random_code), "http://test.de/")
+        poll_timer = Qt.QTimer(self)
+        poll_timer.setSingleShot(True)
+        poll_timer.setInterval(1000)
+
+        def pay_cart(cart):
+            """ import given cart (from server's response), let the user pay it
+            
+            @param cart: response from server
+            @rtype: bool
+            @return: True if successfully paid, False otherwise.
+            """
+            # cart received
+            new_order = self.shoppingBackend.create_order()
+            self.shoppingBackend.set_current_order(new_order)
+            self.shoppingBackend.add_order_line(prod_id=9999, qty=Decimal(12.34), comment="")
+            
+            # check total sum
+            if self.shoppingBackend.get_current_total() != Decimal("12.34"):
+                QtGui.QMessageBox.warning(self, "Fehler",
+                       u"Die Gesamtsumme konnte leider nicht richtig importiert werden.")
+                self.shoppingBackend.delete_current_order()
+                self.shoppingBackend.set_current_order(None)
+                return False
+            
+            # try payup
+            payup_successful = (self.payup() == True)
+            print "feedback successful = {}".format(payup_successful)
+            if not payup_successful:
+                self.shoppingBackend.delete_current_order()
+                self.shoppingBackend.set_current_order(None)
+                QtGui.QMessageBox.information(self, "Info", u"Die Zahlung wurde abgebrochen.")
+            
+            return payup_successful
         
-        # try payup
-        payup_successful = (self.payup() == True)
-        print "feedback successful = {}".format(payup_successful)
-        if not payup_successful:
-            self.shoppingBackend.delete_current_order()
-            self.shoppingBackend.set_current_order(None)
-            QtGui.QMessageBox.information("Info", u"Die Zahlung wurde abgebrochen.")
+        def poll():
+            "query the server if a cart was stored"
+            if not diag.isVisible():
+                # this should not happen, maybe a race-condition
+                return
+            logging.debug(u"polling for cart {}".format(random_code))
+            print "TODO POLL"
+            response = "TODO"
+            if not response:
+                poll_timer.start()
+                return
+            diag.setEnabled(False)
+            pay_cart(response)
+            diag.reject()
+            self.updateOrder()
+
+        poll_timer.timeout.connect(poll)
+        poll_timer.start()
+
+        def dialog_finished(result):
+            "user somehow exited the dialog. clean up everything."
+            poll_timer.stop()
+            diag.deleteLater()
+            poll_timer.deleteLater()
+
+        diag.finished.connect(dialog_finished)
+        
+        diag.show()
         
         
         
@@ -870,8 +915,8 @@ def main():
     
     # load locale for buttons, thanks to https://stackoverflow.com/questions/9128966/pyqt4-qfiledialog-and-qfontdialog-localization
     translator=QtCore.QTranslator()
-    locale = QtCore.QLocale.system().name()
-    translator.load('qt_%s' % locale, QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath))
+    current_locale = QtCore.QLocale.system().name()
+    translator.load('qt_%s' % current_locale, QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath))
     app.installTranslator(translator)
     
     # Set style to "oxygen"

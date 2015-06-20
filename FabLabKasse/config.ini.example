@@ -23,6 +23,8 @@ userid_serial_interface = test123 ; path to sercial interface
 backend=dummy
 ; FAU FabLab: backend=legacy_offline_kassenbuch
 
+[mobile_app]
+enabled = no
 
 [receipt]
 header: FAU FabLab

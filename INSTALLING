@@ -21,7 +21,7 @@ This software was mainly developed for Debian "jessie", but should also work on 
 
 1a. Debian
 
-needed debian packages: apt-get install python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort
+needed debian packages: apt-get install python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort python-qrcode
 pip install monotonic
 for the real terminal implementation: xserver-xorg git nodm ssh
 for the style: kde-style-oxygen kde-workspace-bin
@@ -32,12 +32,6 @@ for graphical debugging: winpdb
 
 Modem-Manager interferes with the serial port. It is highly recommended to remove it:
 apt-get remove modemmanager
-
-Some packages in Debian 7 "wheezy" are too old and therefore need to be fetched from pip:
-apt-get remove python-termcolor python-serial
-pip install termcolor
-pip install pyserial
-
 
 1b. Mac OS
 

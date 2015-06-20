@@ -10,18 +10,6 @@
     <height>1018</height>
    </rect>
   </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-    <horstretch>0</horstretch>
-    <verstretch>0</verstretch>
-   </sizepolicy>
-  </property>
-  <property name="baseSize">
-   <size>
-    <width>1024</width>
-    <height>768</height>
-   </size>
-  </property>
   <property name="font">
    <font>
     <family>Carlito</family>
@@ -131,7 +119,7 @@ font-size: 16pt;
            <layout class="QHBoxLayout" name="horizontalLayout_12"/>
           </item>
           <item>
-           <spacer name="horizontalSpacer_2">
+           <spacer name="horizontalSpacer_3">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -140,7 +128,49 @@ font-size: 16pt;
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>300</width>
+              <width>1</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_load_cart_from_app">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>140</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Warenkorb
+aus App laden</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>1</width>
               <height>20</height>
              </size>
             </property>
@@ -2320,9 +2350,26 @@ font-size: 16pt;
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButton_load_cart_from_app</sender>
+   <signal>clicked()</signal>
+   <receiver>Kassenterminal</receiver>
+   <slot>payViaApp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>926</x>
+     <y>52</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>859</x>
+     <y>88</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>restart()</slot>
   <slot>serviceMode()</slot>
+  <slot>payViaApp()</slot>
  </slots>
 </ui>
