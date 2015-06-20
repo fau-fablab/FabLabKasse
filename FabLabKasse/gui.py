@@ -208,13 +208,11 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # Shopping carts/orders
         self.updateOrder()
 
-        
-        self.shoppingBackend = ShoppingBackend(cfg)
         # currently selected produkt group
         self.current_category = self.shoppingBackend.get_root_category()
         
 
-        # Initialize kategorien and products later, after resize events are done
+        # Initialize categories and products later, after resize events are done
         QtCore.QTimer.singleShot(0, self.updateProductsAndCategories)
 
         # Give focus to lineEdit
@@ -661,7 +659,12 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         if comma_count > 1:
             newString = newString.replace('.', '', comma_count-1)
         
-        self.pushButton_decimal_point.setEnabled(comma_count < 1)
+        selected_order_line_id = self.getSelectedOrderLineId() # selected order line
+
+        # switch on the "decimal point" button if
+        # the user has not yet entered a decimal point
+        # and we are not in PLU entry mode (= no product is currently selected)
+        self.pushButton_decimal_point.setEnabled(comma_count < 1 and selected_order_line_id is not None)
 
         # Set correctly formated text, if anything changed (preserves cursor position)
         # replace back from dot to comma
@@ -673,14 +676,13 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # update currently selected product quantity
         qty = self.getLineEditDecimal()
 
-        order_line_id = self.getSelectedOrderLineId()
 
-        if order_line_id is not None:
-            self.shoppingBackend.update_quantity(order_line_id, qty)
-            order_line = self.shoppingBackend.get_order_line(order_line_id)
+        if selected_order_line_id is not None:
+            self.shoppingBackend.update_quantity(selected_order_line_id, qty)
+            order_line = self.shoppingBackend.get_order_line(selected_order_line_id)
             if order_line.qty != qty:
                 # quantity was rounded up, notify user
-                Qt.QToolTip.showText(self.label_unit.mapToGlobal(Qt.QPoint()), u'Eingabe wird auf {} {} aufgerundet!'.format(format_decimal(order_line.qty), order_line.unit))
+                Qt.QToolTip.showText(self.label_unit.mapToGlobal(Qt.QPoint(0,-30)), u'Eingabe wird auf {} {} aufgerundet!'.format(format_decimal(order_line.qty), order_line.unit))
             else:
                 Qt.QToolTip.hideText()
             self.updateOrder()
@@ -741,6 +743,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             self.table_order.setModel(QtGui.QStandardItemModel(0, 0))
             self.summe.setText(u'0,00 €')
             self.pushButton_payup.setEnabled(False)
+            self.start_plu_entry()
             return
         
         # TODO get_orders() ... and switch between tabs
