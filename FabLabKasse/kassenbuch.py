@@ -852,7 +852,7 @@ if __name__ == '__main__':
             sys.exit(2)
 
         k.con.commit()
-        print("Gespeichert. Kundennummer lautet: " + kunde.id)
+        print("Gespeichert. Kundennummer lautet: " + str(kunde.id))
 
     elif arguments['client'] and arguments['edit']:
         print("Work-in-progress...")
