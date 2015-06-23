@@ -182,7 +182,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.lineEdit_Suche.textEdited.connect(lambda x: self.searchItems(preview=True))
 
         # Search (and get rid of keyboard) on return key
-        self.lineEdit_Suche.returnPressed.connect(lambda x: self.searchItems())
+        self.lineEdit_Suche.returnPressed.connect(lambda: self.searchItems())
 
         # Connect up the buttons. (upper half)
         self.pushButton_start.clicked.connect(self.on_start_clicked)
