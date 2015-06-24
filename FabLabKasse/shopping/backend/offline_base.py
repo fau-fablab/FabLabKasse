@@ -332,13 +332,13 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
     # payment
     # ==============================
 
-    def pay_order(self, method, amount_paid, amount_returned):
-        assert amount_paid - amount_returned == self.get_current_total()
+    def pay_order(self, method):
+        assert method.amount_paid - method.amount_returned == self.get_current_total()
         self._get_current_order_obj().set_finished()
-        self._store_payment(method, amount_paid, amount_returned)
+        self._store_payment(method)
 
     @abstractmethod
-    def _store_payment(self, method, amount_paid, amount_returned):
+    def _store_payment(self, method):
         """store payment of current order to database
         see pay_order
         """

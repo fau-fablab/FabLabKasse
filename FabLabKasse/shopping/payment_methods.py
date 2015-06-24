@@ -132,7 +132,7 @@ class AbstractPaymentMethod(object):
                 # todo add to cfg tests at startup
                 prod_id = scriptHelper.getConfig().getint('payup_methods', 'payout_impossible_product_id')
                 self.shopping_backend.add_order_line(prod_id, amount_not_paid_back)
-                self.shopping_backend.pay_order(type(self), self.amount_paid, self.amount_returned)
+                self.shopping_backend.pay_order(self)
                 
                 # switch back to old order
                 self.shopping_backend.set_current_order(old_order)
@@ -143,7 +143,7 @@ class AbstractPaymentMethod(object):
                 # rather handle these two calls in shoppingBackend??
                 prod_id = scriptHelper.getConfig().getint('payup_methods', 'overpayment_product_id')
                 self.shopping_backend.add_order_line(prod_id, self.amount_paid - self.amount_to_pay)
-            self.shopping_backend.pay_order(type(self), self.amount_paid, self.amount_returned)
+            self.shopping_backend.pay_order(self)
         return self.successful
 
 class AbstractClientPaymentMethod(AbstractPaymentMethod):

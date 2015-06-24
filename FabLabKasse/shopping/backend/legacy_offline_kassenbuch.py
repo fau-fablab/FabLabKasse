@@ -94,15 +94,16 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
             clients[k.id] = Client(client_id=k.id, name=k.name, pin=k.pin, debt_limit=debt_limit, debt=-k.summe)
         return clients
 
-    def _store_payment(self, method, amount_paid, amount_returned):
+    def _store_payment(self, method):
         origin = u"Besucher"
-        if type(method) == type(ManualCashPayment):
+        if isinstance(method, ManualCashPayment):
             destination = u"Handkasse"
-        elif type(method) == type( AutoCashPayment):
+        elif isinstance(method, AutoCashPayment):
             destination = u"Automatenkasse"
         else:
             raise Exception("unsupported payment method")
         rechnung = self._rechnung_from_order_lines()        
+        assert rechnung.summe == method.amount_paid - method.amount_returned
         rechnung.store(self._kasse.cur)
         logging.info("stored payment in Rechnung#{}".format(rechnung.id))
         

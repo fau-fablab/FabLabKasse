@@ -51,7 +51,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
                  2: Client(client_id=2, name="poor guy 2345", pin="2345", debt=Decimal(42.21), debt_limit=Decimal('42.31'))}        
         return clients
 
-    def _store_payment(self, method, amount_paid, amount_returned):
+    def _store_payment(self, method):
         logging.warning("pay order is only a dummy function...")
     
     def _store_client_payment(self, client):

@@ -285,10 +285,10 @@ class AbstractShoppingBackend(object):
 
 
     @abstractmethod    
-    def pay_order(self, method, amount_paid, amount_returned):
+    def pay_order(self, method):
         """store payment of current order to database
-        method: type object of PaymentMethod subclass
-        amount_paid - amount_returned is how much money was gained by this sale, must be equal to self.get_current_total()
+        @param method: payment method object, whose type is ued to determine where the order should be stored in the database
+        method.amount_paid - method.amount_returned is how much money was gained by this sale, must be equal to self.get_current_total()
         """
         # TODO assert amount_paid - amount_returned == self.get_current_total()
         pass

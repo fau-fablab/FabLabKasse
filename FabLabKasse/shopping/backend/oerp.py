@@ -150,8 +150,9 @@ class ShoppingBackend(AbstractShoppingBackend):
         # TODO update total first ???
         return float_to_decimal(order['amount_total'], 2)
 
-    def pay_order(self, method, amount_paid, amount_returned):
-        # TODO update code to match new interface definition
+    def pay_order(self, method):
+        raise Exception("TODO")
+        # TODO update code to match new interface definition -- method is now an object and needs to be checked with isinstance, see legacy_offline_kassenbuch
         if method == "cash_manual":
             pay_journal_id = self.cfg.getint('payup_methods', 'cash_manual_journal_id')
         else:
@@ -177,7 +178,7 @@ class ShoppingBackend(AbstractShoppingBackend):
         # and the actual payment:
         oerp.execute('account.invoice', 'pay_and_reconcile',
                      [invoice_id],
-                     float(amount_paid - amount_returned),
+                     float(method.amount_paid - method.amount_returned),
                      pay_account_id, current_period, pay_journal_id,
                      False, False, False,
                      oerp.context)
