@@ -91,7 +91,10 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
             debt_limit = k.schuldengrenze
             if debt_limit < 0:
                 debt_limit = Decimal('Infinity')
-            clients[k.id] = Client(client_id=k.id, name=k.name, pin=k.pin, debt_limit=debt_limit, debt=-k.summe)
+            if k.pin != '0000':
+                # do not add client when pin is 0000 (client disabled)
+                # TODO is it necessary to prevent payment too? GUI will normally not be able to pay with unlisted client
+                clients[k.id] = Client(client_id=k.id, name=k.name, pin=k.pin, debt_limit=debt_limit, debt=-k.summe)
         return clients
 
     def _store_payment(self, method):
