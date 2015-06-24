@@ -346,7 +346,7 @@ class AbstractClient(object):
         self.name = name
 
     def test_pin(self, pin):
-        "is the given pin (4-digit string) correct?"
+        "is the given pin (4-digit string) correct and the client enabled for paying?"
         return False
 
     def get_debt(self):

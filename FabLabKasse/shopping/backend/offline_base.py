@@ -375,7 +375,7 @@ class Client(AbstractClient):
             self._debt_limit = debt_limit
 
     def test_pin(self, pin):
-        return self._pin == pin
+        return self._pin == pin and not pin == "0000"
 
     def get_debt(self):
         return self._debt

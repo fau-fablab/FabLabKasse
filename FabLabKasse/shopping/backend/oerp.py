@@ -47,6 +47,8 @@ class Client(AbstractClient):
 
     def get_debt_limit(self):
         return self._credit_limit
+    
+    # TODO test_pin + check for disabled (=pin False or 0000 ?)
 
 
 
