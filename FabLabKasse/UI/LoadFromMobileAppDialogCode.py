@@ -18,24 +18,29 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
+"dialog for loading the cart from a mobile application. It shows a QR Code as one-time-token for authentication."
+
 from PyQt4 import QtGui
-from uic_generated.LoadFromMobileAppDialog import Ui_LoadFromMobileAppDialog
+from FabLabKasse.UI.uic_generated.LoadFromMobileAppDialog import Ui_LoadFromMobileAppDialog
 import qrcode
 import StringIO
 
 class LoadFromMobileAppDialog(QtGui.QDialog, Ui_LoadFromMobileAppDialog):
-    def __init__(self, parent, random_code, app_url):
+    "dialog for loading the cart from a mobile application. It shows a QR Code as one-time-token for authentication."
+    def __init__(self, parent, app_url):
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
         LoadFromMobileAppDialog.set_qr_label(self.label__qr_app, app_url)
+
+    def set_random_code(self, random_code):
+        "update the QR code showing the cart id"
         LoadFromMobileAppDialog.set_qr_label(self.label_qr_random, random_code)
-    
 
     @staticmethod
     def set_qr_label(label, text):
         """
         set qrcode image on QLabel
-        
+
         @param label: QLabel
         @param text: text for the QR code
         """
@@ -46,5 +51,5 @@ class LoadFromMobileAppDialog(QtGui.QDialog, Ui_LoadFromMobileAppDialog):
         qt_pixmap = QtGui.QPixmap()
         qt_pixmap.loadFromData(buf.getvalue(), "PNG")
         label.setPixmap(qt_pixmap)
-    
+
     

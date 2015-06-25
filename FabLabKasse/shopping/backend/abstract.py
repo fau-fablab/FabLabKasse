@@ -108,6 +108,10 @@ class OrderLine(object):
         isinstance(price_subtotal, (Decimal, int))
         self.price_subtotal = price_subtotal
         self.delete_if_zero_qty = delete_if_zero_qty
+    
+    def __str__(self):
+        # TODO ugly hack: we directly call AbstractShoppingBackend here because we have no access to the real shopping backend :(
+        return u"{} {} {} = {}".format(float(self.qty), self.unit, self.name, AbstractShoppingBackend.format_money(None, self.price_subtotal))
 
 
 class DebtLimitExceeded(Exception):
