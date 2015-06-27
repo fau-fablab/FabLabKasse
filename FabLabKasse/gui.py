@@ -601,7 +601,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             self.on_lineEdit_changed()
             return
         if order_line_id is not None:
-            self.lineEdit.setText(self.shoppingBackend.qty_to_str(order_line.qty))
+            self.lineEdit.setText(self.shoppingBackend.format_qty(order_line.qty))
             self.on_lineEdit_changed()
 
 
@@ -734,7 +734,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # Update Order lines
         
         for i, line in enumerate(order_lines):
-            qty = QtGui.QStandardItem(self.shoppingBackend.qty_to_str(line.qty))
+            qty = QtGui.QStandardItem(self.shoppingBackend.format_qty(line.qty))
             qty.setData(line.order_line_id)
             order_model.setItem(i, 0, qty)
             

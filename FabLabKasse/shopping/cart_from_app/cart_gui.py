@@ -89,7 +89,7 @@ class MobileAppCartGUI(object):
         for line in order_lines[0:10]:
             infotext += unicode(line) + "\n"
         if len(order_lines) > 10:
-            infotext += "... und {} weitere Posten ...\n".format(len(order_lines - 10))
+            infotext += "... und {} weitere Posten ...\n".format(len(order_lines) - 10)
         infotext += u"Gesamt: {}\n".format(self.parent.shoppingBackend.format_money(self.parent.shoppingBackend.get_current_total()))
         okay = QtGui.QMessageBox.information(self.parent, "Warenkorb", infotext, QtGui.QMessageBox.Cancel | QtGui.QMessageBox.Yes)
         okay = okay == QtGui.QMessageBox.Yes

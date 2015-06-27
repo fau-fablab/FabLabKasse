@@ -24,6 +24,7 @@ base class and interface definition for specific implementations (see other file
 from abc import ABCMeta, abstractmethod  # abstract base class support
 from decimal import Decimal
 import itertools
+import locale
 
 # counter for unique id values, use next(_id_counter) to get a new ID
 _id_counter = itertools.count()
@@ -38,6 +39,26 @@ def float_to_decimal(number, digits):
     assert abs(number) < 10 ** (10 + digits), "cannot precisely convert such a large float to Decimal"
     assert abs(float(result) - float(number)) < (10 ** -(digits + 3)), "attempted inaccurate conversion from {} to {}".format(repr(number), repr(result))
     return result
+
+def format_qty(qty):
+    "format quantity (number) as string"
+    s = unicode(float(qty))
+    if s.endswith(".0"):
+        s = s[:-2]
+    s = s.replace(".", locale.localeconv()['decimal_point'])
+    return s
+
+def format_money(amount):
+    "format float as money string"
+    # format:
+    # 1.23 -> 1,23 €
+    # 3.741 -> 3,741 €
+    formatted = u'{:.3f}'.format(amount)
+
+    if formatted.endswith("0"):
+        formatted = formatted[:-1]
+
+    return u'{} €'.format(formatted).replace('.', ',')
 
 class Category(object):
     def __init__(self, categ_id, name, parent_id=None):
@@ -110,8 +131,8 @@ class OrderLine(object):
         self.delete_if_zero_qty = delete_if_zero_qty
     
     def __str__(self):
-        # TODO ugly hack: we directly call AbstractShoppingBackend here because we have no access to the real shopping backend :(
-        return u"{} {} {} = {}".format(float(self.qty), self.unit, self.name, AbstractShoppingBackend.format_money(None, self.price_subtotal))
+        print self.name
+        return u"{} {} {} = {}".format(format_qty(self.qty), self.unit, self.name, format_money(self.price_subtotal))
 
 
 class DebtLimitExceeded(Exception):
@@ -136,22 +157,10 @@ class AbstractShoppingBackend(object):
         self.cfg = cfg
 
     def format_money(self, amount):
-        "format float as money string"
-        # format:
-        # 1.23 -> 1,23 €
-        # 3.741 -> 3,741 €
-        formatted = u'{:.3f}'.format(amount)
+        return format_money(amount)
         
-        if formatted.endswith("0"):
-            formatted = formatted[:-1]
-
-        return u'{} €'.format(formatted).replace('.', ',')
-        
-    def qty_to_str(self, qty):
-        s = str(float(qty)).replace(".", ",")
-        if s.endswith(",0"):
-            s = s[:-2]
-        return s
+    def format_qty(self, qty):
+        return format_qty(qty)
 
     ##########################################    
     # categories
