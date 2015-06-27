@@ -21,7 +21,7 @@ class ProductBasedOrderLine(OrderLine):
         """
         if comment is None:
             comment = ""
-        else:
+        if comment:
             comment = u": " + comment
         self.product = product
         self.price_per_unit = product.price # duplicate because otherwise we get crashes from OrderLine.__init__ accessing qty.setter

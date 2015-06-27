@@ -79,7 +79,7 @@ class MobileAppCartGUI(object):
         self.parent.shoppingBackend.set_current_order(new_order)
 
         for (product, quantity) in cart:
-            self.parent.shoppingBackend.add_order_line(prod_id=product, qty=quantity, comment="")
+            self.parent.shoppingBackend.add_order_line(prod_id=product, qty=quantity)
 
         # check total sum
         # TODO this is ugly and doesn't show everything when there are too many articles

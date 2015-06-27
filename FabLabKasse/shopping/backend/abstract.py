@@ -131,7 +131,6 @@ class OrderLine(object):
         self.delete_if_zero_qty = delete_if_zero_qty
     
     def __str__(self):
-        print self.name
         return u"{} {} {} = {}".format(format_qty(self.qty), self.unit, self.name, format_money(self.price_subtotal))
 
 
