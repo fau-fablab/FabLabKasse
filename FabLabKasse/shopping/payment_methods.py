@@ -118,7 +118,6 @@ class AbstractPaymentMethod(object):
                 # completely refunded aborted payment - no receipt necessary
                 self.print_receipt = False
             else:
-                # TODO test this case thouroughly
                 logging.info("cannot pay back everything of aborted payment. issuing receipt for the remaining rest.")
 
                 self.print_receipt = True
@@ -235,7 +234,7 @@ class AutoCashPayment(AbstractPaymentMethod):
         self.amount_paid = paid_amount # TODO add amount_returned
         self.amount_returned = Decimal(0) # TODO read from dialog
         self.successful = ok
-        self.print_receipt = "ask" # TODO read from dialog
+        self.print_receipt = pay_diag.get_receipt_wanted()
 
 class FAUCardPayment(AbstractPaymentMethod):
     @staticmethod

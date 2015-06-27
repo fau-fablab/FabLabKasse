@@ -38,12 +38,17 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
         self.pushButton_cancel.setVisible(False)
         self.pushButton_finish.setVisible(False)
         self.pushButton_acceptLowPayout.setVisible(False)
+        self.pushButton_receipt.setVisible(False)
+        self.pushButton_receipt.clicked.connect(self.accept_and_print_receipt)
         assert amount_total % Decimal("0.01") == 0
         self.centsToPay=int(100 * amount_total)
         self.centsToPayOut=None
         self.centsReceived=None
         self.centsPaidOut=None
         self.returnDonated=False
+        # The finish button doesn't print a receipt, only the "print receipt and finish" one.
+        # Sometimes the later logic still forces receipt printing  (e.g. payment aborted, not everything paid back)
+        self.receipt_wanted = False
         assert self.centsToPay >= 0
         self.state="init"
         
@@ -270,9 +275,14 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
                 text = text + u" <p>Ein Rest von {} konnte leider nicht zurückgezahlt werden.</p>".format(PayupCashDialog.formatCent(self.centsToPayOut - self.centsPaidOut))
             if self.centsToPay > 0: # payment not aborted
                 text += u"<p>Bitte das Aufräumen nicht vergessen!</p>"
-            text = text + u'<p style="font-size:14px">Im nächsten Schritt kannst du noch eine Quittung erhalten. Sollte etwas nicht stimmen, benachrichtige bitte sofort einen Betreuer und melde dich bei kasse@fablab.fau.de.</p></html>'
+            text = text + u'<p style="font-size:14px"> Sollte etwas nicht stimmen, benachrichtige bitte sofort einen Betreuer und melde dich bei kasse@fablab.fau.de.</p></html>'
             self.label_status.setText(text)
             self.pushButton_finish.setVisible(True)
+            # only ask for receipt if something was paid
+            # and we are not in the special case where receipt printing is enforced by the backend
+            if self.centsReceived > self.centsPaidOut and self.centsToPay > 0:
+                self.pushButton_receipt.setVisible(True)
+                self.pushButton_finish.setText(u"Ich brauche keine Rechnung")
         else:
             raise Exception("Unknown state")
     
@@ -305,12 +315,19 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
         else:
             self.state="finish"
     
-    """user wants all return money paid out, no donation"""
     def payoutReturnCompletely(self):
+        """user wants all return money paid out, no donation"""
         self.payoutReturn(self.centsReceived - self.centsToPay)
     
     def getPaidAmount(self):
         return Decimal("0.01")*(self.centsReceived-self.centsPaidOut)
+
+    def get_receipt_wanted(self):
+        """
+        did the user want to print a receipt?
+        :rtype: boolean
+        """
+        return self.receipt_wanted
         
         
     def reject(self):
@@ -319,6 +336,10 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
             return
         p.abortPayin()
         self.centsToPay=0
+
+    def accept_and_print_receipt(self):
+        self.receipt_wanted = True
+        self.accept()
     
     def accept(self):
         """Button Finish: Exit the dialog if possible

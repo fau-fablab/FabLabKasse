@@ -10,6 +10,11 @@
     <height>1024</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>15</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Bargeldzahlung</string>
   </property>
@@ -316,11 +321,6 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="font">
-          <font>
-           <pointsize>15</pointsize>
-          </font>
-         </property>
          <property name="text">
           <string>Nein, Rückgeld ganz auszahlen</string>
          </property>
@@ -353,11 +353,6 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="font">
-          <font>
-           <pointsize>15</pointsize>
-          </font>
-         </property>
          <property name="text">
           <string>Betrag 1</string>
          </property>
@@ -374,11 +369,6 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="font">
-          <font>
-           <pointsize>15</pointsize>
-          </font>
-         </property>
          <property name="text">
           <string>Betrag 2</string>
          </property>
@@ -394,11 +384,6 @@
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>15</pointsize>
-          </font>
          </property>
          <property name="text">
           <string>Betrag 3</string>
@@ -432,11 +417,6 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="font">
-          <font>
-           <pointsize>15</pointsize>
-          </font>
-         </property>
          <property name="text">
           <string>Ja, alles Rückgeld spenden</string>
          </property>
@@ -463,16 +443,12 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="font">
-          <font>
-           <pointsize>15</pointsize>
-          </font>
-         </property>
          <property name="text">
           <string>Zahlvorgang abbrechen</string>
          </property>
          <property name="icon">
-          <iconset theme="dialog-cancel"/>
+          <iconset theme="dialog-cancel">
+           <normaloff>../../../../../../../../../home/max/.designer/backup</normaloff>../../../../../../../../../home/max/.designer/backup</iconset>
          </property>
         </widget>
        </item>
@@ -487,16 +463,28 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="font">
-          <font>
-           <pointsize>15</pointsize>
-          </font>
-         </property>
          <property name="text">
           <string>Okay</string>
          </property>
          <property name="icon">
-          <iconset theme="dialog-ok"/>
+          <iconset theme="dialog-ok">
+           <normaloff>../../../../../../../../../home/max/.designer/backup</normaloff>../../../../../../../../../home/max/.designer/backup</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_receipt">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Rechnung ausdrucken</string>
+         </property>
+         <property name="icon">
+          <iconset theme="document-print"/>
          </property>
         </widget>
        </item>
@@ -508,16 +496,12 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="font">
-          <font>
-           <pointsize>15</pointsize>
-          </font>
-         </property>
          <property name="text">
           <string>Fertig</string>
          </property>
          <property name="icon">
-          <iconset theme="dialog-ok"/>
+          <iconset theme="dialog-ok">
+           <normaloff>../../../../../../../../../home/max/.designer/backup</normaloff>../../../../../../../../../home/max/.designer/backup</iconset>
          </property>
         </widget>
        </item>
