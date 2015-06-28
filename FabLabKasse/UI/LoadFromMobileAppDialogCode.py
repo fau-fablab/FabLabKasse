@@ -18,19 +18,48 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-"dialog for loading the cart from a mobile application. It shows a QR Code as one-time-token for authentication."
+"""dialog for loading the cart from a mobile application.
+It shows a QR Code as one-time-token for authentication."""
 
 from PyQt4 import QtGui
 from FabLabKasse.UI.uic_generated.LoadFromMobileAppDialog import Ui_LoadFromMobileAppDialog
 import qrcode
 import StringIO
 
+
+def set_layout_items_visible(layout, visible):
+    """
+    hide/show all widgets in a QLayout
+
+    :type layout: QtGui.QLayout
+
+    :type visible: boolean
+    """
+    for i in range(layout.count()):
+        if isinstance(layout.itemAt(i), QtGui.QLayout):
+            # recurse to sub-layout
+            set_layout_items_visible(layout.itemAt(i), visible)
+        widget = layout.itemAt(i).widget()
+        if widget is not None:
+            widget.setVisible(visible)
+
+
 class LoadFromMobileAppDialog(QtGui.QDialog, Ui_LoadFromMobileAppDialog):
-    "dialog for loading the cart from a mobile application. It shows a QR Code as one-time-token for authentication."
+    """dialog for loading the cart from a mobile application.
+    It shows a QR Code as one-time-token for authentication."""
     def __init__(self, parent, app_url):
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
-        LoadFromMobileAppDialog.set_qr_label(self.label__qr_app, app_url)
+        LoadFromMobileAppDialog.set_qr_label(self.label_qr_app, app_url)
+        self.label_qr_app_url.setText(app_url)
+        set_layout_items_visible(self.verticalLayout_app_download, False)
+        self.pushButton_app.clicked.connect(self._show_app_download)
+
+    def _show_app_download(self):
+        "hide the random QR code, show the one for the appstore"
+        set_layout_items_visible(self.verticalLayout_app_download, True)
+        set_layout_items_visible(self.verticalLayout_qr, False)
+        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Ok)
 
     def set_random_code(self, random_code):
         "update the QR code showing the cart id"
@@ -51,5 +80,3 @@ class LoadFromMobileAppDialog(QtGui.QDialog, Ui_LoadFromMobileAppDialog):
         qt_pixmap = QtGui.QPixmap()
         qt_pixmap.loadFromData(buf.getvalue(), "PNG")
         label.setPixmap(qt_pixmap)
-
-    
