@@ -21,7 +21,7 @@
 """dialog for loading the cart from a mobile application.
 It shows a QR Code as one-time-token for authentication."""
 
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from FabLabKasse.UI.uic_generated.LoadFromMobileAppDialog import Ui_LoadFromMobileAppDialog
 import qrcode
 import StringIO
@@ -50,6 +50,7 @@ class LoadFromMobileAppDialog(QtGui.QDialog, Ui_LoadFromMobileAppDialog):
     def __init__(self, parent, app_url):
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
+        self.setWindowState(QtCore.Qt.WindowMaximized)
         LoadFromMobileAppDialog.set_qr_label(self.label_qr_app, app_url)
         self.label_qr_app_url.setText(app_url)
         set_layout_items_visible(self.verticalLayout_app_download, False)
