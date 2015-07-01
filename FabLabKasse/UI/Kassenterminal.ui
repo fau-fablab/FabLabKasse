@@ -145,7 +145,7 @@ font-size: 16pt;
             <property name="minimumSize">
              <size>
               <width>140</width>
-              <height>50</height>
+              <height>70</height>
              </size>
             </property>
             <property name="maximumSize">
@@ -640,7 +640,7 @@ aus App laden</string>
             <item>
              <layout class="QVBoxLayout" name="verticalLayout_2">
               <property name="spacing">
-               <number>-1</number>
+               <number>6</number>
               </property>
               <item>
                <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -2213,7 +2213,7 @@ aus App laden</string>
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>19</height>
+     <height>39</height>
     </rect>
    </property>
    <property name="font">
