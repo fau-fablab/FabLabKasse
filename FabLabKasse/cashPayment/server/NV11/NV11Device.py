@@ -41,6 +41,9 @@ class ESSPDevice(object):
         self.slaveID = slaveID
         self.rawBuffer = []
         self.buffer = []
+        self.lastPacket = None
+        self.crypt = None
+        self.encryptionCounter = None
 
         self.unencryptedCommand([0x11])  # sync: start communications
 
@@ -400,9 +403,9 @@ class ESSPDevice(object):
                     r = self.decryptResponse(r)
                 else:
                     if r == False:
-                        self.info("response timeout")
+                        self.log("response timeout")
                     else:
-                        self.info("unsuccessful response: " + str(r))
+                        self.log("unsuccessful response: " + str(r))
             if r == False:
                 self.warn("Timeout or CRC/Crypto error -- resend necessary (not fatal, this may happen rarely)")
                 self.resendLast()
