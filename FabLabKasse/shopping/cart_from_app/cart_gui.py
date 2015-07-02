@@ -31,17 +31,20 @@ class MobileAppCartGUI(object):
 
     "GUI + logic for loading the cart from a mobile application. It shows a QR Code as one-time-token for authentication."
 
-    def __init__(self, parent, appstore_url):
+    def __init__(self, parent, cfg):
         """
         parent: GUI main object. used as Qt GUI parent and for accessing shoppingBackend
 
-        appstore_url: URL for QRcode that leads to the app installation
+        cfg: The config parser from gui.py
         """
         self.random_code = ""
+        appstore_url = None
+        if cfg.has_option('mobile_app', 'appstore_url'):
+            appstore_url = cfg.get('mobile_app', 'appstore_url')
         self.diag = LoadFromMobileAppDialog(parent, appstore_url)
         self.parent = parent
 
-        self.cart = MobileAppCartModel()
+        self.cart = MobileAppCartModel(cfg)
         self.cart.cart_id_changed.connect(self.diag.set_random_code)
 
         self.poll_timer = Qt.QTimer(self.parent)

@@ -28,10 +28,7 @@ import random
 import os
 from PyQt4.QtCore import pyqtSignal, QObject
 
-# TODO make this configurable
-SERVER_URL = "http://ec2-52-28-16-59.eu-central-1.compute.amazonaws.com/checkout/"
 # TODO self-signed ssl , we need HTTPS :(
-TIMEOUT = 10
 
 
 class MobileAppCartModel(QObject):
@@ -39,8 +36,14 @@ class MobileAppCartModel(QObject):
     "loads a cart from a mobile application"
     cart_id_changed = pyqtSignal(unicode)
 
-    def __init__(self):
+    def __init__(self, config):
+        """
+        config: the config parser from gui.py
+        """
         QObject.__init__(self)
+        self.cfg = config
+        self._server_url = None
+        self._timeout = None
         self._cart_id = None
 
     def generate_random_id(self):
@@ -49,6 +52,28 @@ class MobileAppCartModel(QObject):
         Debugging: set environment variable MOBILE_APP_FORCE_CODE=12345 to force a specific code"""
         rng = random.SystemRandom()
         self.cart_id = os.environ.get("MOBILE_APP_FORCE_CODE", str(rng.randint(0, 2 ** 63))).strip()
+
+    @property
+    def server_url(self):
+        """
+        Return the appservers query url
+        """
+        if self._server_url == None:
+            self._server_url = self.cfg.get('mobile_app', 'server_url')
+        return self._server_url
+
+    @property
+    def timeout(self):
+        """
+        Timeout for single requests
+        """
+        if self._timeout == None:
+            if self.cfg.has_option('mobile_app', 'timeout'):
+                self._timeout = self.cfg.getint('mobile_app', 'timeout')
+            else:
+                self._timeout = 10
+                logging.info(u"using default timeout value '10' as it wasn't set in the config")
+        return self._timeout
 
     @property
     def cart_id(self):
@@ -78,7 +103,7 @@ class MobileAppCartModel(QObject):
             self.generate_random_id()
             return False
         try:
-            req = requests.get(SERVER_URL + self.cart_id, timeout=TIMEOUT)  # , HTTPAdapter(max_retries=5))
+            req = requests.get(self.server_url + self.cart_id, timeout=self.timeout)  # , HTTPAdapter(max_retries=5))
             # TODO retries
         except requests.exceptions.RequestException:
             return False
@@ -120,7 +145,7 @@ class MobileAppCartModel(QObject):
         else:
             status = "cancelled"
         try:
-            req = requests.post(SERVER_URL + status + "/" + self.cart_id, timeout=TIMEOUT)  # , HTTPAdapter(max_retries=5))
+            req = requests.post(self.server_url + status + "/" + self.cart_id, timeout=self.timeout)  # , HTTPAdapter(max_retries=5))
             logging.debug("response: {}".format(repr(req.text)))
         except IOError:
             logging.warn("sending cart feedback failed")

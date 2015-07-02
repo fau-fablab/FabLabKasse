@@ -81,9 +81,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.setupUi(self)
         self.setWindowState(QtCore.Qt.WindowMaximized)
         self.shoppingBackend = ShoppingBackend(cfg)
-        
+
         # TODO check at startup for all cfg.get* calls
-        cfg.getint('payup_methods', 'overpayment_product_id') 
+        cfg.getint('payup_methods', 'overpayment_product_id')
         cfg.getint('payup_methods', 'payout_impossible_product_id')
 
         # enable kinetic scrolling by touch-and-drag
@@ -91,15 +91,15 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.charm.activateOn(self.table_order, disableScrollbars=False)
         self.charm.activateOn(self.table_products, disableScrollbars=False)
         self.charm.activateOn(self.list_categories, disableScrollbars=False)
-        
+
         for table in [self.table_products, self.table_order]:
-            # forbid resizing columns            
+            # forbid resizing columns
             table.verticalHeader().setResizeMode(QtGui.QHeaderView.Fixed)
-            # forbid changing column order            
+            # forbid changing column order
             table.verticalHeader().setMovable(False)
-            
+
             table.horizontalHeader().setResizeMode(QtGui.QHeaderView.Fixed) # forbid resizing columns
-            table.horizontalHeader().setMovable(False) # forbid changing column order            
+            table.horizontalHeader().setMovable(False) # forbid changing column order
             # Disable editing on table
             table.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 
@@ -175,7 +175,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
         self.lineEdit_Suche.focused.connect(self.on_lineEdit_search_clicked)
         self.lineEdit_Suche.clicked.connect(self.on_lineEdit_search_clicked) # this is necessary because in rare cases focused() is not emitted
-        
+
         self.lineEdit_Suche.cursorPositionChanged.connect(lambda x: self.lineEdit_Suche.end(False) ) # move cursor to end whenever it is moved
         self.lineEdit.cursorPositionChanged.connect(lambda x: self.lineEdit.end(False) ) # move cursor to end whenever it is moved
 
@@ -195,7 +195,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # Connect lineEdit to produce useful strings
         # use textEdited instead of textChanged because this ignores events caused by setText()
         self.lineEdit.textEdited.connect(self.on_lineEdit_changed)
-        
+
         # Connect lineEdit.returnPressed to be the same as clicking on ok button
         self.lineEdit.returnPressed.connect(self.on_ok_clicked)
 
@@ -213,7 +213,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
         # currently selected produkt group
         self.current_category = self.shoppingBackend.get_root_category()
-        
+
 
         # Initialize categories and products later, after resize events are done
         QtCore.QTimer.singleShot(0, self.updateProductsAndCategories)
@@ -230,7 +230,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.startupProgress.setLabelText(u"Initialisiere Bezahlsystem")
         self.startupProgress.setValue(0)
         self.startupProgress.show()
-        
+
         self.cashPollTimer = QtCore.QTimer()
         self.cashPollTimer.setInterval(500) # start with fast interval, later reduced
         self.cashPollTimer.timeout.connect(self.pollCashDevices)
@@ -260,7 +260,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                     QtGui.QMessageBox.warning(self, "Ups",
                             u"Servicemodus nicht aktiviert\n Bitte ./enableServiceMode ausführen")
                 return
-                
+
             delta=datetime.timedelta(0, 30, 0)
             now=datetime.datetime.utcnow()
             if not (now - delta < lastEnabled  < now):
@@ -316,7 +316,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             dialog.exec_()
             if checkServiceModeEnabled(showErrorMessage=False):
                 return
-    
+
     # Cancel button was pressed: exit manual-empty mode and wait for it to finish
     def serviceModeCancel(self):
         # do not run this function twice
@@ -329,12 +329,12 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             self.cashPayment.abortPayin()
         else:
             assert False
-        
+
         # show the progress dialog again, but without cancel button
         self.serviceProgress.setCancelButton(None)
         self.serviceProgress.show()
         # dialog will be closed by pollServiceMode when everything is finished
-            
+
     def pollServiceMode(self):
         self.cashPayment.poll()
         self.serviceProgress.setLabelText(self.cashPayment.statusText())
@@ -405,32 +405,32 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             font = button.font()
             font.setBold(True)
             button.setFont(font)
-        
+
     def updateProductsAndCategories(self, categories=None, products=None, category_path=None):
         """update models for products, categories, and the category path
-        
+
         categories: list(Category), products: list(Product), category_path: list(Category) or a string to display one non-clickable button"""
         if categories is None:
             categories = self.shoppingBackend.get_subcategories(self.current_category)
-        
+
         if products is None:
             products = self.shoppingBackend.get_products(self.current_category)
-            
+
         if category_path is None:
             category_path = self.shoppingBackend.get_category_path(self.current_category)
-        
+
         categ_model = QtGui.QStandardItemModel(len(categories), 1)
         for i, c in enumerate(categories):
             item = QtGui.QStandardItem(c.name)
             item.setData(c.categ_id)
             categ_model.setItem(i, 0, item)
         self.list_categories.setModel(categ_model)
-        
+
         # Clear all buttons in layout_category_path
         for i in range(self.layout_category_path.count()):
             self.layout_category_path.itemAt(i).widget().setVisible(False)
             self.layout_category_path.itemAt(i).widget().deleteLater()
-        
+
         if isinstance(category_path, basestring):
             # special case: display a string
             # used for "Search Results"
@@ -442,13 +442,13 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             # make last button with bold text
             if len(category_path) > 0:
                 self._add_to_category_path(category_path[-1].name, category_path[-1].categ_id, bold=True)
-        
+
         # set "all products" button to bold if the root category is selected
         font = self.pushButton_start.font()
         font.setBold(len(category_path) == 0)
         self.pushButton_start.setFont(font)
-        
-        prod_model = QtGui.QStandardItemModel(len(products), 4)    
+
+        prod_model = QtGui.QStandardItemModel(len(products), 4)
         for i, p in enumerate(products):
             name = QtGui.QStandardItem(p.name)
             name.setData(p.prod_id)
@@ -463,19 +463,19 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
             price = QtGui.QStandardItem(self.shoppingBackend.format_money(p.price))
             prod_model.setItem(i, 3, price)
-        
+
         prod_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("Artikel"))
         prod_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Lagerort"))
         prod_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Einheit"))
-        prod_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Einzelpreis"))        
-        
+        prod_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Einzelpreis"))
+
         self.table_products.setModel(prod_model)
         # Change column width to useful values
         # needs to be delayed so that resize events for the scrollbar happens first, otherwise it reports a scrollbar width of 100px at the very first call
         QtCore.QTimer.singleShot(0, functools.partial(self._resize_table_columns, self.table_products, [5, 2.5, 2, 1]))
-        
 
-    
+
+
     def _resize_table_columns(self, table, widths):
         "resize Qt table columns by the weight factors specified in widths, using the whole width (excluding scrollbar width)"
         w = table.width() - table.verticalScrollBar().width() - 5
@@ -495,22 +495,22 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.shoppingBackend.add_order_line(prod_id, qty, comment=text)
         self.updateOrder(selectLastItem=True)
         return
-            
 
 
-    def on_product_clicked(self):        
+
+    def on_product_clicked(self):
         # delete all zero-quantity products
         for line in list(self.shoppingBackend.get_order_lines()): # cast to list so that iterator is not broken when deleting items
             if line.qty == 0 and line.delete_if_zero_qty:
                 self.shoppingBackend.delete_order_line(line.order_line_id)
-        
+
         idx = self.table_products.currentIndex()
         row = idx.row()
         model = idx.model()
         if model is None:
             return
         prod_id = model.item(row,0).data().toInt()[0]
-        
+
         self.addOrderLine(prod_id)
         self.leaveSearch(keepResultsVisible=True) # show basket, but also keep search results visible
 
@@ -520,7 +520,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         if self.shoppingBackend.get_current_order() is None:
             # There is no order. Thus payup does not make sense.
             return
-        
+
         # rounding must take place in shoppingBackend
         total = self.shoppingBackend.get_current_total()
         if total == 0:
@@ -528,11 +528,11 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         assert isinstance(total, Decimal)
         assert total >= 0
         assert total % Decimal("0.01") == 0, "current order total is not rounded to cents"
-        if  total > 250: 
+        if  total > 250:
             # cash-accept is unlimited, but dispense is locked to maximum 200€ hardcoded. Limit to
             # a sensible amount here
             msgBox = QtGui.QMessageBox(self)
-            msgBox.setText(u"Bezahlungen über 250 Euro sind leider nicht möglich. Bitte wende " + 
+            msgBox.setText(u"Bezahlungen über 250 Euro sind leider nicht möglich. Bitte wende " +
                            u"dich an einen Betreuer, um es per Überweisung zu zahlen.")
             msgBox.exec_()
             return
@@ -558,7 +558,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                     QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                     QtGui.QMessageBox.No)
             return (reply == QtGui.QMessageBox.Yes)
-            
+
         # Receipt printing
         if cfg.getboolean('general', 'receipt'):
             if paymentmethod.print_receipt == "ask":
@@ -579,9 +579,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         return paymentmethod.successful
 
     def payViaApp(self):
-        p = MobileAppCartGUI(self, "http://test.de")
+        p = MobileAppCartGUI(self, cfg)
         p.execute()
-    
+
     def getSelectedOrderLineId(self):
         order_idx = self.table_order.currentIndex()
         if order_idx.model() and order_idx.isValid():
@@ -628,7 +628,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         comma_count = newString.count('.')
         if comma_count > 1:
             newString = newString.replace('.', '', comma_count-1)
-        
+
         selected_order_line_id = self.getSelectedOrderLineId() # selected order line
 
         # switch on the "decimal point" button if
@@ -674,7 +674,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.lineEdit.setText('')
         self.label_unit.setText('PLU / Artikelnummer:')
         self.pushButton_decimal_point.setEnabled(False)
-        
+
     def on_ok_clicked(self):
         # "OK" button pressed
         order_idx = self.table_order.currentIndex()
@@ -707,7 +707,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                 and not self.shoppingBackend.get_order_lines():
             self.shoppingBackend.delete_current_order()
             self.shoppingBackend.set_current_order(None)
-        
+
         # Currently no open cart
         if self.shoppingBackend.get_current_order() is None:
             self.table_order.setModel(QtGui.QStandardItemModel(0, 0))
@@ -715,9 +715,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             self.pushButton_payup.setEnabled(False)
             self.start_plu_entry()
             return
-        
+
         # TODO get_orders() ... and switch between tabs
-        
+
         # Save row selection and count
         old_selected_row = self.table_order.currentIndex().row()
         old_row_count = self.table_order.model().rowCount()
@@ -731,14 +731,14 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         order_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Artikel"))
         order_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Einzelpreis"))
         order_model.setHorizontalHeaderItem(4, QtGui.QStandardItem("Gesamtpreis"))
-        
+
         # Update Order lines
-        
+
         for i, line in enumerate(order_lines):
             qty = QtGui.QStandardItem(self.shoppingBackend.format_qty(line.qty))
             qty.setData(line.order_line_id)
             order_model.setItem(i, 0, qty)
-            
+
             uos = QtGui.QStandardItem(line.unit)
             order_model.setItem(i, 1, uos)
 
@@ -750,9 +750,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
             subtotal = QtGui.QStandardItem(self.shoppingBackend.format_money(line.price_subtotal))
             order_model.setItem(i, 4, subtotal)
-            
 
-        
+
+
         # Set Model
         self.table_order.setModel(order_model)
         # Change column width to useful values
@@ -770,11 +770,11 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             new_row_count = self.table_order.model().rowCount()
             if new_row_count == old_row_count:
                 self.table_order.selectRow(old_selected_row)
-        
+
         # Update summe:
         total = self.shoppingBackend.get_current_total()
         self.summe.setText(self.shoppingBackend.format_money(self.shoppingBackend.get_current_total()))
-        
+
 
         # disable "pay now" button on empty bill
         self.pushButton_payup.setEnabled(total > 0)
@@ -782,7 +782,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
     #keyboard search interaction
     def on_lineEdit_search_clicked(self):
         self.stackedWidget.setCurrentIndex(2)
-        
+
 
     def insertIntoLineEdit_Suche(self, char):
         self.lineEdit_Suche.setFocus()
@@ -809,7 +809,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.lineEdit_Suche.clear()
         if self.stackedWidget.currentIndex() != 1:
             # after search set view from keyboard to basket
-            self.stackedWidget.setCurrentIndex(1)      
+            self.stackedWidget.setCurrentIndex(1)
             if not keepResultsVisible:
                 self.updateProductsAndCategories()
         # Give focus to lineEdit
@@ -825,35 +825,35 @@ def main():
         print "please open winpdb [does also work on linux despite the name],\n set password to 'gui'\n, attach"
         print "(or use run.py --debug which does everything for you)"
         import rpdb2
-        rpdb2.start_embedded_debugger("gui") 
+        rpdb2.start_embedded_debugger("gui")
     # catch SIGINT
     scriptHelper.setupSigInt()
     # setup logging
     scriptHelper.setupLogging("gui.log")
     # error message on exceptions
     scriptHelper.setupGraphicalExceptHook()
-    
+
     app = QtGui.QApplication(sys.argv)
     # Hide mouse cursor if configured
     if cfg.getboolean('general', 'hide_cursor'):
         app.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-    
+
     # load locale for buttons, thanks to https://stackoverflow.com/questions/9128966/pyqt4-qfiledialog-and-qfontdialog-localization
     translator=QtCore.QTranslator()
     current_locale = QtCore.QLocale.system().name()
     translator.load('qt_%s' % current_locale, QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath))
     app.installTranslator(translator)
-    
+
     # Set style to "oxygen"
     app.setStyle("oxygen")
     app.setFont(QtGui.QFont("Carlito"))
     QtGui.QIcon.setThemeName("oxygen")
     logging.debug("icon theme: {}".format(QtGui.QIcon.themeName()))
     logging.debug("icon paths: {}".format([str(x) for x in QtGui.QIcon.themeSearchPaths()]))
-    
+
     kt = Kassenterminal()
     kt.show()
-    
+
     sys.exit(app.exec_())
 
 if __name__ == '__main__':

@@ -21,10 +21,13 @@ userid_serial_interface = test123 ; path to sercial interface
 [backend]
 ; which payment is used for products, categories, order storage, ...
 backend=dummy
-; FAU FabLab: backend=legacy_offline_kassenbuch
+;backend=legacy_offline_kassenbuch ; FAU FabLab
 
 [mobile_app]
 enabled = no
+server_url = http://ec2-52-28-16-59.eu-central-1.compute.amazonaws.com/checkout/
+appstore_url = https://play.google.com/store/apps/details?id=de.fau.cs.mad.fablab.android
+;timeout = 10
 
 [receipt]
 header: FAU FabLab
