@@ -847,10 +847,9 @@ def main():
     # Set style to "oxygen"
     app.setStyle("oxygen")
     app.setFont(QtGui.QFont("Carlito"))
-    # TODO icons currently don't work in the real system, but they do under KDE. find out how, add theme search path
-    #QtGui.QIcon.setThemeName("mono")
-    print "icon theme: ", QtGui.QIcon.themeName()
-    print "icon paths: ", [str(x) for x in QtGui.QIcon.themeSearchPaths()]
+    QtGui.QIcon.setThemeName("oxygen")
+    logging.debug("icon theme: {}".format(QtGui.QIcon.themeName()))
+    logging.debug("icon paths: {}".format([str(x) for x in QtGui.QIcon.themeSearchPaths()]))
     
     kt = Kassenterminal()
     kt.show()
