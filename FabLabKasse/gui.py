@@ -39,7 +39,7 @@ import datetime
 import os
 from decimal import Decimal
 from PyQt4 import QtGui, QtCore, Qt
-from libs.flickcharm import FlickCharm
+from libs.flickcharmpython import FlickCharm
 import functools
 
 #import UI
