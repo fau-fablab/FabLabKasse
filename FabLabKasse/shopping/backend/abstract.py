@@ -4,15 +4,15 @@
 # Copyright (C) 2013-2015 Julian Hammer <julian.hammer@fablab.fau.de>
 #                         Maximilian Gaukler <max@fablab.fau.de>
 #                         Timo Voigt <timo@fablab.fau.de>
-# 
+#
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
@@ -65,7 +65,7 @@ class Category(object):
         self.categ_id = categ_id
         self.name = name
         self.parent_id = parent_id
-    
+
     def __repr__(self):
         return "Category({}, {}, {})".format(self.categ_id, repr(self.name), self.parent_id)
 
@@ -78,12 +78,12 @@ class Product(object):
     qty_rounding: 0 (product can be bought in arbitrarily small quantities)
                   int or Decimal (product can only be bought in multiples of this quantity, GUI input can be rounded/truncated)
                   example: you cannot buy half a t-shirt, so you set qty_rounding = 1
-                  
+
                   handling this is responsibility of the shopping backend
     """
     def __init__(self, prod_id, name, price, unit, location, categ_id=None, qty_rounding=0, text_entry_required=False):
         """price: Decimal
-        
+
         categ_id may be None if the product is not visible""" # TODO hide these products from search, or a more explicit solution
         self.prod_id = prod_id
         self.name = name
@@ -101,22 +101,22 @@ class OrderLine(object):
     def __init__(self, order_line_id, qty, unit, name, price_per_unit, price_subtotal, delete_if_zero_qty=True):
         """
         one order line (roughly equal to a product in a shopping cart, although there may be multiple entries for one product)
-        
+
         id: id of order-line, *must be unique and non-changing* inside one Order() (if None: autogenerate id)
-        
+
         qty: Decimal ("unlimited" number of digits)
-        
+
         unit: text
-        
+
         name: text
-        
+
         price_per_unit: Decimal
-        
+
         price_subtotal: Decimal
-        
+
         delete_if_zero_qty: boolean - if the qty is zero and the user starts adding something else, then remove this line
            [ usually True, set to False for products that also may as comment limes costing nothing ]
-        
+
         """
         self.order_line_id = order_line_id
         if order_line_id == None:
@@ -129,7 +129,7 @@ class OrderLine(object):
         isinstance(price_subtotal, (Decimal, int))
         self.price_subtotal = price_subtotal
         self.delete_if_zero_qty = delete_if_zero_qty
-    
+
     def __str__(self):
         return u"{} {} {} = {}".format(format_qty(self.qty), self.unit, self.name, format_money(self.price_subtotal))
 
@@ -142,7 +142,7 @@ class DebtLimitExceeded(Exception):
 class ProductNotFound(Exception):
     "requested product not found"
     pass
-    
+
 class PrinterError(Exception):
     "cannot print receipt"
     pass
@@ -157,13 +157,13 @@ class AbstractShoppingBackend(object):
 
     def format_money(self, amount):
         return format_money(amount)
-        
+
     def format_qty(self, qty):
         return format_qty(qty)
 
-    ##########################################    
+    ##########################################
     # categories
-    ##########################################    
+    ##########################################
 
 
     @abstractmethod
@@ -181,31 +181,31 @@ class AbstractShoppingBackend(object):
     def get_category_path(self, current_category):
         """ return the category path from the root to the current category,
         *excluding* the root category
-        
+
         [child_of_root, ..., parent_of_current, current_category]
-        
+
         return type: list(Category)"""
         pass
-    
-    
-    ##########################################    
+
+
+    ##########################################
     # products
-    ##########################################    
+    ##########################################
 
     @abstractmethod
     def get_products(self, current_category):
         """return products in current category
-        
+
         return type: list(Product)
         """
         pass
-    
+
     @abstractmethod
     def search_product_from_code(self, code):
         """search via barcode, PLU or similar unique-ID entry. code may be any string
-        
+
         returns product id
-        
+
         raises ProductNotFound() if nothing found"""
         pass
 
@@ -214,30 +214,30 @@ class AbstractShoppingBackend(object):
         '''
         search searchstr in products and categories
         return tuple (list of categories, products for table)
-        
+
         return type is like in (get_subcategories(), get_products())
         '''
         pass
-    
-    ##########################################    
+
+    ##########################################
     # order handling
-    ##########################################    
+    ##########################################
 
     @abstractmethod
     def create_order(self):
         """ create a new order and return its id"""
         pass
-    
+
     @abstractmethod
     def delete_current_order(self):
         """ delete currently selected order"""
         pass
-        
+
     @abstractmethod
     def set_current_order(self, order_id):
         """ switch to another order (when the backend supports multiple orders) """
         pass
-    
+
     @abstractmethod
     def get_current_order(self):
         """ get selected order (or return 0 if switching between multiple orders is not supported) """
@@ -246,57 +246,67 @@ class AbstractShoppingBackend(object):
     @abstractmethod
     def get_order_lines(self):
         """return current order lines
-        
+
         return type: OrderLine"""
         pass
-    
+
     @abstractmethod
     def get_order_line(self, order_line_id):
         """ get order line of current order """
         pass
-    
-    
+
+
     def get_current_total(self):
         """ calculate total sum of current order
-        
+
         returns Decimal so that values are exactly comparable """
         total = 0
         for line in self.get_order_lines():
             total += line.price_subtotal
         return float_to_decimal(round(total, 2), 2)
-    
+
     @abstractmethod
     def update_quantity(self, order_line_id, amount):
         """ change quantity of order-line.
-        
+
         if not all float values are allowed,
         round upvalue to the next possible one """
         pass
-    
+
     def product_requires_text_entry(self, prod_id):
         "when adding prod_id, should the user be asked for a text entry for entering comments like his name?"
         return False
-    
+
     @abstractmethod
     def add_order_line(self, prod_id, qty, comment=None):
         """add product to cart
-        
-        if not all float values are allowed,
-        round upvalue to the next possible one
-        
-        comment: textual comment from the user, or None. The user will only be asked for a comment if self.product_requires_text_entry(prod_id) == True"""
+
+        if not all values are allowed, ``qty`` is rounded up
+        to the next possible amount
+
+        The user should only be asked for a comment by the GUI if
+        ``self.product_requires_text_entry(prod_id) == True``
+
+        :param prod_id: product
+        :type prod_id: int
+        :param qty: amount of product
+        :type qty: Decimal
+        :type comment: (basestring, None)
+        :param comment: textual comment from the user, or None.
+        :raise: ProductNotFound
+        """
         pass
-    
+
     def delete_order_line(self, order_line_id):
         "delete product from cart"
         pass
 
-    ##########################################    
+    ##########################################
     # payment
-    ##########################################    
+    ##########################################
 
 
-    @abstractmethod    
+    @abstractmethod
     def pay_order(self, method):
         """store payment of current order to database
         @param method: payment method object, whose type is ued to determine where the order should be stored in the database
@@ -304,7 +314,7 @@ class AbstractShoppingBackend(object):
         """
         # TODO assert amount_paid - amount_returned == self.get_current_total()
         pass
-    
+
     def pay_order_on_client(self, client):
         """charge the order on client's account
 
@@ -333,16 +343,16 @@ class AbstractShoppingBackend(object):
 
         client: AbstractClient"""
         pass
-    
+
     @abstractmethod
     def list_clients(self):
         """returns all selectable clients in a dict {id: Client(id), ...}"""
         pass
-    
+
     @abstractmethod
     def print_receipt(self, order_id):
         """print the receipt for a given, already paid order_id
-        
+
         The receipt data must be stored in the backend, because for accountability reasons all receipt texts need to be stored anyway."""
         pass
 
@@ -375,4 +385,3 @@ def basicUnitTests(shopping_backend): # for implentations
     shopping_backend.search_product("")
     shopping_backend.search_product(u"öläöäl")
     shopping_backend.search_product(u"       ")
-    

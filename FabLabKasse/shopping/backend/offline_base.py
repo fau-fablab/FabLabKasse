@@ -30,12 +30,12 @@ class ProductBasedOrderLine(OrderLine):
                            price_subtotal=0,
                            delete_if_zero_qty=(comment == ""))
         self.set_quantity_rounded(qty)
-    
+
     @property
     def qty(self):
         "quantity (may only be set with set_quantity_rounded)"
         return self._qty
-        
+
     @qty.setter
     def qty(self, value):
         assert isinstance(value, (Decimal, int))
@@ -43,7 +43,7 @@ class ProductBasedOrderLine(OrderLine):
         assert (self.product.qty_rounding == 0) or (value % self.product.qty_rounding == 0), "quantity must be a multiple of qty_rounding!"
         self._qty = value
         self.price_subtotal = self.price_per_unit * self._qty
-    
+
     def set_quantity_rounded(self, qty):
         "update quantity, taking Product.qty_rounding into account"
         qty = Decimal(qty)
@@ -52,7 +52,7 @@ class ProductBasedOrderLine(OrderLine):
             # round up to multiple of qty
             if qty % qty_rounding > 0:
                 qty += qty_rounding - (qty % qty_rounding)
-        self.qty = qty.normalize() # use normalize() to strip trailing ,0000 
+        self.qty = qty.normalize() # use normalize() to strip trailing ,0000
 
 
 class OfflineCategoryTree(object):
@@ -263,7 +263,7 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
             matching_product = [self.tree.get_product(matching_product)]
         except ProductNotFound:
             matching_product = []
-        
+
         # 2. search by string
         return (self.tree.search_categories(searchstr), matching_product + self.tree.search_products(searchstr))
 
@@ -323,7 +323,11 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
         return self.tree.products[prod_id].text_entry_required
 
     def add_order_line(self, prod_id, qty, comment=None):
-        self._get_current_order_obj().add_order_line(self.tree.products[prod_id], qty, comment)
+        try:
+            product = self.tree.products[prod_id]
+        except KeyError:
+            raise ProductNotFound()
+        self._get_current_order_obj().add_order_line(product, qty, comment)
 
     def delete_order_line(self, order_line_id):
         self._get_current_order_obj().delete_order_line(order_line_id)
@@ -351,7 +355,7 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
     @abstractmethod
     def _store_client_payment(self, client):
         """save client payment of current order to database
-        
+
         client: AbstractClient"""
         pass
 

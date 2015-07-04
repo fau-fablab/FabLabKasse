@@ -91,13 +91,14 @@ class MobileAppCartModel(QObject):
         self.cart_id_changed.emit(value)
 
     def load(self):
-        """Load cart from server
+        """Load cart from server and return it, or ``False`` if no cart has
+        been uploaded yet for the current id or if an error occured
 
-        Returns:
-            list of tuples (product_code, quantity)
-            or False
+        :return:  list of tuples (product_code, quantity) or False
 
-        If the cart id seems already used, the random code is updated. please connect to the cart_id_changed() signal and update the shown QR code.
+        :raise: None (hopefully) - just returns False in normal cases of error
+
+        If the cart id seems already used, the random cart id is updated. please connect to the cart_id_changed() signal and update the shown QR code.
         """
         if self.cart_id == None:
             self.generate_random_id()
@@ -129,16 +130,13 @@ class MobileAppCartModel(QObject):
         return cart
 
     def send_status_feedback(self, success):
-        """send response from server
+        """send response to server
 
-        Args:
-           success (boolean): was the payment successful (True) or canceled (False)
+        :param success: was the payment successful (True) or canceled (False)
+        :type success: boolean
 
-        Returns:
-            nothing
-
-        Raises:
-           nothing (hopefully)
+        :return: None
+        :raise: None (hopefully)
         """
         if success:
             status = "paid"

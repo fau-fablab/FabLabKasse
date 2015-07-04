@@ -22,6 +22,7 @@
 from PyQt4 import Qt, QtGui
 from FabLabKasse.UI.LoadFromMobileAppDialogCode import LoadFromMobileAppDialog
 from FabLabKasse.shopping.cart_from_app.cart_model import MobileAppCartModel
+from FabLabKasse.shopping.backend.abstract import ProductNotFound
 import logging
 
 # check that current cart is empty
@@ -73,29 +74,38 @@ class MobileAppCartGUI(object):
     def pay_cart(self, cart):
         """ import given cart (from server's response), let the user pay it
 
-        @param cart: response from server
-        @rtype: bool
-        @return: True if successfully paid, False otherwise.
+        :param cart: cart received from server
+        :type cart: see MobileAppCartModel.load()
+        :rtype: bool
+        :return: True if successfully paid, False otherwise.
         """
         # cart received
         new_order = self.parent.shoppingBackend.create_order()
         self.parent.shoppingBackend.set_current_order(new_order)
 
-        for (product, quantity) in cart:
-            self.parent.shoppingBackend.add_order_line(prod_id=product, qty=quantity)
+        try:
+            for (product, quantity) in cart:
+                self.parent.shoppingBackend.add_order_line(prod_id=product, qty=quantity)
 
-        # check total sum
-        # TODO this is ugly and doesn't show everything when there are too many articles
-        # make a nice GUI out of it
-        infotext = u"Stimmt der Warenkorb? \n"
-        order_lines = self.parent.shoppingBackend.get_order_lines()
-        for line in order_lines[0:10]:
-            infotext += unicode(line) + "\n"
-        if len(order_lines) > 10:
-            infotext += "... und {} weitere Posten ...\n".format(len(order_lines) - 10)
-        infotext += u"Gesamt: {}\n".format(self.parent.shoppingBackend.format_money(self.parent.shoppingBackend.get_current_total()))
-        okay = QtGui.QMessageBox.information(self.parent, "Warenkorb", infotext, QtGui.QMessageBox.Cancel | QtGui.QMessageBox.Yes)
-        okay = okay == QtGui.QMessageBox.Yes
+            # check total sum
+            # TODO this is ugly and doesn't show everything when there are too many articles
+            # make a nice GUI out of it
+            infotext = u"Stimmt der Warenkorb? \n"
+            order_lines = self.parent.shoppingBackend.get_order_lines()
+            for line in order_lines[0:10]:
+                infotext += unicode(line) + "\n"
+            if len(order_lines) > 10:
+                infotext += "... und {} weitere Posten ...\n".format(len(order_lines) - 10)
+            infotext += u"Gesamt: {}\n".format(self.parent.shoppingBackend.format_money(self.parent.shoppingBackend.get_current_total()))
+            okay = QtGui.QMessageBox.information(self.parent, "Warenkorb", infotext, QtGui.QMessageBox.Cancel | QtGui.QMessageBox.Yes)
+            okay = okay == QtGui.QMessageBox.Yes
+        except ProductNotFound:
+            logging.warning(u"error importing cart from app: product not found"
+                            u"Might be caused by outdated cache in the app, "
+                            u"the terminal or somewhere else.")
+            QtGui.QMessageBox.information(self.parent, "Warenkorb", u"Entschuldigung, beim Import ist leider ein Fehler aufgetreten.\n (Produkt nicht gefunden)")
+            okay = False
+
         if okay:
             # try payup
             successful = (self.parent.payup() == True)
