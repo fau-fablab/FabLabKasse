@@ -62,9 +62,9 @@ class LoadFromMobileAppDialog(QtGui.QDialog, Ui_LoadFromMobileAppDialog):
             self.label_qr_app_url.setText(app_url)
 
     def _show_app_download(self):
-        "hide the random QR code, show the one for the appstore"
-        set_layout_items_visible(self.verticalLayout_app_download, True)
+        "hide the random QR code, show the one for the appstore"        
         set_layout_items_visible(self.verticalLayout_qr, False)
+        set_layout_items_visible(self.verticalLayout_app_download, True)
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Ok)
 
     def set_random_code(self, random_code):
