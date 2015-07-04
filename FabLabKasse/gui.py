@@ -79,7 +79,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self)
 
         self.setupUi(self)
-        self.setWindowState(QtCore.Qt.WindowMaximized)
+        # maximize window - WORKAROUND because showMaximized() doesn't work
+        # when a default geometry is set in the Qt designer file
+        QtCore.QTimer.singleShot(0, lambda: self.setWindowState(QtCore.Qt.WindowMaximized))
         self.shoppingBackend = ShoppingBackend(cfg)
 
         # TODO check at startup for all cfg.get* calls

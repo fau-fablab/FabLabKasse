@@ -27,7 +27,9 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
         "payment method dialog for automatic cash payin and payout"
         QtGui.QDialog.__init__(self,parent)
         self.setupUi(self)
-        self.setWindowState(QtCore.Qt.WindowMaximized)
+        # maximize window - WORKAROUND because showMaximized() doesn't work
+        # when a default geometry is set in the Qt designer file
+        QtCore.QTimer.singleShot(0, lambda: self.setWindowState(QtCore.Qt.WindowMaximized))
         self.pushButton_return.clicked.connect(self.payoutReturnCompletely)
         self.pushButton_donate.clicked.connect(self.donateReturn)
         self.pushButton_acceptLowPayout.clicked.connect(self.acceptLowPayoutWarning)

@@ -50,7 +50,9 @@ class LoadFromMobileAppDialog(QtGui.QDialog, Ui_LoadFromMobileAppDialog):
     def __init__(self, parent, app_url):
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
-        self.setWindowState(QtCore.Qt.WindowMaximized)
+        # maximize window - WORKAROUND because showMaximized() doesn't work
+        # when a default geometry is set in the Qt designer file
+        QtCore.QTimer.singleShot(0, lambda: self.setWindowState(QtCore.Qt.WindowMaximized))
         set_layout_items_visible(self.verticalLayout_app_download, False)
         self.pushButton_app.clicked.connect(self._show_app_download)
         if app_url == None:
