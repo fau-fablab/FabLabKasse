@@ -5,7 +5,11 @@ FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-bas
 
 See INSTALLING for detailed instructions on how to install the required dependencies. You can skip the configuration stuff for later.
 
-For the first try, you can just do:
+Please checkout the repository recursively since it contains submodules:
+
+`git clone --recursive git@github.com:fau-fablab/FabLabKasse.git`
+
+Then, for the first try, you can just do:
 
 `./run.py --example`
 
