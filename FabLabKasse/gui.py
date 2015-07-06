@@ -816,7 +816,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
     def _resetcategory(self):
         """resets the categories to the default category (id=0)"""
-        self.changeProductCategory(category=0)
+        self.on_start_clicked()
 
     def _checkidle(self):
         """checks whether the GUI is idle for a great time span
