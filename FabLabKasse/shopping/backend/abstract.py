@@ -22,9 +22,10 @@ base class and interface definition for specific implementations (see other file
 """
 
 from abc import ABCMeta, abstractmethod  # abstract base class support
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 import itertools
 import locale
+import unittest
 
 # counter for unique id values, use next(_id_counter) to get a new ID
 _id_counter = itertools.count()
@@ -59,6 +60,7 @@ def format_money(amount):
         formatted = formatted[:-1]
 
     return u'{} €'.format(formatted).replace('.', ',')
+
 
 class Category(object):
     def __init__(self, categ_id, name, parent_id=None):
@@ -161,10 +163,24 @@ class AbstractShoppingBackend(object):
     def format_qty(self, qty):
         return format_qty(qty)
 
+    @staticmethod
+    def round_money(value):
+        """rounds money in Decimal representation to 2 places
+
+        Main purpose is shopping.backend.abstract.AbstractShoppingBackend.get_current_total(),
+        since round() does behave weird. But maybe there are other applications too.
+
+        :param value: an amount of money to be rounded
+        :type value: float | Decimal
+        :return: money, rounded to 2 digits
+        :rtype: Decimal
+        """
+        value = Decimal(value).quantize(Decimal('1.00'), rounding=ROUND_HALF_UP)
+        return value
+
     ##########################################
     # categories
     ##########################################
-
 
     @abstractmethod
     def get_root_category(self):
@@ -186,7 +202,6 @@ class AbstractShoppingBackend(object):
 
         return type: list(Category)"""
         pass
-
 
     ##########################################
     # products
@@ -276,7 +291,7 @@ class AbstractShoppingBackend(object):
         total = 0
         for line in self.get_order_lines():
             total += line.price_subtotal
-        return float_to_decimal(round(total, 2), 2)
+        return self.round_money(total)
 
     @abstractmethod
     def update_quantity(self, order_line_id, amount):
@@ -394,7 +409,28 @@ class AbstractClient(object):
 
 
 def basicUnitTests(shopping_backend): # for implentations
-# TODO use these somewhere
+# TODO use these somewhere, integrate into unittest below
     shopping_backend.search_product("")
     shopping_backend.search_product(u"öläöäl")
     shopping_backend.search_product(u"       ")
+
+
+class AbstractShoppingBackendTest(unittest.TestCase):
+    """test the AbstractShoppingBackend class
+
+    TODO extend this test
+    """
+
+    def test_round_money_subcent_values(self):
+        """test the money-rounding function
+
+        the test checks the rounding of subcent values
+        """
+        for i in range(1000):
+            # round up 0.005  -> 0.01
+            reference = (i + 1) * Decimal("0.01")
+            self.assertEqual(AbstractShoppingBackend.round_money(Decimal("0.005") + Decimal("0.01") * i), reference)
+
+
+if __name__ == "__main__":
+    unittest.main()
