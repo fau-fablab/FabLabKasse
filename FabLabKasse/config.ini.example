@@ -25,7 +25,8 @@ backend=dummy
 
 [mobile_app]
 enabled = no
-server_url = http://ec2-52-28-16-59.eu-central-1.compute.amazonaws.com/checkout/
+server_url = http://ec2-52-28-173-123.eu-central-1.compute.amazonaws.com/checkout/ ;production
+;server_url = http://ec2-52-28-16-59.eu-central-1.compute.amazonaws.com/checkout/ ;development
 appstore_url = https://play.google.com/store/apps/details?id=de.fau.cs.mad.fablab.android
 ;timeout = 10
 
