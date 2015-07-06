@@ -634,7 +634,7 @@ aus App laden</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="resetBtn">
+                 <widget class="QPushButton" name="pushButton_clearCart">
                   <property name="enabled">
                    <bool>false</bool>
                   </property>

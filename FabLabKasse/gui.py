@@ -124,6 +124,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.pushButton_decimal_point.clicked.connect(lambda x: self.insertIntoLineEdit(locale.localeconv()['decimal_point']))
         self.pushButton_decimal_point.setText(locale.localeconv()['decimal_point'])
         self.pushButton_payup.clicked.connect(self.payup)
+        self.pushButton_clearCart.clicked.connect(self._clear_cart)
 
         # Connect keyboard buttons
         # TODO nicer code: for foo in layout_widgets():     foo.connect( functools.partial(insert ... foo.text().lower())
@@ -239,7 +240,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
         self.idleCheckTimer = QtCore.QTimer()
         self.idleCheckTimer.setInterval(10000)
-        self.idleCheckTimer.timeout.connect(self._resetifidle)
+        self.idleCheckTimer.timeout.connect(self._reset_if_idle)
         self.idleCheckTimer.start()
 
         self.CATEGORY_VIEW_RESET_TIME = 1800000  # idle threshold time in ms, is half an hour
@@ -583,9 +584,8 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                     logging.warning("printing receipt failed: {}".format(repr(e)))
         if paymentmethod.successful:
             paymentmethod.show_thankyou()
-            self.shoppingBackend.set_current_order(None)
-            self.updateOrder()
-            self._resetcategory()
+            self._clear_cart(hide_dialog=True)
+            self._reset_category()
         return paymentmethod.successful
 
     def payViaApp(self):
@@ -721,6 +721,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             self.table_order.setModel(QtGui.QStandardItemModel(0, 0))
             self.summe.setText(u'0,00 €')
             self.pushButton_payup.setEnabled(False)
+            self.pushButton_clearCart.setEnabled(False)
             self.start_plu_entry()
             return
 
@@ -783,6 +784,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
         # disable "pay now" button on empty bill
         self.pushButton_payup.setEnabled(total > 0)
+        self.pushButton_clearCart.setEnabled(total > 0)
 
     # keyboard search interaction
     def on_lineEdit_search_clicked(self):
@@ -819,11 +821,11 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # Give focus to lineEdit
         self.lineEdit.setFocus()
 
-    def _resetcategory(self):
+    def _reset_category(self):
         """resets the categories to the default category (id=0)"""
         self.on_start_clicked()
 
-    def _checkidle(self):
+    def _check_idle(self):
         """checks whether the GUI is idle for a great time span
 
         Uses the information from screensaver to check whether the GUI is idle for a hardcoded time span.
@@ -831,21 +833,42 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         :rtype: bool
         :return: true if GUI is idle
         """
-        idlestate = self.idleTracker.check_idle()
+        idle_state = self.idleTracker.check_idle()
         # check_idle() returns a tupel (state_change, suggested_time_till_next_check, idle_time)
         # the state "idle" is entered after the time configured in self.CATEGORY_VIEW_RESET_TIME
-        idlekeyword = "idle"
-        if idlestate[0] == idlekeyword:
+        idle_keyword = "idle"
+        if idle_state[0] == idle_keyword:
             return True
-        elif idlestate[0] is None and self.idleTracker.last_state == idlekeyword:
+        elif idle_state[0] is None and self.idleTracker.last_state == idle_keyword:
             return True
         else:
             return False
 
-    def _resetifidle(self):
+    def _reset_if_idle(self):
         """resets the category-view of the GUI if it is idle for a certain timespan"""
-        if self._checkidle():
-            self._resetcategory()
+        if self._check_idle():
+            self._reset_category()
+
+    def _clear_cart(self, hide_dialog=False):
+        """clear the current cart
+
+        :param show_dialog: whether the user should be asked
+        :type show_dialog: bool
+        """
+
+        def ask_user():
+            """ask the user whether he really wants to clear the cart, return True if he does."""
+            reply = QtGui.QMessageBox.question(self, 'Message',
+                    u"Willst du den Warenkorb wirklich löschen?",
+                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                    QtGui.QMessageBox.No)
+            return (reply == QtGui.QMessageBox.Yes)
+        user_answer = True
+        if hide_dialog is False:
+            user_answer = ask_user()
+        if user_answer:
+            self.shoppingBackend.set_current_order(None)
+            self.updateOrder()
 
 
 def main():
