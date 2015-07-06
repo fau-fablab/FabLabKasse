@@ -41,6 +41,7 @@ import os
 from decimal import Decimal
 from PyQt4 import QtGui, QtCore, Qt
 from libs.flickcharmpython import FlickCharm
+from libs.pxss import pxss
 import functools
 
 #import UI
@@ -240,6 +241,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.idleCheckTimer.setInterval(10000)
         self.idleCheckTimer.timeout.connect(self._resetifidle)
         self.idleCheckTimer.start()
+
+        self.CATEGORY_VIEW_RESET_TIME = 1800000  # idle threshold time in ms, is half an hour
+        self.idleTracker = pxss.IdleTracker(idle_threshold=self.CATEGORY_VIEW_RESET_TIME)
 
         self.pushButton_load_cart_from_app.setVisible(cfg.has_option("mobile_app", "enabled") and cfg.getboolean("mobile_app", "enabled"))
 
@@ -827,8 +831,16 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         :rtype: bool
         :return: true if GUI is idle
         """
-        # TODO implement
-        return False
+        idlestate = self.idleTracker.check_idle()
+        # check_idle() returns a tupel (state_change, suggested_time_till_next_check, idle_time)
+        # the state "idle" is entered after the time configured in self.CATEGORY_VIEW_RESET_TIME
+        idlekeyword = "idle"
+        if idlestate[0] == idlekeyword:
+            return True
+        elif idlestate[0] is None and self.idleTracker.last_state == idlekeyword:
+            return True
+        else:
+            return False
 
     def _resetifidle(self):
         """resets the category-view of the GUI if it is idle for a certain timespan"""
