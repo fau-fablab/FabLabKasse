@@ -94,7 +94,7 @@ class CashServer:
 
         while True:
             command = self.readlineStdinNonblocking()
-            if command != None:
+            if command is not None:
                 command = command.strip()
                 logging.info("cmd: " + command + "\n")
                 acceptCommandMatch = re.match("^ACCEPT ([0-9]+)$", command)
@@ -208,7 +208,7 @@ class CashServer:
         # TODO improve currentMode so that "stopping..." is not the same mode for dispense and accept
         # would like something like:  assert self.currentMode.contains("accept")
         assert self.moneyDispenseAllowed == 0, "error: money received while in dispensing-mode!"
-        assert not self.currentMode in ["dispense", "stopped",
+        assert self.currentMode not in ["dispense", "stopped",
                                         "idle"], "error: money received while in dispensing-mode!"
         self.__moneyReceivedTotal += count * denomination
 
@@ -221,7 +221,7 @@ class CashServer:
         # would like something like:
         # assert self.currentMode.contains("dispense")
         assert self.moneyReceiveAllowed == 0, "error: money dispensed while in accepting-mode!"
-        assert not self.currentMode in ["accept", "stopped", "idle"], "error: money dispensed while in accepting-mode!"
+        assert self.currentMode not in ["accept", "stopped", "idle"], "error: money dispensed while in accepting-mode!"
         self.__moneyDispensedTotal += count * denomination
 
     # internal move (between different subindices of the cash device)

@@ -5,15 +5,15 @@
 # Copyright (C) 2014  Julian Hammer <julian.hammer@fablab.fau.de>
 #                     Maximilian Gaukler <max@fablab.fau.de>
 #                     Timo Voigt <timo@fablab.fau.de>
-# 
+#
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
@@ -27,17 +27,19 @@ from FabLabKasse import scriptHelper
 import shutil
 scriptHelper.setupSigInt()
 
-reallyPrint=print
+reallyPrint = print
+
+
 def print(x):
     sys.stdout.write(x + "\n")
     sys.stdout.flush()
 
 
-
-currentDir=os.path.dirname(__file__)+"/"
+currentDir = os.path.dirname(__file__)+"/"
 os.chdir(currentDir)
-currentDir=os.getcwd() + "/"
+currentDir = os.getcwd() + "/"
 os.chdir(currentDir+"/FabLabKasse/")
+
 
 def file_exists(filename):
     try:
@@ -61,13 +63,13 @@ os.chdir(currentDir+"/FabLabKasse/UI/")
 subprocess.call("./compile_all.py")
 
 os.chdir(currentDir+"/FabLabKasse/")
-#subprocess.call("./importProdukte.py")
-myEnv=dict(os.environ)
-myEnv["LANG"]="de_DE.UTF-8"
-myEnv["PYTHONIOENCODING"]="UTF-8"
-myEnv["PYTHONPATH"] = currentDir # FabLabKasse git folder should be the main module starting point
+# subprocess.call("./importProdukte.py")
+myEnv = dict(os.environ)
+myEnv["LANG"] = "de_DE.UTF-8"
+myEnv["PYTHONIOENCODING"] = "UTF-8"
+myEnv["PYTHONPATH"] = currentDir  # FabLabKasse git folder should be the main module starting point
 
-    
+
 cfg = scriptHelper.getConfig()
 
 if not ('--no-update' in sys.argv):
@@ -77,12 +79,11 @@ if not ('--no-update' in sys.argv):
         subprocess.call("./shopping/backend/legacy_offline_kassenbuch_tools/importProdukteOERP.py", env=myEnv)
 
 
-
-"run sudo <program> and wait forever until the system reboots / shuts down"
 def runShutdown(program):
+    "run sudo <program> and wait forever until the system reboots / shuts down"
     print("calling {}".format(program))
     time.sleep(1)
-    if subprocess.call(["sudo",program]) != 0:
+    if subprocess.call(["sudo", program]) != 0:
         print("cannot sudo {}".format(program))
         time.sleep(5)
     else:
@@ -93,10 +94,10 @@ def runShutdown(program):
 
 os.chdir(currentDir+"/FabLabKasse/")
 print("starting GUI")
-debug=""
+debug = ""
 if "--debug" in sys.argv:
-    debug="--debug"
-    fu=subprocess.Popen("winpdb -a gui.py".split(" "), stdin=subprocess.PIPE)
+    debug = "--debug"
+    fu = subprocess.Popen("winpdb -a gui.py".split(" "), stdin=subprocess.PIPE)
     fu.stdin.write("gui")
     fu.stdin.close()
 subprocess.call("python2.7 -m FabLabKasse.gui {}".format(debug).split(" "), env=myEnv)
