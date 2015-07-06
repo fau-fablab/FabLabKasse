@@ -590,7 +590,8 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                     logging.warning("printing receipt failed: {}".format(repr(e)))
         if paymentmethod.successful:
             paymentmethod.show_thankyou()
-            self._clear_cart(hide_dialog=True)
+            self.shoppingBackend.set_current_order(None)
+            self.updateOrder()
             self.on_start_clicked()
         return paymentmethod.successful
 
