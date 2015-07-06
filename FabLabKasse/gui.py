@@ -238,7 +238,13 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.cashPollTimer.timeout.connect(self.pollCashDevices)
         self.cashPollTimer.start()
 
+        self.idleCheckTimer = QtCore.QTimer()
+        self.idleCheckTimer.setInterval(10000)
+        self.idleCheckTimer.timeout.connect(self._resetifidle)
+        self.idleCheckTimer.start()
+
         self.pushButton_load_cart_from_app.setVisible(cfg.has_option("mobile_app","enabled") and cfg.getboolean("mobile_app","enabled"))
+
 
     def restart(self):
         dialog=QtGui.QMessageBox(self)
@@ -817,10 +823,25 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # Give focus to lineEdit
         self.lineEdit.setFocus()
 
-    def resetcategory(self):
+    def _resetcategory(self):
         """resets the categories to the default category (id=0)"""
         self.changeProductCategory(category=0)
 
+    def _checkidle(self):
+        """checks whether the GUI is idle for a great time span
+
+        Uses the information from screensaver to check whether the GUI is idle for a hardcoded time span.
+        If the GUI is considered idle, then true is returned.
+        :rtype: bool
+        :return: true if GUI is idle
+        """
+        # TODO implement
+        return False
+
+    def _resetifidle(self):
+        """resets the category-view of the GUI if it is idle for a certain timespan"""
+        if self._checkidle():
+            self._resetcategory()
 
 def main():
     if "--debug" in sys.argv:
