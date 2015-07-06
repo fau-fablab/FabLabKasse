@@ -581,6 +581,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             paymentmethod.show_thankyou()
             self.shoppingBackend.set_current_order(None)
             self.updateOrder()
+            self._resetcategory()
         return paymentmethod.successful
 
     def payViaApp(self):
