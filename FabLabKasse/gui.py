@@ -869,7 +869,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         if hide_dialog is False:
             user_answer = ask_user()
         if user_answer:
-            self.shoppingBackend.set_current_order(None)
+            self.shoppingBackend.delete_current_order()
             self.updateOrder()
 
 
