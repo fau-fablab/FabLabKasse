@@ -791,7 +791,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
         # disable "pay now" button on empty bill
         self.pushButton_payup.setEnabled(total > 0)
-        self.pushButton_clearCart.setEnabled(total > 0)
+        self.pushButton_clearCart.setEnabled(True)
 
     # keyboard search interaction
     def on_lineEdit_search_clicked(self):
