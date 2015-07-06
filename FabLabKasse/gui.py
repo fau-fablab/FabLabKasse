@@ -387,6 +387,12 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.updateProductsAndCategories()
 
     def on_start_clicked(self):
+        """resets the categories to the root element
+
+        * leaves current search
+        * sets current category to the root element
+        * triggers the update of the category-view
+        """
         self.leaveSearch()
         self.current_category = self.shoppingBackend.get_root_category()
         self.updateProductsAndCategories()
@@ -585,7 +591,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         if paymentmethod.successful:
             paymentmethod.show_thankyou()
             self._clear_cart(hide_dialog=True)
-            self._reset_category()
+            self.on_start_clicked()
         return paymentmethod.successful
 
     def payViaApp(self):
@@ -821,10 +827,6 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # Give focus to lineEdit
         self.lineEdit.setFocus()
 
-    def _reset_category(self):
-        """resets the categories to the default category (id=0)"""
-        self.on_start_clicked()
-
     def _check_idle(self):
         """checks whether the GUI is idle for a great time span
 
@@ -847,7 +849,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
     def _reset_if_idle(self):
         """resets the category-view of the GUI if it is idle for a certain timespan"""
         if self._check_idle():
-            self._reset_category()
+            self.on_start_clicked()
 
     def _clear_cart(self, hide_dialog=False):
         """clear the current cart
