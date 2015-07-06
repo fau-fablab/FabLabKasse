@@ -817,8 +817,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # Give focus to lineEdit
         self.lineEdit.setFocus()
 
-
-
+    def resetcategory(self):
+        """resets the categories to the default category (id=0)"""
+        self.changeProductCategory(category=0)
 
 
 def main():
