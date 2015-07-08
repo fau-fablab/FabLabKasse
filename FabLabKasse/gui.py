@@ -40,6 +40,7 @@ import os
 from decimal import Decimal
 from PyQt4 import QtGui, QtCore, Qt
 from libs.flickcharm import FlickCharm
+from libs.pxss import pxss
 import functools
 
 #import UI
@@ -238,7 +239,27 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.cashPollTimer.timeout.connect(self.pollCashDevices)
         self.cashPollTimer.start()
 
+        # start and configure idle reset for category view
+        if cfg.has_option("idle_reset", "enabled"):
+            if cfg.getboolean("idle_reset", "enabled"):
+                self.idleCheckTimer = QtCore.QTimer()
+                self.idleCheckTimer.setInterval(10000)
+                self.idleCheckTimer.timeout.connect(self._reset_if_idle)
+                self.idleCheckTimer.start()
+
+                if cfg.has_option("idle_reset", "threshold_time"):
+                    self.idleTracker = pxss.IdleTracker(idle_threshold=1000*cfg.getint("idle_reset", "threshold_time"))
+                else:
+                    # default value is 1800 s
+                    # TODO use proper solution for default values
+                    self.idleTracker = pxss.IdleTracker(1800000)
+                (idle_state, _, _) = self.idleTracker.check_idle()
+                if idle_state is 'disabled':
+                    self.idleCheckTimer.stop()
+                    logging.warning("Automatic reset on idle is disabled since idleTracker returned `disabled`.")
+
         self.pushButton_load_cart_from_app.setVisible(cfg.has_option("mobile_app","enabled") and cfg.getboolean("mobile_app","enabled"))
+
 
     def restart(self):
         dialog=QtGui.QMessageBox(self)
@@ -377,6 +398,12 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.updateProductsAndCategories()
 
     def on_start_clicked(self):
+        """resets the categories to the root element
+
+        * leaves current search
+        * sets current category to the root element
+        * triggers the update of the category-view
+        """
         self.leaveSearch()
         self.current_category = self.shoppingBackend.get_root_category()
         self.updateProductsAndCategories()
@@ -578,6 +605,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             paymentmethod.show_thankyou()
             self.shoppingBackend.set_current_order(None)
             self.updateOrder()
+            self.on_start_clicked()
         return paymentmethod.successful
 
     def payViaApp(self):
@@ -817,9 +845,30 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # Give focus to lineEdit
         self.lineEdit.setFocus()
 
+    def _check_idle(self):
+        """checks whether the GUI is idle for a great time span
 
+        Uses the information from screensaver to check whether the GUI is idle for a hardcoded time span.
+        If the GUI is considered idle, then true is returned.
+        :rtype: bool
+        :return: true if GUI is idle
+        """
+        idle_state = self.idleTracker.check_idle()
+        # check_idle() returns a tupel (state_change, suggested_time_till_next_check, idle_time)
+        # the state "idle" is entered after the time configured in self.CATEGORY_VIEW_RESET_TIME
+        idle_keyword = "idle"
+        if idle_state[0] == idle_keyword:
+            return True
+        elif idle_state[0] is None and self.idleTracker.last_state == idle_keyword:
+            return True
+        else:
+            return False
 
-
+    def _reset_if_idle(self):
+        """resets the category-view of the GUI if it is idle for a certain timespan"""
+        if self._check_idle():
+            logging.debug("idle timespan passed; execute GUI reset")
+            self.on_start_clicked()
 
 def main():
     if "--debug" in sys.argv:
