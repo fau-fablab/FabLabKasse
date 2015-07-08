@@ -24,10 +24,16 @@
 # The rest of this script is written by Yu-Jie Lin ( http://livibetter.mp/ )
 
 
-from ctypes import * 
+from ctypes import *
+import logging
 
-
-libXss = CDLL('libXss.so')
+normalmode = True  # this variable is set to False if libXss.so is not found
+try:
+    libXss = CDLL('libXss.so')
+except OSError:
+    # the system does not provide libXss.so
+    logging.warning("libXss.so not found, IdleState will not be available")
+    normalmode = False
 
 
 class Screen(Structure):
@@ -144,28 +150,27 @@ def get_info(p_display=None, default_root_window=None, p_info=None):
   libXss.XScreenSaverQueryInfo(p_display, default_root_window, p_info)
   return p_info.contents
 
+if normalmode:
+    # Specify return types
+    libXss.XOpenDisplay.restype = POINTER(Display)
+    libXss.XScreenSaverAllocInfo.restype = POINTER(XScreenSaverInfo)
 
-# Specify return types
-libXss.XOpenDisplay.restype = POINTER(Display)
-libXss.XScreenSaverAllocInfo.restype = POINTER(XScreenSaverInfo)
+    _p_display = libXss.XOpenDisplay('')
+    display = _p_display.contents
 
-
-_p_display = libXss.XOpenDisplay('')
-display = _p_display.contents
-
-# Get DefaultRootWindow(display), which is a macro
-# Xlib.h
-# #define DefaultRootWindow(dpy)  (ScreenOfDisplay(dpy,DefaultScreen(dpy))->root)
-# #define ScreenOfDisplay(dpy, scr)(&((_XPrivDisplay)dpy)->screens[scr])
-# #define DefaultScreen(dpy)  (((_XPrivDisplay)dpy)->default_screen)
-# ==> I found the following expanding version via Google Code Search
-# ==> #define DefaultRootWindow(dpy)  (((dpy)->screens[(dpy)->default_screen]).root)
-# Convert display.screens from c_void_p to POINTER(Screen * display.nscreens)
-screens = cast(display.screens, POINTER(Screen * display.nscreens))
-_default_root_window = screens.contents[display.default_screen].root
-_p_info = pointer(XScreenSaverInfo())
-del display
-del screens
+    # Get DefaultRootWindow(display), which is a macro
+    # Xlib.h
+    # #define DefaultRootWindow(dpy)  (ScreenOfDisplay(dpy,DefaultScreen(dpy))->root)
+    # #define ScreenOfDisplay(dpy, scr)(&((_XPrivDisplay)dpy)->screens[scr])
+    # #define DefaultScreen(dpy)  (((_XPrivDisplay)dpy)->default_screen)
+    # ==> I found the following expanding version via Google Code Search
+    # ==> #define DefaultRootWindow(dpy)  (((dpy)->screens[(dpy)->default_screen]).root)
+    # Convert display.screens from c_void_p to POINTER(Screen * display.nscreens)
+    screens = cast(display.screens, POINTER(Screen * display.nscreens))
+    _default_root_window = screens.contents[display.default_screen].root
+    _p_info = pointer(XScreenSaverInfo())
+    del display
+    del screens
 
 
 # The following code are copied directly from PyXSS-2.1/xss/__init__.py without
@@ -184,6 +189,7 @@ class IdleTracker:
         being idle."""
         self.when_idle_wait = when_idle_wait
         self.idle_threshold = idle_threshold
+        self.when_disabled_wait = when_disabled_wait
         # we start with a bogus last_state.  this way, the first call to
         # check_idle will report whether we are idle or not.  all subsequent
         # calls will only tell you if the screensaver state has changed
@@ -200,10 +206,12 @@ class IdleTracker:
             "disabled" - idle time not available
 
         Note that "disabled" will be returned every time there is an error."""
+        if not normalmode:
+            return ("disabled", self.when_disabled_wait, 0)
         try:
             self.info = get_info()
         except RuntimeError: # XSS can raise a RuntimeError if the
-                             # XSS extension cannot be found.
+                              # XSS extension cannot be found.
             return ("disabled", self.when_disabled_wait, 0)
 
         idle = self.info.idle

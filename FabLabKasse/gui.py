@@ -252,6 +252,10 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                     # default value is 1800 s
                     # TODO use proper solution for default values
                     self.idleTracker = pxss.IdleTracker(1800000)
+                (idle_state, _, _) = self.idleTracker.check_idle()
+                if idle_state is 'disabled':
+                    self.idleCheckTimer.stop()
+                    logging.warning("Automatic reset on idle is disabled since idleTracker returned `disabled`.")
 
         self.pushButton_load_cart_from_app.setVisible(cfg.has_option("mobile_app", "enabled") and cfg.getboolean("mobile_app", "enabled"))
 
