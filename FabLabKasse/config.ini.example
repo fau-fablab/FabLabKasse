@@ -23,6 +23,12 @@ userid_serial_interface = test123 ; path to sercial interface
 backend=dummy
 ;backend=legacy_offline_kassenbuch ; FAU FabLab
 
+[idle_reset]
+; enable automatic reset of the product view after a timeout
+enabled = true
+; after this threshold time (in s) the reset occurs
+threshold_time = 1800
+
 [mobile_app]
 enabled = no
 server_url = http://ec2-52-28-173-123.eu-central-1.compute.amazonaws.com/checkout/ ;production
