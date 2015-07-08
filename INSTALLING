@@ -25,8 +25,9 @@ This software was mainly developed for Debian "jessie", but should also work on 
 
 1a. Debian
 
-needed debian packages: apt-get install python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort python-qrcode python-docopt python-requests python-simplejson python-oerplib
+needed debian packages: apt-get install python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort python-qrcode python-docopt python-requests python-simplejson
 pip install monotonic
+pip install oerplib # only for connection to OpenERP/odoo
 for the real terminal implementation: xserver-xorg git nodm ssh
 for the style: kde-style-oxygen kde-workspace-bin
 for font: fonts-crosextra-carlito # or download Carlito-Regular.ttf from http://openfontlibrary.org/de/font/carlito#Carlito-Regular to ~/.fonts/
