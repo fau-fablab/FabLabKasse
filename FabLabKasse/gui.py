@@ -124,6 +124,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.pushButton_decimal_point.clicked.connect(lambda x: self.insertIntoLineEdit(locale.localeconv()['decimal_point']))
         self.pushButton_decimal_point.setText(locale.localeconv()['decimal_point'])
         self.pushButton_payup.clicked.connect(self.payup)
+        self.pushButton_clearCart.clicked.connect(self._clear_cart)
 
         # Connect keyboard buttons
         # TODO nicer code: for foo in layout_widgets():     foo.connect( functools.partial(insert ... foo.text().lower())
@@ -743,6 +744,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             self.table_order.setModel(QtGui.QStandardItemModel(0, 0))
             self.summe.setText(u'0,00 €')
             self.pushButton_payup.setEnabled(False)
+            self.pushButton_clearCart.setEnabled(False)
             self.start_plu_entry()
             return
 
@@ -808,6 +810,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
         # disable "pay now" button on empty bill
         self.pushButton_payup.setEnabled(total > 0)
+        self.pushButton_clearCart.setEnabled(True)
 
     #keyboard search interaction
     def on_lineEdit_search_clicked(self):
@@ -869,6 +872,28 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         if self._check_idle():
             logging.debug("idle timespan passed; execute GUI reset")
             self.on_start_clicked()
+
+    def _clear_cart(self, hide_dialog=False):
+        """clear the current cart
+
+        :param show_dialog: whether the user should be asked
+        :type show_dialog: bool
+        """
+
+        def ask_user():
+            """ask the user whether he really wants to clear the cart, return True if he does."""
+            reply = QtGui.QMessageBox.question(self, 'Message',
+                    u"Willst du den Warenkorb wirklich löschen?",
+                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                    QtGui.QMessageBox.No)
+            return (reply == QtGui.QMessageBox.Yes)
+        user_answer = True
+        if hide_dialog is False:
+            user_answer = ask_user()
+        if user_answer:
+            self.shoppingBackend.delete_current_order()
+            self.updateOrder()
+
 
 def main():
     if "--debug" in sys.argv:
