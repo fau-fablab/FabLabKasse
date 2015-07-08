@@ -238,13 +238,20 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.cashPollTimer.timeout.connect(self.pollCashDevices)
         self.cashPollTimer.start()
 
-        self.idleCheckTimer = QtCore.QTimer()
-        self.idleCheckTimer.setInterval(10000)
-        self.idleCheckTimer.timeout.connect(self._reset_if_idle)
-        self.idleCheckTimer.start()
+        # start and configure idle reset for category view
+        if cfg.has_option("idle_reset", "enabled"):
+            if cfg.getboolean("idle_reset", "enabled"):
+                self.idleCheckTimer = QtCore.QTimer()
+                self.idleCheckTimer.setInterval(10000)
+                self.idleCheckTimer.timeout.connect(self._reset_if_idle)
+                self.idleCheckTimer.start()
 
-        self.CATEGORY_VIEW_RESET_TIME = 1800000  # idle threshold time in ms, is half an hour
-        self.idleTracker = pxss.IdleTracker(idle_threshold=self.CATEGORY_VIEW_RESET_TIME)
+                if cfg.has_option("idle_reset", "threshold_time"):
+                    self.idleTracker = pxss.IdleTracker(idle_threshold=1000*cfg.getint("idle_reset", "threshold_time"))
+                else:
+                    # default value is 1800 s
+                    # TODO use proper solution for default values
+                    self.idleTracker = pxss.IdleTracker(1800000)
 
         self.pushButton_load_cart_from_app.setVisible(cfg.has_option("mobile_app", "enabled") and cfg.getboolean("mobile_app", "enabled"))
 
