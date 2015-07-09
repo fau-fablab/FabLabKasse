@@ -255,11 +255,24 @@ class AbstractShoppingBackend(object):
         """ get order line of current order """
         pass
 
-
     def get_current_total(self):
-        """ calculate total sum of current order
+        """
+        :return: total sum of current order
+        :rtype: Decimal
 
-        returns Decimal so that values are exactly comparable """
+        Note: The internal rounding *must* be consistent, which is needed by
+        :class: FabLabKasse.shopping.payment_methods. That means that x,xx5 €
+        must always be rounded up or always down. "Fair rounding" like
+        Decimal.ROUND_HALF_EVEN is not allowed.
+
+        For example:
+
+        - add article costing 1,015 € -> get_current_total == x
+        - add article costing 0,990 € -> get_current_total == x + 0,99
+
+        This would not be true with the fair strategy "round second digit to
+        even value if the third one is exactly 5" (1,02€ and 2,00€).
+        """
         total = 0
         for line in self.get_order_lines():
             total += line.price_subtotal
@@ -281,8 +294,8 @@ class AbstractShoppingBackend(object):
     def add_order_line(self, prod_id, qty, comment=None):
         """add product to cart
 
-        if not all values are allowed, ``qty`` is rounded up
-        to the next possible amount
+        if not all values are allowed, ``qty`` is rounded *up*
+        to the next possible amount.
 
         The user should only be asked for a comment by the GUI if
         ``self.product_requires_text_entry(prod_id) == True``
