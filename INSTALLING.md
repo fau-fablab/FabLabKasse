@@ -33,6 +33,7 @@ for the style: kde-style-oxygen kde-workspace-bin
 for font: fonts-crosextra-carlito # or download Carlito-Regular.ttf from http://openfontlibrary.org/de/font/carlito#Carlito-Regular to ~/.fonts/
 for development: qt4-designer
 for graphical debugging: winpdb
+for documentation: doxygen doxypy python-pygraphviz
 
 
 Modem-Manager interferes with the serial port. It is highly recommended to remove it:
