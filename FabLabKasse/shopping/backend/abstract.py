@@ -245,7 +245,7 @@ class AbstractShoppingBackend(object):
 
     @abstractmethod
     def delete_current_order(self):
-        """ delete currently selected order"""
+        """ delete currently selected order, implies set_current_order(None) """
         pass
 
     @abstractmethod

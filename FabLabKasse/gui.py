@@ -729,7 +729,6 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         if self.shoppingBackend.get_current_order() is not None \
                 and not self.shoppingBackend.get_order_lines():
             self.shoppingBackend.delete_current_order()
-            self.shoppingBackend.set_current_order(None)
 
         # Currently no open cart
         if self.shoppingBackend.get_current_order() is None:

@@ -232,6 +232,9 @@ class ShoppingBackend(AbstractShoppingBackend):
         self.oerp.unlink('sale.order.line', [order_line_id])
 
     def delete_current_order(self):
+        """ deletes current order and calls self.set_current_order(None)
+        :return:
+        """
         order_id = self.get_current_order()
         oerp = self.oerp
         if not oerp.read('sale.order', order_id, ['order_line'])['order_line']:

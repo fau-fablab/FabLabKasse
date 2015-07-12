@@ -284,8 +284,10 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
         return id(new_order)
 
     def delete_current_order(self):
+        """ deletes current order and calls self.set_current_order(None)
+        :return:
+        """
         self.orders.remove(self._get_current_order_obj())
-        # TODO should all implementations do this?
         self.set_current_order(None)
 
     def set_current_order(self, order_id):
