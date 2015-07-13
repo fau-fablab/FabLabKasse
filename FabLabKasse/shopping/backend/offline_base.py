@@ -285,7 +285,6 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
 
     def delete_current_order(self):
         self.orders.remove(self._get_current_order_obj())
-        # TODO should all implementations do this?
         self.set_current_order(None)
 
     def set_current_order(self, order_id):

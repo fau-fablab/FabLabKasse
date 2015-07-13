@@ -65,7 +65,6 @@ class MobileAppCartGUI(object):
                                           u"Bitte zahle zuerst diese Produkte oder lösche sie aus dem Warenkorb.\n")
                 return
             self.parent.shoppingBackend.delete_current_order()
-            self.parent.shoppingBackend.set_current_order(None)
 
         self.poll_timer.start()
         self.diag.finished.connect(lambda x: self.dialog_finished)
@@ -115,7 +114,6 @@ class MobileAppCartGUI(object):
         self.cart.send_status_feedback(successful)
         if not successful:
             self.parent.shoppingBackend.delete_current_order()
-            self.parent.shoppingBackend.set_current_order(None)
             QtGui.QMessageBox.information(self.parent, "Info", u"Die Zahlung wurde abgebrochen.")
         return successful
 
