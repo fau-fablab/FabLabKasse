@@ -855,7 +855,15 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             return False
 
     def _reset_if_idle(self):
-        """resets the category-view of the GUI if it is idle for a certain timespan"""
+        """resets the category-view of the GUI if it is idle for a certain timespan
+
+        The function uses self._check_idle() to check whether the screensaver thinks the GUI is idle.
+        The timespan for considering the system idle is set in the config-file.
+
+        This function might be called anytime. This means it could even execute during payup-dialogs and similar things.
+        Therefore the current order must not be modified or updated by this method to prevent undefined interference
+        with other processes.
+        """
         if self._check_idle():
             logging.debug("idle timespan passed; execute GUI reset")
             self.on_start_clicked()
