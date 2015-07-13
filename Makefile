@@ -2,6 +2,11 @@
 doc: Doxyfile
 	doxygen Doxyfile
 
+.PHONY: latex
+latex: doc/latex/Makefile
+	cd doc/latex/
+	make
+
 .PHONY: clean
 clean:
 	rm -rf doc/*
