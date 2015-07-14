@@ -95,10 +95,12 @@ class MobileAppCartModel(QObject):
         been uploaded yet for the current id or if an error occured
 
         :return:  list of tuples (product_code, quantity) or False
+        :rtype: list[(int, Decimal)] | bool
 
         :raise: None (hopefully) - just returns False in normal cases of error
 
-        If the cart id seems already used, the random cart id is updated. please connect to the cart_id_changed() signal and update the shown QR code.
+        If the cart id seems already used, the random cart id is updated. please connect to the cart_id_changed() signal
+        and update the shown QR code.
         """
         if self.cart_id == None:
             self.generate_random_id()
@@ -106,13 +108,21 @@ class MobileAppCartModel(QObject):
         try:
             req = requests.get(self.server_url + self.cart_id, timeout=self.timeout)  # , HTTPAdapter(max_retries=5))
             # TODO retries
-        except requests.exceptions.RequestException:
+            req.raise_for_status()
+        except requests.exceptions.HTTPError, exc:
+            logging.debug(u"app-checkout: app server responded with HTTP error {}".format(exc))
+            return False
+        except requests.exceptions.RequestException, exc:
+            logging.debug(u"app-checkout: general error in HTTP request: {}".format(exc))
             return False
         if req.text == "":
+            # logging.debug("app-checkout: empty response from server")
+            # no logging here since this is a standard use-case
             return False
         try:
             data = req.json()
         except simplejson.JSONDecodeError:
+            logging.debug("app-checkout: JSONDecodeError")
             return False
         logging.debug(u"received cart: {}".format(repr(data)))
         if data["status"] != "PENDING":
