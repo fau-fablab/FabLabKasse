@@ -4,6 +4,7 @@
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
 # Copyright (C) 2015  Julian Hammer <julian.hammer@fablab.fau.de>
 #                     Maximilian Gaukler <max@fablab.fau.de>
+#                     Patrick Kanzler <patrick.kanzler@fablab.fau.de>
 #                     Timo Voigt <timo@fablab.fau.de>
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
@@ -17,7 +18,7 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-"Model for loading the cart from a mobile application"
+"""Model for loading the cart from a mobile application"""
 
 import requests
 import logging
@@ -32,8 +33,8 @@ from PyQt4.QtCore import pyqtSignal, QObject
 
 
 class MobileAppCartModel(QObject):
+    """loads a cart from a mobile application"""
 
-    "loads a cart from a mobile application"
     cart_id_changed = pyqtSignal(unicode)
 
     def __init__(self, config):
@@ -58,7 +59,7 @@ class MobileAppCartModel(QObject):
         """
         Return the appservers query url
         """
-        if self._server_url == None:
+        if self._server_url is None:
             self._server_url = self.cfg.get('mobile_app', 'server_url')
         return self._server_url
 
@@ -67,7 +68,7 @@ class MobileAppCartModel(QObject):
         """
         Timeout for single requests
         """
-        if self._timeout == None:
+        if self._timeout is None:
             if self.cfg.has_option('mobile_app', 'timeout'):
                 self._timeout = self.cfg.getint('mobile_app', 'timeout')
             else:
@@ -85,7 +86,7 @@ class MobileAppCartModel(QObject):
 
     @cart_id.setter
     def cart_id(self, value):
-        "update cart_id"
+        """update cart_id"""
         assert isinstance(value, basestring)
         self._cart_id = value
         self.cart_id_changed.emit(value)
@@ -102,17 +103,17 @@ class MobileAppCartModel(QObject):
         If the cart id seems already used, the random cart id is updated. please connect to the cart_id_changed() signal
         and update the shown QR code.
         """
-        if self.cart_id == None:
+        if self.cart_id is None:
             self.generate_random_id()
             return False
         try:
             req = requests.get(self.server_url + self.cart_id, timeout=self.timeout)  # , HTTPAdapter(max_retries=5))
             # TODO retries
             req.raise_for_status()
-        except requests.exceptions.HTTPError, exc:
+        except requests.exceptions.HTTPError as exc:
             logging.debug(u"app-checkout: app server responded with HTTP error {}".format(exc))
             return False
-        except requests.exceptions.RequestException, exc:
+        except requests.exceptions.RequestException as exc:
             logging.debug(u"app-checkout: general error in HTTP request: {}".format(exc))
             return False
         if req.text == "":
