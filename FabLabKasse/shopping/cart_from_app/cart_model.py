@@ -126,18 +126,40 @@ class MobileAppCartModel(QObject):
             logging.debug("app-checkout: JSONDecodeError")
             return False
         logging.debug(u"received cart: {}".format(repr(data)))
-        if data["status"] != "PENDING":
-            logging.info("rejecting cart with status {}. Regenerating random id.".format(data["status"]))
+        # check, if json was ok
+        # TODO notify user of import error and aboard polling
+        try:
+            error_msg = "rejecting cart with '{property}'='{value}'. Regenerating random id."
+            if data["status"] != "PENDING":
+                logging.info(error_msg.format(property="status", value=data["status"]))
+                self.generate_random_id()
+                return False
+            elif str(data["cartCode"]) != self.cart_id:
+                logging.info(error_msg.format(property="cartCode", value=data["cartCode"]))
+                self.generate_random_id()
+                return False
+        except KeyError:
+            logging.info("rejecting cart as a required key is missing in json. Regenerating random id.")
             self.generate_random_id()
             return False
         cart = []
-        for entry in data["items"]:
-            try:
-                item = (int(entry["productId"]), float_to_decimal(entry["amount"], 3))
-                cart.append(item)
-            except ValueError:
-                # TODO notify user of import error
-                return False
+        try:
+            for entry in data["items"]:
+                try:
+                    item = (int(entry["productId"]), float_to_decimal(float(entry["amount"]), 3))
+                    if item[1] <= 0:
+                        logging.info(error_msg.format(property="item.amount", value=item[1]))
+                        self.generate_random_id()
+                        return False
+                    cart.append(item)
+                except ValueError:
+                    logging.info("rejecting cart with invalid values. Regenerating random id.")
+                    self.generate_random_id()
+                    return False
+        except KeyError:
+            logging.info("rejecting cart as a required key is missing in json. Regenerating random id.")
+            self.generate_random_id()
+            return False
         return cart
 
     def send_status_feedback(self, success):
