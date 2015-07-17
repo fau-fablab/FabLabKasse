@@ -1,6 +1,7 @@
 #editor and file browser
 .directory
 .idea
+doc/*
 
 # lock files
 *.lock
