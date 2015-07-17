@@ -28,8 +28,27 @@ import simplejson
 import random
 import os
 from PyQt4.QtCore import pyqtSignal, QObject
-
+import unittest
+from decimal import Decimal
 # TODO self-signed ssl , we need HTTPS :(
+
+
+class InvalidCartJSONError(Exception):
+    """Cart JSON object received was wrong."""
+    def __init__(self, text=None, property_name=None, value=None):
+        """
+        Cart JSON object received was wrong.
+
+        :param text: reason
+        :param property_name: use property_name and value if an unexpected value for a property occurs. The infotext is then filled automatically.
+        :param value: see property_name
+        """
+        if not text:
+            text = u""
+        text = u"Invalid Cart: " + text
+        if property_name:
+            text += u"Property {} has unexpected value: {}".format(property_name, repr(value))
+        Exception.__init__(self, text)
 
 
 class MobileAppCartModel(QObject):
@@ -98,7 +117,8 @@ class MobileAppCartModel(QObject):
         :return:  list of tuples (product_code, quantity) or False
         :rtype: list[(int, Decimal)] | bool
 
-        :raise: None (hopefully) - just returns False in normal cases of error
+        :raise: InvalidCartJSONError
+        if an invalid cart response was received from the server, (otherwise just returns False in normal cases of error)
 
         If the cart id seems already used, the random cart id is updated. please connect to the cart_id_changed() signal
         and update the shown QR code.
@@ -121,45 +141,40 @@ class MobileAppCartModel(QObject):
             # no logging here since this is a standard use-case
             return False
         try:
-            data = req.json()
+            return self._decode_json_cart(req.text)
+        except InvalidCartJSONError, exception:
+            logging.warning("Cannot decode Cart JSON: {}".format(exception))
+            raise
+
+    def _decode_json_cart(self, json):
+        """decode JSON data containing the cart
+
+        :param json: JSON encoded data
+        :type json: unicode
+        :raise: InvalidCartJSONError
+        """
+        try:
+            data = simplejson.loads(json)
         except simplejson.JSONDecodeError:
-            logging.debug("app-checkout: JSONDecodeError")
-            return False
+            raise InvalidCartJSONError("app-checkout: JSONDecodeError")
         logging.debug(u"received cart: {}".format(repr(data)))
-        # check, if json was ok
-        # TODO notify user of import error and aboard polling
         try:
-            error_msg = "rejecting cart with '{property}'='{value}'. Regenerating random id."
             if data["status"] != "PENDING":
-                logging.info(error_msg.format(property="status", value=data["status"]))
-                self.generate_random_id()
-                return False
-            elif str(data["cartCode"]) != self.cart_id:
-                logging.info(error_msg.format(property="cartCode", value=data["cartCode"]))
-                self.generate_random_id()
-                return False
-        except KeyError:
-            logging.info("rejecting cart as a required key is missing in json. Regenerating random id.")
-            self.generate_random_id()
-            return False
-        cart = []
-        try:
+                raise InvalidCartJSONError(property_name="status", value=data["status"])
+            if unicode(data["cartCode"]) != self.cart_id:
+                raise InvalidCartJSONError(property_name="cartCode", value=data["cartCode"])
+            cart = []
             for entry in data["items"]:
-                try:
-                    item = (int(entry["productId"]), float_to_decimal(float(entry["amount"]), 3))
-                    if item[1] <= 0:
-                        logging.info(error_msg.format(property="item.amount", value=item[1]))
-                        self.generate_random_id()
-                        return False
-                    cart.append(item)
-                except ValueError:
-                    logging.info("rejecting cart with invalid values. Regenerating random id.")
-                    self.generate_random_id()
-                    return False
+                if not isinstance(entry, dict):
+                    raise InvalidCartJSONError(property_name="items", value=data["items"])
+                item = (int(entry["productId"]), float_to_decimal(float(entry["amount"]), 3))
+                if item[1] < 0:
+                    raise InvalidCartJSONError(property_name="item.amount", value=item[1])
+                cart.append(item)
         except KeyError:
-            logging.info("rejecting cart as a required key is missing in json. Regenerating random id.")
-            self.generate_random_id()
-            return False
+            raise InvalidCartJSONError("a required key is missing in JSON")
+        except ValueError:
+            raise InvalidCartJSONError("invalid field value in JSON (probably amount or productId)")
         return cart
 
     def send_status_feedback(self, success):
@@ -178,11 +193,81 @@ class MobileAppCartModel(QObject):
         try:
             req = requests.post(self.server_url + status + "/" + self.cart_id, timeout=self.timeout)  # , HTTPAdapter(max_retries=5))
             logging.debug("response: {}".format(repr(req.text)))
+            req.raise_for_status()
         except IOError:
             logging.warn("sending cart feedback failed")
             # TODO what do we do on failure?
 
 
-# if __name__ == "__main__":
-#    print getCart(str(1234))
-#    print setCartFeedback(str(1234),False)
+class MobileAppCartModelTest(unittest.TestCase):
+    """ Test MobileAppCartModel """
+    def test_decode_json_cart(self):
+        def prepare():
+            model = MobileAppCartModel(None)
+            model.generate_random_id()
+            valid_data = {}
+            valid_data["cartCode"] = model.cart_id
+            valid_data["items"] = []
+    
+            product = {}
+            product["id"] = 44
+            product["productId"] = "9011"
+            product["amount"] = "5."
+    
+            valid_data["items"].append(product)
+            valid_data["status"] = "PENDING"
+            valid_data["pushId"] = "000"
+            valid_data["sendToServer"] = 12398234781237
+            
+            valid_cart = [(int(product["productId"]), Decimal(5))]
+            
+            return [model, valid_data, valid_cart]
+        
+        # test valid cart
+        [model, data, valid_cart] = prepare()
+        self.assertEqual(model._decode_json_cart(simplejson.dumps(data)), valid_cart)
+
+        # test deleted fields and wrong datatype/value
+        # (pushID and sendToServer are unused and therefore ignored)
+        for field in ["status", "items", "cartCode"]:
+            [model, data, _] = prepare()
+            with self.assertRaises(InvalidCartJSONError):
+                del data[field]
+                model._decode_json_cart(simplejson.dumps(data))
+
+            [model, data, _] = prepare()
+            with self.assertRaises(InvalidCartJSONError):
+                data[field] = "fooo"
+                model._decode_json_cart(simplejson.dumps(data))
+
+        # wrong datatype inside items list
+        [model, data, _] = prepare()
+        with self.assertRaises(InvalidCartJSONError):
+            data["items"][0] = "fooo"
+            model._decode_json_cart(simplejson.dumps(data))
+
+        # test missing fields (productId, amount) in item, or wrong datatype
+        # (id is ignored)
+        for field in ["amount", "productId"]:
+            [model, data, _] = prepare()
+            with self.assertRaises(InvalidCartJSONError):
+                del data["items"][0][field]
+                model._decode_json_cart(simplejson.dumps(data))
+
+        # invalid values for amount
+        for invalid_amount_value in ["-5", "1.241234234232343242342234", "1e20"]:
+            [model, data, _] = prepare()
+            data["items"][0]["amount"] = invalid_amount_value
+            with self.assertRaises(InvalidCartJSONError):
+                model._decode_json_cart(simplejson.dumps(data))
+
+        # invalid values for product id
+        for invalid_id_value in ["1.5", ""]:
+            [model, data, _] = prepare()
+            data["items"][0]["productId"] = invalid_id_value
+            with self.assertRaises(InvalidCartJSONError):
+                model._decode_json_cart(simplejson.dumps(data))
+
+
+if __name__ == "__main__":
+    unittest.main()
