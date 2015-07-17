@@ -32,6 +32,26 @@ from PyQt4.QtCore import pyqtSignal, QObject
 # TODO self-signed ssl , we need HTTPS :(
 
 
+class InvalidCartJSONError(Exception):
+    def __init__(self, text=None, property=None, value=None):
+        """
+        Cart JSON object received was wrong.
+
+        automatically logs a warning (TODO is this okay for an exception initialisation?)
+
+        :param text: reason
+        :param property: use property and value if an unexpected value for a property occurs. The infotext is then filled automatically.
+        :param value: see property
+        """
+        if not text:
+            text = u""
+        text = u"Invalid Cart: " + text
+        if property:
+            text += u"Property {} has unexpected value: {}".format(property, repr(value))
+        logging.warn(text)
+        Exception.__init__(text)
+
+
 class MobileAppCartModel(QObject):
     """loads a cart from a mobile application"""
 
@@ -98,7 +118,8 @@ class MobileAppCartModel(QObject):
         :return:  list of tuples (product_code, quantity) or False
         :rtype: list[(int, Decimal)] | bool
 
-        :raise: None (hopefully) - just returns False in normal cases of error
+        :raise: InvalidCartJSONError
+        if an invalid cart response was received from the server, (otherwise just returns False in normal cases of error)
 
         If the cart id seems already used, the random cart id is updated. please connect to the cart_id_changed() signal
         and update the shown QR code.
@@ -123,43 +144,29 @@ class MobileAppCartModel(QObject):
         try:
             data = req.json()
         except simplejson.JSONDecodeError:
-            logging.debug("app-checkout: JSONDecodeError")
-            return False
+            raise InvalidCartJSONError("app-checkout: JSONDecodeError")
         logging.debug(u"received cart: {}".format(repr(data)))
-        # check, if json was ok
-        # TODO notify user of import error and aboard polling
+        # check whether json is ok
+        # TODO notify user of import error and abort polling
         try:
-            error_msg = "rejecting cart with '{property}'='{value}'. Regenerating random id."
             if data["status"] != "PENDING":
-                logging.info(error_msg.format(property="status", value=data["status"]))
-                self.generate_random_id()
-                return False
-            elif str(data["cartCode"]) != self.cart_id:
-                logging.info(error_msg.format(property="cartCode", value=data["cartCode"]))
-                self.generate_random_id()
-                return False
+                raise InvalidCartJSONError(property="status", value=data["status"])
+            if unicode(data["cartCode"]) != self.cart_id:
+                raise InvalidCartJSONError(property="cartCode", value=data["cartCode"])
+            # access data["items"] here so that a possible KeyError is raised
+            # and caught now and not later
+            cart_items = data["items"]
         except KeyError:
-            logging.info("rejecting cart as a required key is missing in json. Regenerating random id.")
-            self.generate_random_id()
-            return False
+            raise InvalidCartJSONError("a required key is missing in json.")
         cart = []
-        try:
-            for entry in data["items"]:
-                try:
-                    item = (int(entry["productId"]), float_to_decimal(float(entry["amount"]), 3))
-                    if item[1] <= 0:
-                        logging.info(error_msg.format(property="item.amount", value=item[1]))
-                        self.generate_random_id()
-                        return False
-                    cart.append(item)
-                except ValueError:
-                    logging.info("rejecting cart with invalid values. Regenerating random id.")
-                    self.generate_random_id()
-                    return False
-        except KeyError:
-            logging.info("rejecting cart as a required key is missing in json. Regenerating random id.")
-            self.generate_random_id()
-            return False
+        for entry in cart_items:
+            try:
+                item = (int(entry["productId"]), float_to_decimal(float(entry["amount"]), 3))
+            except ValueError:
+                raise InvalidCartJSONError("invalid productId or amount values")
+            if item[1] <= 0:
+                raise InvalidCartJSONError(property="item.amount", value=item[1])
+            cart.append(item)
         return cart
 
     def send_status_feedback(self, success):
