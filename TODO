@@ -1,61 +1,57 @@
-................. TODO .......................
+TODO
+====
 
+Needed testing for FAU FabLab
+-----------------------------
 
-# Needed testing for FAU FabLab
+    cp config.ini.example config.ini
 
-cp config.ini.example config.ini
 edit config.ini:
-- set [backend] backend=legacy_offline_kassenbuch
-- set [openerp] user and password
+ - set [backend] backend=legacy_offline_kassenbuch
+ - set [openerp] user and password
 
-./run.py
-
-
+        ./run.py
 
 - play around, try to crash it
+  - schauen ob alles korrekt in kassenbuch.py und cash.py auftaucht
+    - Kundenzahlung
+    - Bargeldzahlung (automat.)
+    - Bargeldzahlung (manuell)
 
-schauen ob alles korrekt in kassenbuch.py und cash.py auftaucht
-  - Kundenzahlung
-  - Bargeldzahlung (automat.)
-  - Bargeldzahlung (manuell)
-
-dabei jeweils die Fälle:
-- zuwenig eingezahlt  
-- Spende (Überzahlung)
-- zuwenig Wechselgeld
-- abgebrochene Zahlung
-- abgebrochene, nicht vollständig wieder rückzahlbare Zahlung
-
-
-Dabei schauen ob
-- dabei keine Cent-Bruchteile irgendwo in der DB landen
-- der Kassenzettel sinnvoll rauskommt # lokaler Server: nc -l -p 4242 | strings
+  - dabei jeweils die Fälle:
+    - zuwenig eingezahlt  
+    - Spende (Überzahlung)
+    - zuwenig Wechselgeld
+    - abgebrochene Zahlung
+    - abgebrochene, nicht vollständig wieder rückzahlbare Zahlung
 
 
+  - Dabei schauen ob
+    - dabei keine Cent-Bruchteile irgendwo in der DB landen
+    - der Kassenzettel sinnvoll rauskommt # lokaler Server: nc -l -p 4242 | strings
 
 
+Showstoppers before going public
+--------------------------------
 
-# Showstoppers before going public
-- (not so important) kassenbuch scripts directly in first folder
-- (not so important) no working non-FAU-specific backend [except dummy, which works except for receipt printing]
+ - (not so important) kassenbuch scripts directly in first folder
+ - (not so important) no working non-FAU-specific backend [except dummy, which works except for receipt printing]
 
+ - TODO:
 
-TODO:
+        fgrep -r TODO .
 
-fgrep -r TODO .
+ - refactor receipt printing: copy code from kassenbuch and modify it to create a global implementation, change legacy_offline_kassenbuch backend to use global implementation
 
-
-refactor receipt printing: copy code from kassenbuch and modify it to create a global implementation, change legacy_offline_kassenbuch backend to use global implementation
-
-BUGS:
+ - BUGS:
 ganz selten Crash (zufallsabhängig?) beim Mülleimer-Button (in Zusammenhang mit Kommentar? oder auch nicht...) -- order_line_id nicht mehr gültig
 
-seems to hang (no activity indication) when printing receipt is waiting for timeout
+ - seems to hang (no activity indication) when printing receipt is waiting for timeout
 receipt print network timeout is way too high, the printer will be on a LAN!
 
-Kundenliste nicht sinnvoll bedienbar bei >10 Kunden (Dropdown Scrollen doof - besser ListWidget + flickcharm)
+ - Kundenliste nicht sinnvoll bedienbar bei >10 Kunden (Dropdown Scrollen doof - besser ListWidget + flickcharm)
 
-TODO:
+ - TODO:
 cash -> MDB testen, wenn man zwischen dev.poll() mehrere Münzen einwirft [bzw. in Logs nachschauen dass dieser Fall schonmal erfolgreich auftrat]
 
 # NICE TO HAVE
