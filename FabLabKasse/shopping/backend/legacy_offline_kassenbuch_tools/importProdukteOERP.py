@@ -13,23 +13,7 @@ from ConfigParser import ConfigParser
 import codecs
 
 
-# switching to german:
-locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
-reload(sys).setdefaultencoding('UTF-8') # somehow doesn't work
 
-if (sys.stdout.encoding != "UTF-8"):            
-    print sys.stdout.encoding
-    print >> sys.stderr, "please use a UTF-8 locale, e.g. LANG=en_US.UTF-8" 
-    exit(1)
-
-cfg = ConfigParser({'db_file': 'production.sqlite3', 'request_backup': 'off',
-                    'cash': 'off', 'cash_manual': 'off', 'FAUcard': 'off', 'invoice': 'off'})
-cfg.readfp(codecs.open('config.ini', 'r', 'utf8'))
-
-oerp = oerplib.OERP(server=cfg.get('openerp', 'server'), protocol='xmlrpc+ssl',
-                    database=cfg.get('openerp', 'database'), port=cfg.getint('openerp', 'port'),
-                    version=cfg.get('openerp', 'version'))
-user = oerp.login(user=cfg.get('openerp', 'user'), passwd=cfg.get('openerp', 'password'))
 
 def str_to_int(s, fallback=None):
     try:
@@ -128,6 +112,24 @@ def saveToDir(data, outputdir):
             os.unlink(outputdir + f)
 
 def main():    
+    # switching to german:
+    locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
+    reload(sys).setdefaultencoding('UTF-8') # somehow doesn't work
+    
+    if (sys.stdout.encoding != "UTF-8"):            
+        print sys.stdout.encoding
+        print >> sys.stderr, "please use a UTF-8 locale, e.g. LANG=en_US.UTF-8" 
+        exit(1)
+    
+    cfg = ConfigParser({'db_file': 'production.sqlite3', 'request_backup': 'off',
+                        'cash': 'off', 'cash_manual': 'off', 'FAUcard': 'off', 'invoice': 'off'})
+    cfg.readfp(codecs.open('config.ini', 'r', 'utf8'))
+    
+    oerp = oerplib.OERP(server=cfg.get('openerp', 'server'), protocol='xmlrpc+ssl',
+                        database=cfg.get('openerp', 'database'), port=cfg.getint('openerp', 'port'),
+                        version=cfg.get('openerp', 'version'))
+    user = oerp.login(user=cfg.get('openerp', 'user'), passwd=cfg.get('openerp', 'password'))
+
     data = {}
     data = importProdukteOERP(data)
     outputdir = os.path.dirname(os.path.realpath(__file__))+'/../../../produkte/'
