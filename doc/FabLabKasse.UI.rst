@@ -1,4 +1,4 @@
-FabLabKasse.UI package
+FabLabKasse.UI
 ======================
 
 Subpackages

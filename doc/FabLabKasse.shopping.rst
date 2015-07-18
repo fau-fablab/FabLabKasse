@@ -1,4 +1,4 @@
-FabLabKasse.shopping package
+FabLabKasse.shopping
 ============================
 
 Subpackages

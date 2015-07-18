@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+    :maxdepth: 1
 
     FabLabKasse.UI
     FabLabKasse.cashPayment
@@ -12,34 +13,18 @@ Subpackages
     FabLabKasse.scripts
     FabLabKasse.shopping
 
-Submodules
-----------
-
-FabLabKasse.gui module
+gui
 ----------------------
+
+Main window
 
 .. automodule:: FabLabKasse.gui
     :members:
     :undoc-members:
     :show-inheritance:
 
-FabLabKasse.kassenbuch module
------------------------------
 
-.. automodule:: FabLabKasse.kassenbuch
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-FabLabKasse.produkt module
---------------------------
-
-.. automodule:: FabLabKasse.produkt
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-FabLabKasse.scriptHelper module
+scriptHelper: various utilities
 -------------------------------
 
 .. automodule:: FabLabKasse.scriptHelper
@@ -52,6 +37,32 @@ Module contents
 ---------------
 
 .. automodule:: FabLabKasse
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Files that are here for legacy reasons
+---------------------------------------
+
+Some parts of :class:`FabLabKasse.shopping.backend.legacy_offline_kassenbuch` are in this folder for historical reasons
+    
+Kassenbuch
+^^^^^^^^^^^^^^^^^^^^^
+this file is here for legacy reasons
+
+.. automodule:: FabLabKasse.kassenbuch
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+    
+produkt
+^^^^^^^^^^
+
+this file is here for legacy reasons
+
+.. automodule:: FabLabKasse.produkt
     :members:
     :undoc-members:
     :show-inheritance:
