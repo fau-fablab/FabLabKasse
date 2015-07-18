@@ -89,3 +89,11 @@ def do_something(value):
 - Use enough assertions in all code that has to do with money (payment, accounting, etc.).
 - For signaling errors, prefer Exceptions to return codes.
 - Avoid print, use logging.info, logging.warning etc. because these are automatically saved to a logfile
+
+# Contributing
+
+- This project is available under GPLv3 (see file `LICENSE`)
+- Follow the Code style guide
+- Develop features in a separate branch, rebasing into logically divided commits is encouraged
+- Please no fast-forward-merging (use `git merge --no-ff`, standard behaviour of Github pull requests)
+- [This article](http://nvie.com/posts/a-successful-git-branching-model/) propagates a similar model
