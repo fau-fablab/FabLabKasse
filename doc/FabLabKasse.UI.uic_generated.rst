@@ -1,0 +1,94 @@
+FabLabKasse.UI.uic_generated package
+====================================
+
+Submodules
+----------
+
+FabLabKasse.UI.uic_generated.DialogBoxUi module
+-----------------------------------------------
+
+.. automodule:: FabLabKasse.UI.uic_generated.DialogBoxUi
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+FabLabKasse.UI.uic_generated.Kassenterminal module
+--------------------------------------------------
+
+.. automodule:: FabLabKasse.UI.uic_generated.Kassenterminal
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+FabLabKasse.UI.uic_generated.KeyboardDialog module
+--------------------------------------------------
+
+.. automodule:: FabLabKasse.UI.uic_generated.KeyboardDialog
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+FabLabKasse.UI.uic_generated.LoadFromMobileAppDialog module
+-----------------------------------------------------------
+
+.. automodule:: FabLabKasse.UI.uic_generated.LoadFromMobileAppDialog
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+FabLabKasse.UI.uic_generated.PaymentMethodDialog module
+-------------------------------------------------------
+
+.. automodule:: FabLabKasse.UI.uic_generated.PaymentMethodDialog
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+FabLabKasse.UI.uic_generated.PayupCashDialog module
+---------------------------------------------------
+
+.. automodule:: FabLabKasse.UI.uic_generated.PayupCashDialog
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+FabLabKasse.UI.uic_generated.PayupManualDialog module
+-----------------------------------------------------
+
+.. automodule:: FabLabKasse.UI.uic_generated.PayupManualDialog
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+FabLabKasse.UI.uic_generated.SelectClientDialog module
+------------------------------------------------------
+
+.. automodule:: FabLabKasse.UI.uic_generated.SelectClientDialog
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+FabLabKasse.UI.uic_generated.StatisticsDialog module
+----------------------------------------------------
+
+.. automodule:: FabLabKasse.UI.uic_generated.StatisticsDialog
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+FabLabKasse.UI.uic_generated.icons_rc module
+--------------------------------------------
+
+.. automodule:: FabLabKasse.UI.uic_generated.icons_rc
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: FabLabKasse.UI.uic_generated
+    :members:
+    :undoc-members:
+    :show-inheritance:
