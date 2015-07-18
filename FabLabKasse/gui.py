@@ -54,19 +54,24 @@ from cashPayment.client.PaymentDevicesManager import PaymentDevicesManager
 
 from shopping.cart_from_app.cart_gui import MobileAppCartGUI
 
-# switching to german:
-locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
-
-cfg = scriptHelper.getConfig()
+if __name__ == "__main__":
+    # switching to german:
+    locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
+    
+    cfg = scriptHelper.getConfig()
 
 from shopping.backend.abstract import ProductNotFound, PrinterError
 import importlib
-backendname = cfg.get("backend", "backend")
+if __name__ == "__main__":
+    backendname = cfg.get("backend", "backend")
+else:
+    print "WARNING: gui.py: fake import for documentation active, instead of conditional import of backend"
+    backendname = "dummy"
+
 assert backendname in ["dummy", "oerp", "legacy_offline_kassenbuch"]
 # TODO there are probably nicer forms than the following import hack-magic
 shopping_backend_module = importlib.import_module("FabLabKasse.shopping.backend." + backendname)
 ShoppingBackend = shopping_backend_module.ShoppingBackend
-
 
 def format_decimal(value):
     "convert float, Decimal, int to a string with a locale-specific decimal point"
