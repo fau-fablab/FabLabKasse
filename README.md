@@ -58,3 +58,24 @@ and click "continue" a few times
 - produkte: empty directory for local caching of product data (TODO rename)
 - scripts: some helping cronjobs
   - TODO
+
+# Code style guide
+
+- follow PEP8, except that a longer line length is okay if it helps readability
+  - to fix whitespace, you can use `autopep8 --in-place --max-line-length=9999 $file"
+- write reStructuredText formatted function docstrings, example:
+
+```
+def do_something(value):
+    """
+    do something magic with value
+
+    :return: True if the sun shines tomorrow, False otherwise
+    :rtype: bool
+    :param value: your telephone number
+    :type value: unicode
+    """
+```
+
+- for the docstrings, use the type syntax as defined at https://www.jetbrains.com/pycharm/help/type-hinting-in-pycharm.html#d301935e18526
+
