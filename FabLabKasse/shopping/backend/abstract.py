@@ -32,13 +32,29 @@ _id_counter = itertools.count()
 
 
 def float_to_decimal(number, digits):
+    """
+    convert float to decimal with rounding and strict error tolerances
+
+    If the given number cannot be represented as decimal with an error
+    within 1/1000 of the last digit, :exc:`ValueError` is raised.
+
+    :param number: a float that is nearly equal to a decimal number
+    :type number: float | Decimal
+    :param digits: number of decimal places of the resulting value (max. 9)
+    :type digits: int
+
+    :raise: ValueError
+    """
+
     # conversion is guaranteed to be accurate at 1e12 for 0 digits
     # larger values are maybe not correctly represented in a float, so we are careful here
     assert isinstance(digits, int)
     assert 0 <= digits < 10, "invalid number of digits"
     result = Decimal(int(round(number * (10 ** digits)))) / (10 ** digits)
-    assert abs(number) < 10 ** (10 + digits), "cannot precisely convert such a large float to Decimal"
-    assert abs(float(result) - float(number)) < (10 ** -(digits + 3)), "attempted inaccurate conversion from {} to {}".format(repr(number), repr(result))
+    if not abs(number) < 10 ** (10 + digits):
+        raise ValueError("cannot precisely convert such a large float to Decimal")
+    if not abs(float(result) - float(number)) < (10 ** -(digits + 3)):
+        raise ValueError("attempted inaccurate conversion from {} to {}".format(repr(number), repr(result)))
     return result
 
 def format_qty(qty):
