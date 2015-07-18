@@ -61,10 +61,14 @@ and click "continue" a few times
 
 # Code style guide
 
-- follow PEP8, except that a longer line length is okay if it helps readability
+All contributions should have a good coding style:
+
+## Low level (formatting, docs)
+
+- Run pylint and fix all warnings and errors (except line length) as far as possible.
+- Follow the conventions set in PEP8, except that a longer line length is okay if it helps readability
   - to fix whitespace, you can use `autopep8 --in-place --max-line-length=9999 $file"
 - write reStructuredText formatted function docstrings, example:
-
 ```
 def do_something(value):
     """
@@ -79,3 +83,9 @@ def do_something(value):
 
 - for the docstrings, use the type syntax as defined at https://www.jetbrains.com/pycharm/help/type-hinting-in-pycharm.html#d301935e18526
 
+## High level (structure)
+
+- Make your code modular, reusable and well-documented. Not only for others, but also for your future self.
+- Use enough assertions in all code that has to do with money (payment, accounting, etc.).
+- For signaling errors, prefer Exceptions to return codes.
+- Avoid print, use logging.info, logging.warning etc. because these are automatically saved to a logfile
