@@ -89,6 +89,17 @@ def do_something(value):
 - Use enough assertions in all code that has to do with money (payment, accounting, etc.).
 - For signaling errors, prefer Exceptions to return codes.
 - Avoid print, use logging.info, logging.warning etc. because these are automatically saved to a logfile
+- importing a file may not cause any side-effects. For scripts that should do something when called from the shell, you can use the following pattern:
+
+```
+def main():
+    print "Hello, this is yourscript.py"
+    do_something()
+
+if __name__ == "__main__":
+    main()
+
+```
 
 # Contributing
 
