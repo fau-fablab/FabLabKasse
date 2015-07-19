@@ -1,54 +1,58 @@
-FabLabKasse.cashPayment.server package
+Server (device driver)
 ======================================
 
 Subpackages
 -----------
 
 .. toctree::
+    :maxdepth: 1
 
     FabLabKasse.cashPayment.server.NV11
     FabLabKasse.cashPayment.server.helpers
     FabLabKasse.cashPayment.server.mdbCash
 
-Submodules
-----------
 
-FabLabKasse.cashPayment.server.cashServer module
-------------------------------------------------
+Device drivers
+--------------
+
+cashServer (abstract base class)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: FabLabKasse.cashPayment.server.cashServer
     :members:
     :undoc-members:
     :show-inheritance:
 
-FabLabKasse.cashPayment.server.exampleServer module
----------------------------------------------------
+exampleServer
+^^^^^^^^^^^^^^^^
 
 .. automodule:: FabLabKasse.cashPayment.server.exampleServer
     :members:
     :undoc-members:
     :show-inheritance:
 
-FabLabKasse.cashPayment.server.hex module
------------------------------------------
 
-.. automodule:: FabLabKasse.cashPayment.server.hex
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-FabLabKasse.cashPayment.server.mdbCoinChanger module
-----------------------------------------------------
+mdbCoinChanger
+^^^^^^^^^^^^^^^^
 
 .. automodule:: FabLabKasse.cashPayment.server.mdbCoinChanger
     :members:
     :undoc-members:
     :show-inheritance:
 
-FabLabKasse.cashPayment.server.nv11 module
-------------------------------------------
+nv11
+^^^^^^^^^^^^^^^^
 
 .. automodule:: FabLabKasse.cashPayment.server.nv11
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+FabLabKasse.cashPayment.server.hex module
+-----------------------------------------
+
+.. automodule:: FabLabKasse.cashPayment.server.hex
     :members:
     :undoc-members:
     :show-inheritance:

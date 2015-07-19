@@ -1,5 +1,5 @@
-FabLabKasse package
-===================
+API reference
+======================
 
 Subpackages
 -----------

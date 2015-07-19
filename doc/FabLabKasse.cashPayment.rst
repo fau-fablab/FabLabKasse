@@ -1,5 +1,7 @@
-FabLabKasse.cashPayment package
+cash payment
 ===============================
+
+
 
 Subpackages
 -----------

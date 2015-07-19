@@ -18,31 +18,38 @@
 #  The text of the license conditions can be read at
 #  <http://www.gnu.org/licenses/>.
 
+"""
+Device driver for MDB bus based coin changers, using a MDB-USB interface
+board from https://github.com/fau-fablab/kassenautomat.mdb-interface
+
+Developed and tested for a MEI CashFlow 7900 MDB
+"""
+
 import logging
 from .mdbCash.mdb import MdbCashDevice
 from .cashServer import CashServer
 
 
 class MDBCoinChangerServer(CashServer):
+    '''
+    Device driver for MDB bus based coin changers
 
-    ''' setup device
     supported options:
 
-    port = /dev/ttyACM0
+    ``port = /dev/ttyACM0``
 
-    enable RGB LED outputs:
-    leds = True
-    disable:
-    leds = False
+    ``leds = False``
 
-    external "dumb" hopper (not on the MDB bus, but via hopper interface):
-    disable (default):
-    hopper = False
-    1,00 € coins:
-    hopper = 100
-    2,00 € coins:
-    hopper = 200
+    - enable RGB LED outputs: leds = True
+    - disable: leds = False
 
+    ``hopper = False``
+
+    external "dumb" hopper (not on the MDB bus, but via interface board):
+
+    - disable (default): hopper = False
+    - 1,00 € coins:hopper = 100
+    - 2,00 € coins: hopper = 200
     '''
 
     def initializeDevice(self):
@@ -57,25 +64,19 @@ class MDBCoinChangerServer(CashServer):
             extensionConfig["hopper"] = False
         self.dev = MdbCashDevice(port, extensionConfig=extensionConfig)
 
-    ''' return [a, b] so that for every payout request up to a the resulting payout is at least (request-b) '''
 
     def getCanPayout(self):
         return self.dev.getPossiblePayout()
 
-    ''' return True if device is an acceptor device '''
+
 
     def getCanAccept(self):
         return True
 
-    ''' empty the payout store.  '''
 
     def doEmpty(self):
         pass  # empty == enable manual dispense buttons
         # do nothing, will be enabled at every poll
-
-    ''' poll the device, update self.busy, self.moneyReceivedTotal and self.moneyDispensedTotal. '''
-    ''' set self.busy=False only if the device has completely stopped, i.e. no spontaneous dispense/accept/empty can happen '''
-    ''' when dispensing/emptying has completed, change self.currentMode to "stopping" '''
 
     def pollAndUpdateStatus(self):
         status = self.dev.poll()
@@ -132,8 +133,6 @@ class MDBCoinChangerServer(CashServer):
             logging.info("ignoring BUSY flag in idle mode, most probably"
                          "caused by service action")
             self.busy = False
-
-    ''' sleep time in seconds between polls - do not make this larger than 1sec or command handling will be slowed down '''
 
     def getSleepTime(self):
         return 0.5
