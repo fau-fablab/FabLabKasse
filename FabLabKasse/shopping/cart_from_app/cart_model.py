@@ -30,26 +30,26 @@ import os
 from PyQt4.QtCore import pyqtSignal, QObject
 import unittest
 from decimal import Decimal
-import tempfile
 # TODO self-signed ssl , we need HTTPS :(
 
 
 class InvalidCartJSONError(Exception):
-    def __init__(self, text=None, property=None, value=None):
+    """Cart JSON object received was wrong."""
+    def __init__(self, text=None, property_name=None, value=None):
         """
         Cart JSON object received was wrong.
 
         automatically logs a warning (TODO is this okay for an exception initialisation?)
 
         :param text: reason
-        :param property: use property and value if an unexpected value for a property occurs. The infotext is then filled automatically.
-        :param value: see property
+        :param property_name: use property_name and value if an unexpected value for a property occurs. The infotext is then filled automatically.
+        :param value: see property_name
         """
         if not text:
             text = u""
         text = u"Invalid Cart: " + text
-        if property:
-            text += u"Property {} has unexpected value: {}".format(property, repr(value))
+        if property_name:
+            text += u"Property {} has unexpected value: {}".format(property_name, repr(value))
         logging.warn(text)
         Exception.__init__(self, text)
 
@@ -143,9 +143,9 @@ class MobileAppCartModel(QObject):
             # logging.debug("app-checkout: empty response from server")
             # no logging here since this is a standard use-case
             return False
-        return self._decode_JSON(req)
-        
-    def _decode_JSON(self, req):
+        return self._decode_json(req)
+
+    def _decode_json(self, req):
         """decode JSON data containing the cart
 
         :param req: response object with a .json() function for decoding
@@ -160,19 +160,19 @@ class MobileAppCartModel(QObject):
         # TODO notify user of import error and abort polling
         try:
             if data["status"] != "PENDING":
-                raise InvalidCartJSONError(property="status", value=data["status"])
+                raise InvalidCartJSONError(property_name="status", value=data["status"])
             if unicode(data["cartCode"]) != self.cart_id:
-                raise InvalidCartJSONError(property="cartCode", value=data["cartCode"])
+                raise InvalidCartJSONError(property_name="cartCode", value=data["cartCode"])
             # access data["items"] here so that a possible KeyError is raised
             # and caught now and not later
             cart_items = data["items"]
             cart = []
             for entry in cart_items:
                 if not isinstance(entry, dict):
-                    raise InvalidCartJSONError(property="items", value=data["items"])
+                    raise InvalidCartJSONError(property_name="items", value=data["items"])
                 item = (int(entry["productId"]), float_to_decimal(float(entry["amount"]), 3))
                 if item[1] < 0:
-                    raise InvalidCartJSONError(property="item.amount", value=item[1])
+                    raise InvalidCartJSONError(property_name="item.amount", value=item[1])
                 cart.append(item)
         except KeyError:
             raise InvalidCartJSONError("a required key is missing in JSON")
@@ -209,11 +209,11 @@ class MobileAppCartModelTest(unittest.TestCase):
         def __init__(self, data):
             ":param data: JSON encoded string, simulated response body"
             self.data = data
-        
+
         def json(self):
-            return simplejson.loads(self.data)    
-    
-    def test_decode_JSON(self):
+            return simplejson.loads(self.data)
+
+    def test_decode_json(self):
         FakeResponse = self.FakeResponse
         def prepare():
             model = MobileAppCartModel(None)
@@ -221,43 +221,43 @@ class MobileAppCartModelTest(unittest.TestCase):
             valid_data = {}
             valid_data["cartCode"] = model.cart_id
             valid_data["items"] = []
-    
+
             product = {}
             product["id"] = 44
             product["productId"] = "9011"
             product["amount"] = "5."
-    
+
             valid_data["items"].append(product)
             valid_data["status"] = "PENDING"
             valid_data["pushId"] = "000"
             valid_data["sendToServer"] = 12398234781237
-            
+
             valid_cart = [(int(product["productId"]), Decimal(5))]
-            
+
             return [model, valid_data, valid_cart]
-        
+
         # test valid cart
         [model, data, valid_cart] = prepare()
-        self.assertEqual(model._decode_JSON(FakeResponse(simplejson.dumps(data))), valid_cart)
+        self.assertEqual(model._decode_json(FakeResponse(simplejson.dumps(data))), valid_cart)
 
         # test deleted fields and wrong datatype/value
         # (pushID and sendToServer are unused and therefore ignored)
         for field in ["status", "items", "cartCode"]:
-            [ model, data, _ ] = prepare()
+            [model, data, _] = prepare()
             with self.assertRaises(InvalidCartJSONError):
                 del data[field]
-                model._decode_JSON(FakeResponse(simplejson.dumps(data)))
-            
-            [ model, data, _ ] = prepare()
+                model._decode_json(FakeResponse(simplejson.dumps(data)))
+
+            [model, data, _] = prepare()
             with self.assertRaises(InvalidCartJSONError):
                 data[field] = "fooo"
-                model._decode_JSON(FakeResponse(simplejson.dumps(data)))
-        
+                model._decode_json(FakeResponse(simplejson.dumps(data)))
+
         # wrong datatype inside items list
-        [ model, data, _ ] = prepare()
+        [model, data, _] = prepare()
         with self.assertRaises(InvalidCartJSONError):
             data["items"][0] = "fooo"
-            model._decode_JSON(FakeResponse(simplejson.dumps(data)))
+            model._decode_json(FakeResponse(simplejson.dumps(data)))
 
         # test missing fields (productId, amount) in item, or wrong datatype
         # (id is ignored)
@@ -265,22 +265,22 @@ class MobileAppCartModelTest(unittest.TestCase):
             [model, data, _] = prepare()
             with self.assertRaises(InvalidCartJSONError):
                 del data["items"][0][field]
-                model._decode_JSON(FakeResponse(simplejson.dumps(data)))
-            
+                model._decode_json(FakeResponse(simplejson.dumps(data)))
+
         # invalid values for amount
         for invalid_amount_value in ["-5", "1.241234234232343242342234", "1e20"]:
             [model, data, _] = prepare()
             data["items"][0]["amount"] = invalid_amount_value
             with self.assertRaises(InvalidCartJSONError):
-                    model._decode_JSON(FakeResponse(simplejson.dumps(data)))
-        
+                model._decode_json(FakeResponse(simplejson.dumps(data)))
+
         # invalid values for product id
         for invalid_id_value in ["1.5", ""]:
             [model, data, _] = prepare()
             data["items"][0]["productId"] = invalid_id_value
             with self.assertRaises(InvalidCartJSONError):
-                    model._decode_JSON(FakeResponse(simplejson.dumps(data)))
-            
+                model._decode_json(FakeResponse(simplejson.dumps(data)))
+
 
 if __name__ == "__main__":
     unittest.main()
