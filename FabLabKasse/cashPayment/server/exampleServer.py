@@ -22,7 +22,9 @@
 from .cashServer import *
 import random
 
+
 class ExampleServer(CashServer):
+
     def initializeDevice(self):
         pass
 

@@ -32,8 +32,8 @@ from cashServer import CashServer
 class NV11CashServer(CashServer):
 
     def initializeDevice(self):
-        self.acceptedRest=999   # how much money may be not paid out at payout? (default: try hard to get 10€ bills, but if a 5€ bill is too far down the stack, just stop paying out)
-        self.banknoteStackHelper=BanknoteStackHelper(accepted_rest=self.acceptedRest)
+        self.acceptedRest = 999   # how much money may be not paid out at payout? (default: try hard to get 10€ bills, but if a 5€ bill is too far down the stack, just stop paying out)
+        self.banknoteStackHelper = BanknoteStackHelper(accepted_rest=self.acceptedRest)
         self.payoutActive = False
         self.stackingFromPayoutActive = False
         self.emptyingActive = False
@@ -126,20 +126,20 @@ class NV11CashServer(CashServer):
         payInOutBusy = (not val['finished']) or self.payoutActive or self.stackingFromPayoutActive or val['received'] != [] or val['dispensed'] != []
         self.busy = payInOutBusy or self.emptyingActive
         assert not (payInOutBusy and self.emptyingActive), "it is impossible to be emptying while payin/out is active"
-        
-        # pay out the next banknote, if ...
-        if (self.currentMode == "dispense" # we are currently paying out,
-                and not self.payoutActive and val['dispensed'] == [] # previous payout operations have finished
-                and not self.stackingFromPayoutActive): # and the device isn't busy stacking away a banknote
 
-            action=self.banknoteStackHelper.get_next_payout_action(self.dev.getPayoutValues(),  self.moneyDispenseAllowed - self.moneyDispensedTotal)
-            if action=="payout":
+        # pay out the next banknote, if ...
+        if (self.currentMode == "dispense"  # we are currently paying out,
+                and not self.payoutActive and val['dispensed'] == []  # previous payout operations have finished
+                and not self.stackingFromPayoutActive):  # and the device isn't busy stacking away a banknote
+
+            action = self.banknoteStackHelper.get_next_payout_action(self.dev.getPayoutValues(),  self.moneyDispenseAllowed - self.moneyDispensedTotal)
+            if action == "payout":
                 assert self.dev.tryPayout(self.moneyDispenseAllowed - self.moneyDispensedTotal) == True
                 self.payoutActive = True
-            elif action=="stack":
+            elif action == "stack":
                 self.dev.stackFromPayout()
                 self.stackingFromPayoutActive = True
-            elif action=="stop":
+            elif action == "stop":
                 logging.info("cannot payout any more. paid out: {}, requested: {}\n".format(self.moneyDispensedTotal, self.moneyDispenseAllowed))
                 self.currentMode = "stopping"
             else:
@@ -148,7 +148,7 @@ class NV11CashServer(CashServer):
 
     def getSleepTime(self):
         return 0.5  # don't make this lower.
-                    #polling too fast is bad, it causes strange responses!
+                    # polling too fast is bad, it causes strange responses!
 
 if __name__ == "__main__":
     e = NV11CashServer()

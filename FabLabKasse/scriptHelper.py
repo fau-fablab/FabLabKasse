@@ -6,15 +6,15 @@
 #                     Maximilian Gaukler <max@fablab.fau.de>
 #                     Patrick Kanzler <patrick.kanzler@fablab.fau.de>
 #                     Timo Voigt <timo@fablab.fau.de>
-# 
+#
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
@@ -27,7 +27,6 @@ import fcntl
 import sqlite3
 from ConfigParser import ConfigParser
 import codecs
-import time
 from PyQt4 import QtGui
 import traceback
 
@@ -44,7 +43,7 @@ def setupLogging(logfile):
     consolehandler = logging.StreamHandler()  # log to stderr
     consolehandler.setLevel(0)  # log everything, even DEBUG-1
     my_logger.addHandler(consolehandler)
-    my_logger.info("started logging to "+logfile)
+    my_logger.info("started logging to " + logfile)
 
 
 def setupSigInt():
@@ -73,7 +72,7 @@ def setupGraphicalExceptHook():
             detailtxt = u"{}\n{}".format(str(datetime.datetime.today()), "".join(
                 traceback.format_exception(exctype, value, tb, limit=10)))
             logging.fatal(txt)
-            logging.fatal(u"Full exception details (stack limit 50):\n"+u"".join(
+            logging.fatal(u"Full exception details (stack limit 50):\n" + u"".join(
                 traceback.format_exception(exctype, value, tb, limit=50)))
             msgbox.setText(txt)
             msgbox.setInformativeText(infotxt)
@@ -107,24 +106,13 @@ def getDB():
 class FileLock(object):
     """
     exclusive file-lock, for locking a resource against other processes
+
+    Only works on Linux (?)
     """
+
     def __init__(self, name):
-        self.f = open(name+".lock", "w")
+        self.file = open(name + ".lock", "w")
         try:
-            fcntl.flock(self.f.fileno(),  fcntl.LOCK_EX | fcntl.LOCK_NB)
+            fcntl.flock(self.file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         except IOError:
             raise Exception("lock " + name + " already taken, is another process already running?")
-
-
-class Timer:
-    def __init__(self, name):
-        self.name = name
-
-    def __enter__(self):
-        self.start = time.clock()
-        return self
-
-    def __exit__(self, *args):
-        self.end = time.clock()
-        self.interval = self.end - self.start
-        print self.name, self.interval

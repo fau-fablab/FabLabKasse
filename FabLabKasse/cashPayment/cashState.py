@@ -59,14 +59,18 @@ import sys
 
 from termcolor import colored
 
+
 def coloredError(s):
     return colored(s, 'red',  attrs=['bold'])
+
 
 def coloredGood(s):
     return colored(s, 'green',  attrs=['bold'])
 
+
 def coloredBold(s):
     return colored(s, 'blue',  attrs=['bold'])
+
 
 class NoDataFound(Exception):
     pass
@@ -92,7 +96,7 @@ class CashState(object):
 
         # remove useless zero-entries like "0x10€"
         def filter_out_zero_values(dictionary):
-            output={}
+            output = {}
             for key in dictionary:
                 if dictionary[key] == 0:
                     continue
@@ -100,7 +104,6 @@ class CashState(object):
             return output
 
         self._d = filter_out_zero_values(dictionary)
-
 
     def __add__(self, other):
         assert type(self) == type(other)
@@ -141,13 +144,13 @@ class CashState(object):
 
     def sumStr(self):
         return "{:.2f}".format(self.sum / 100.)
-    
+
     def toDict(self):
         """
         return dictionary {denomination: value, ...}
         """
         return copy.deepcopy(self._d)
-    
+
     def toJSON(self):
         """
         convert state (dict of denomination : amount) {100: 3, 200: 5} to JSON encoded string
@@ -215,7 +218,7 @@ class CashState(object):
             key = keyInt
             val = int(val)
             assert key not in state.keys(), \
-            "state indices must be unique, NOT e.g. {12*100€, 13*100€}"
+                "state indices must be unique, NOT e.g. {12*100€, 13*100€}"
             state[key] = val
         return cls(state)
 
@@ -297,7 +300,7 @@ class CashStorage(object):
         """
         increment the current state by stateDelta=CashState({denomination:count,...})
         e.g. when a coin was accepted or paid out
-        
+
         _isLogMessage: internal, only to be used by log()
         """
         assert type(stateDelta) == CashState
@@ -311,12 +314,12 @@ class CashStorage(object):
             assert state + stateDelta == stateDelta + state
 
             # store new state
-            updateType="add"
+            updateType = "add"
             if _isLogMessage:
                 # logging is like adding a zero state
-                assert stateDelta==CashState()
-                assert subindex=="log"
-                updateType="log"
+                assert stateDelta == CashState()
+                assert subindex == "log"
+                updateType = "log"
             self._storeState(subindex=subindex, state=newState, updateType=updateType, isManual=isManual, comment=comment)
             # implicit commit/rollback because of "with" block
 
@@ -332,9 +335,9 @@ class CashStorage(object):
             self._storeState(subindex=toSubindex, state=newToState, updateType="move", isManual=isManual, comment=comment)
 
             # implicit commit/rollback because of "with" block
-    
-    """save a string to the database, used for logging of important events"""
+
     def log(self, comment, isManual=False):
+        """save a string to the database, used for logging of important events"""
         self.addToState(subindex="log", stateDelta=CashState(), isManual=isManual,  comment=comment, _isLogMessage=True)
 
 
@@ -362,38 +365,35 @@ class CashStorageList(object):
     def statesStr(self):
         s = "States per subindex:\n"
         totalState = CashState()
-        
+
         for (dev, state) in sorted(self.states.iteritems()):
             if dev.endswith(".log"):
                 # skip empty "log" subindex used for logging
-                assert state==CashState()
+                assert state == CashState()
                 continue
             s += "{}\t{}\n".format(dev, state.toVerboseString())
             totalState += state
-            
+
         s += "\n===========\nsum per device:\n"
         # sum over all subindices of one device
-        currentDev=None
-        perDeviceSum=None
+        currentDev = None
+        perDeviceSum = None
         for (dev, state) in sorted(self.states.iteritems()) + [(".", CashState())]:
-            [device, subindex]=dev.split(".")
+            [device, _] = dev.split(".")
             if device != currentDev:
                 if currentDev != None:
                     s += "{}\t{}\n".format(currentDev, perDeviceSum.toVerboseString())
-                currentDev=device
-                perDeviceSum=CashState()
+                currentDev = device
+                perDeviceSum = CashState()
             perDeviceSum += state
         s += "\n===========\n"
-        s += coloredBold("TOTAL")+":\t{}".format(totalState.toVerboseString())
+        s += coloredBold("TOTAL") + ":\t{}".format(totalState.toVerboseString())
         return s
 
     # How much money is inside the whole vending machine?
     @property
     def total(self):
         return sum([state.sum for state in self.states.values()]) * Decimal('0.01')
-
-
-
 
 
 def printVerify(db):
@@ -406,15 +406,18 @@ def printVerify(db):
         summeKassenbuch += buchung.betrag
     summeKasse = CashStorageList(db).total
     if summeKasse == summeKassenbuch:
-        print coloredGood("Abgleich OK")+": Kasse=Kassenbuch={}".format(summeKasse)
+        print coloredGood("Abgleich OK") + ": Kasse=Kassenbuch={}".format(summeKasse)
     else:
-        print coloredError("Achtung, Abweichung:")+" Kasse: {}, Kassenbuch: {}, Zuviel in Kasse: {}".format(summeKasse, summeKassenbuch, summeKasse - summeKassenbuch)
+        print coloredError("Achtung, Abweichung:") + " Kasse: {}, Kassenbuch: {}, Zuviel in Kasse: {}".format(summeKasse, summeKassenbuch, summeKasse - summeKassenbuch)
 
-'''print all cash movements in the given time region
 
-date_from, date_to: ISO date strings  like "2014-02-25", or None
-'''
+
+
 def printLog(db, date_from=None, date_to=None):
+    """print all cash movements in the given time region
+
+    date_from, date_to: ISO date strings  like "2014-02-25", or None
+    """
     cur = db.cursor()
     cur.execute('SELECT device, date, state, updateType, isManual, comment FROM cash')
 
@@ -468,8 +471,9 @@ def printLog(db, date_from=None, date_to=None):
     if date_to:
         print "showing until {}".format(untilDate)
 
-''' check if given cash device has entries in the database. if not, exit with error message. '''
+
 def checkIfDeviceExists(db, identifier, subindex):
+    ''' check if given cash device has entries in the database. if not, exit with error message. '''
     try:
         # check if given name exists
         cash = CashStorage(db, identifier, readonly=True)
@@ -479,16 +483,18 @@ def checkIfDeviceExists(db, identifier, subindex):
         print "If this is not a typo and the device was never used yet, please use --force-new"
         sys.exit(1)
 
+
 def splitDeviceName(dev):
     assert "." in dev, \
         "devicename must be <identifier>.<subindex>"
     [identifier, subindex] = dev.split(".")
     return [identifier, subindex]
 
+
 def main():
     from docopt import docopt
     arguments = docopt(__doc__, version='cashState.py')
-    
+
     # Python2.7 fixup: decode UTF8 arguments
     def decodeUtf8(x):
         if type(x) == str:
@@ -497,17 +503,17 @@ def main():
             return map(decodeUtf8, x)
         else:
             return x
-            
+
     for key in arguments.iterkeys():
-        arguments[key]=decodeUtf8(arguments[key])
-    
+        arguments[key] = decodeUtf8(arguments[key])
+
     db = scriptHelper.getDB()
     CashStorage(db, "dummy")  # call constructor to create database if it doesnt exist
-    
+
     # common argument preprocessing
     if arguments['<device>']:
         [identifier, subindex] = splitDeviceName(arguments['<device>'])
-        if subindex=="log":
+        if subindex == "log":
             print "Writing to the .log subindex is not supported. For adding comments, please add an empty state on another subindex."
             sys.exit(1)
     if arguments['<fromDevice>']:
@@ -516,13 +522,13 @@ def main():
         [identifierTo, subindexTo] = splitDeviceName(arguments['<toDevice>'])
     if arguments['<comment>']:
         comment = u" ".join(arguments['<comment>'])
-    
+
     if arguments['help']:
         print __doc__
     elif arguments['show']:
         print CashStorageList(db).statesStr()
         printVerify(db)
-    elif arguments['set'] or arguments['add'] or arguments['check'] :
+    elif arguments['set'] or arguments['add'] or arguments['check']:
         cash = CashStorage(db, identifier, readonly=arguments['check'])
         if (arguments['set'] or arguments['add']) and not arguments['--force-new']:
             checkIfDeviceExists(db, identifier, subindex)
@@ -555,10 +561,10 @@ def main():
     elif arguments['move']:
         assert identifierFrom == identifierTo,  "moving between two different devices is not supported, please use two 'add' operations."
         stateDelta = CashState.fromHumanString(arguments['<stateDelta>'])
-        stateDeltaDict=stateDelta.toDict()
-        assert len(stateDeltaDict)==1,  "move supports only exactly one coin type at once"
-        denomination=stateDeltaDict.keys()[0]
-        count=stateDeltaDict.values()[0]
+        stateDeltaDict = stateDelta.toDict()
+        assert len(stateDeltaDict) == 1,  "move supports only exactly one coin type at once"
+        denomination = stateDeltaDict.keys()[0]
+        count = stateDeltaDict.values()[0]
         if not arguments['--force-new']:
             checkIfDeviceExists(db, identifierFrom, subindexFrom)
             checkIfDeviceExists(db, identifierTo, subindexTo)
