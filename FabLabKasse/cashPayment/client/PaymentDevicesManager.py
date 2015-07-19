@@ -25,7 +25,7 @@ import time
 from ConfigParser import NoOptionError
 
 
-class PaymentDevicesManager:
+class PaymentDevicesManager(object):
 
     def __init__(self, cfg):
         self.devices = []
@@ -47,7 +47,6 @@ class PaymentDevicesManager:
                 self.devices.append(PaymentDeviceClient(cmd, options))
         logging.info("cashPayment started with {} devices".format(len(self.devices)))
         self.mode = "start"
-        pass
 
     def _reset(self):
         self.requestedPayin = None
@@ -57,8 +56,12 @@ class PaymentDevicesManager:
         self.payoutDeviceDispensing = False
         self.finishedAmount = 0
 
-    # call repeatedly to update status
     def poll(self):
+        """
+        call repeatedly to update status
+
+        :rtype: None
+        """
         for d in self.devices:
             try:
                 d.poll()
@@ -131,18 +134,21 @@ class PaymentDevicesManager:
         else:
             raise Exception("unknown mode")
 
-    # returns values [totalMaximumRequest, totalRemaining]:
-    # every requested amount <= totalMaximumRequest can be paid out, with an unpaid rest <= totalRemaining
-    # (the return value is only a conservative estimate, not the theoretical optimum)
-
-    # warn the user if totalMaximumRequest is too low for the possible change
-
-    # if this function returns None, the value is still being fetched.
-    # In this case, sleep some time, then call poll() and then call the function again.
     def canPayout(self):
+        """
+        returns values [totalMaximumRequest, totalRemaining]:
+
+        every requested amount <= totalMaximumRequest can be paid out, with an unpaid rest <= totalRemaining
+        (the return value is only a conservative estimate, not the theoretical optimum)
+
+        Please warn the user if totalMaximumRequest is too low for the possible change
+
+        if this function returns None, the value is still being fetched.
+        In this case, sleep some time, then call poll() and then call the function again.
+         """
         if self.mode == "idle":
             # fill canPayoutAmounts with "None" values
-            self.canPayoutAmounts = [None for d in self.devices]
+            self.canPayoutAmounts = [None for _ in self.devices]
             self.mode = "canPayout"
             return None
         if self.mode == "canPayout":
@@ -160,14 +166,16 @@ class PaymentDevicesManager:
             raise Exception("canPayout() is not possible when busy")
 
     def _canPayout_total(self, canPayoutAmounts):
-        # find values totalMaximumRequest (as high as possible) and totalRemaining (as low as possible) so that:
-        # every requested amount <= totalMaximumRequest can be paid out, with an unpaid rest <= totalRemaining
+        """
+        find values totalMaximumRequest (as high as possible) and totalRemaining (as low as possible) so that:
+        every requested amount <= totalMaximumRequest can be paid out, with an unpaid rest <= totalRemaining
 
-        # canPayoutAmounts=[[maximumRequest, remaining], ...] values for the individual payment devices
+        canPayoutAmounts=[[maximumRequest, remaining], ...] values for the individual payment devices
 
-        # the return value is only a conservative estimate, not the theoretical optimum
+        the return value is only a conservative estimate, not the theoretical optimum
 
-        # return = [totalMaximumRequest, totalRemaining]
+        return = [totalMaximumRequest, totalRemaining]
+        """
 
         if len(canPayoutAmounts) == 0:
             return [0, 0]
@@ -198,8 +206,13 @@ class PaymentDevicesManager:
                 pass
         return [totalMaximumRequest, totalRemaining]
 
-    # test the _canPayout_total() function with one random datapoint
     def _canPayout_Unittest(self):
+        """
+        test the _canPayout_total() function with one random datapoint
+
+        :rtype: boolean
+        :return: True on success, False on error
+        """
         history = []
 
         def randFactor():  # 0 or 1 or something inbetween
@@ -215,7 +228,7 @@ class PaymentDevicesManager:
         canPayoutAmounts = []
         n = random.randint(2, 5)
         # fill canPayoutAmounts with random foo
-        for i in range(n):
+        for _ in range(n):
             canPayoutAmounts.append([int(randFactor() * randFactor() * 70000), myRandInt(1023)])
 
         [canMaximumRequest, canRemain] = self._canPayout_total(canPayoutAmounts)
@@ -260,9 +273,16 @@ class PaymentDevicesManager:
 
         self.mode = "payin"
 
-    # while accept is running:
-    # if cash is inserted into one device, lower the allowed maximum of all other devices
     def _updatePayinAmounts(self):
+        """
+        while accept is running:
+
+        if cash is inserted into one device, lower the allowed maximum of all other devices
+
+        (use case: there is a banknote accepting device and a separate coin
+        accepting device. If the user may pay in 100€ maximum and has already
+        inserted lots of coins, he may no longer use a 100€ banknote.)
+        """
         for d in self.devices:
             maximum = self.maximumPayin - self.getCurrentAmount()
             if d.getCurrentAmount() != None:
@@ -270,6 +290,9 @@ class PaymentDevicesManager:
             d.updateAcceptValue(maximum)
 
     def getCurrentAmount(self):
+        """
+        get intermediate amount, how much was paid in or out
+        """
         totalSum = self.finishedAmount
         for d in self.devices:
             if d.getCurrentAmount() != None:
@@ -277,6 +300,13 @@ class PaymentDevicesManager:
         return totalSum
 
     def empty(self):
+        """
+        start service-empty mode
+
+        see PaymentDeviceClient.empty
+
+        :rtype: None
+        """
         assert self.mode == "idle"
         self.mode = "empty"
         for d in self.devices:
@@ -284,6 +314,13 @@ class PaymentDevicesManager:
             d.poll()
 
     def stopEmptying(self):
+        """
+        exit service-empty mode
+
+        use getFinalAmount() afterwards
+
+        :rtype: None
+        """
         assert self.mode == "empty"
         self.mode = "emptyingStop"
         for d in self.devices:
@@ -315,7 +352,7 @@ class PaymentDevicesManager:
         elif self.mode.startswith("payout"):
             requested = self.requestedPayout
         if requested != None:
-            text += u":\n{} von {} ".format(formatCent(totalSum),  formatCent(requested))
+            text += u":\n{} von {} ".format(formatCent(totalSum), formatCent(requested))
         if self.mode.startswith("payin"):
             text += "bezahlt (maximal " + formatCent(self.maximumPayin) + ")"
         elif self.mode.startswith("payout"):
@@ -325,6 +362,11 @@ class PaymentDevicesManager:
         return text
 
     def startingUp(self):
+        """
+        return True if devices are still being started
+
+        No action methods may be called until this returns False
+        """
         return self.mode == "start"
 
     def payout(self, value):
@@ -344,9 +386,12 @@ class PaymentDevicesManager:
         else:
             raise Exception("abortPayin in wrong mode")
 
-    # if stopped, return the final amount and reset to idle state
-    # else, return None
     def getFinalAmount(self):
+        """
+        if stopped, return the final amount and reset to idle state
+
+        else, return None
+        """
         if self.mode != "stopped":
             return None
         ret = self.finishedAmount
@@ -355,7 +400,8 @@ class PaymentDevicesManager:
         return ret
 
 
-if __name__ == "__main__":
+def demo():
+    "Simple demonstration using two exampleServer devices"
     p = PaymentDevicesManager(["exampleServer", "exampleServer"])
 
     def wait():
@@ -389,3 +435,7 @@ if __name__ == "__main__":
     paidOut = -paidOut
     print "Rückgeld gezahlt: {}".format(paidOut)
     print "nicht ausgezahltes Rückgeld: {}".format(received - shouldPay - paidOut)
+
+
+if __name__ == "__main__":
+    demo()

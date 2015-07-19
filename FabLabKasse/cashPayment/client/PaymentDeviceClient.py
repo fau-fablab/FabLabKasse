@@ -20,28 +20,40 @@
 #  The text of the license conditions can be read at
 #  <http://www.gnu.org/licenses/>.
 
-import time
+
+"""
+Client for accessing a cash device driver.
+"""
+
 import sys
 import logging
-from processHelper.nonblockingProcess import nonblockingProcess
+from FabLabKasse.libs.process_helper.nonblockingProcess import nonblockingProcess
 import pickle
 import base64
 import monotonic as monotonic_time
 
-class PaymentDeviceClient:
+
+class PaymentDeviceClient(object):
 
     """
-    param: options: dictionary of options (name (required), device, ...) that were set in config.ini as deviceN_foo=value
+    Client for accessing a cash device driver. It starts a new python process
+    ("server") for the specified device driver. It uses non-blocking
+    communication and talks to the server process using stdin/stdout.
     """
 
     def __init__(self, cmd, options):
+        """
+        :param cmd: class name of the device driver
+        :param options: dictionary of options (name (required), device, ...) that were set in config.ini as deviceN_foo=value
+        :type options: dict(unicode, unicode)
+        """
         self.stopped = False
         self.canAccept_cachedResponse = None
         self._reset()
         self.waitingForResponse = False
         if (sys.version_info.major, sys.version_info.minor) != (2, 7):
             raise Exception("not running in python2.7 - please update PaymentDeviceClient to use the right python version for the payment servers")
-        args = ["/usr/bin/env", "python2.7", "-m",  "FabLabKasse.cashPayment.server." + cmd,  base64.b64encode(pickle.dumps(options))]
+        args = ["/usr/bin/env", "python2.7", "-m", "FabLabKasse.cashPayment.server." + cmd, base64.b64encode(pickle.dumps(options))]
         logging.info("starting cashPayment server: PYTHONPATH=.. " + " ".join(args))
         self.process = nonblockingProcess(args, {"PYTHONPATH": ".."})
         self.commandline = cmd
@@ -51,9 +63,14 @@ class PaymentDeviceClient:
     def __repr__(self):
         return "<PaymentDeviceClient(type=" + self.commandline + ", name=" + self.options["name"] + ")>"
 
-    # set status values to default values
-    # does not check for any condition!
     def _reset(self):
+        """
+        Initialise/Reset internal state to default values
+
+        does not check for any condition!
+
+        Called at the end of an operation to go back to idle state
+        """
         self.lastResponseTime = None
         self.finalAmount = None
         self.pollAmount = None
@@ -65,6 +82,13 @@ class PaymentDeviceClient:
         self.stopped = False
 
     def poll(self):
+        """
+        update internal status
+
+        call this regularly
+
+        :raise: Exception if the device crashed - do not try to recover from this exception, or the result of any following calls will be undefined
+        """
         if not self.process.isAlive():
             raise Exception("device {} server crashed -- check cash-{}.log. If it crashed before writing the logfile, try launching the server yourself with the commandline from gui.log ".format(self, self.options["name"]))
         if not self.waitingForResponse:
@@ -110,12 +134,11 @@ class PaymentDeviceClient:
             self.process.write(cmd + "\n")
             self.lastCommand = cmd
             self.waitingForResponse = True
-            self.lastResponseTime = monotonic_time.monotonic() # get monotonic time. until python 3.3 we have to use this extra module because time.monotonic() is not available in older versions.
-            
+            self.lastResponseTime = monotonic_time.monotonic()  # get monotonic time. until python 3.3 we have to use this extra module because time.monotonic() is not available in older versions.
 
         response = self.process.readline()
         if response == None and self.waitingForResponse \
-            and monotonic_time.monotonic() - self.lastResponseTime > 50:
+                and monotonic_time.monotonic() - self.lastResponseTime > 50:
             raise Exception("device {} server timeout (>50sec)".format(self))
         if response != None:
             print "got response: '" + response + "'"
@@ -124,7 +147,7 @@ class PaymentDeviceClient:
 
             # strip prefix
             prefix = "COMMAND ANSWER:"
-            assert response.startswith(prefix),  "response with wrong prefix: " + response
+            assert response.startswith(prefix), "response with wrong prefix: " + response
             response = response[len(prefix):]
             cmd = self.lastCommand
             # parse response
@@ -174,26 +197,37 @@ class PaymentDeviceClient:
             else:
                 raise Exception("unknown command at parsing answer")
 
-    # accept up to maximumPayin money, until stopAccepting() is called
-    # poll() must be called before other actions are taken
     def accept(self, maximumPayin):
+        """
+        accept up to maximumPayin money, until stopAccepting() is called
+
+        poll() must be called before other actions are taken
+        """
         assert self.status == "idle"
         self.status = "accept"
         self.requestedAccept = maximumPayin
 
-    # lower the amount of money that is accepted at maximum
-    # this can be called while accept is active
-    # example use case: Two payment devices should accept 50€ in total. 10€ were inserted into the first device -> update the second device to a maximum of 40€.
     def updateAcceptValue(self, maximumPayin):
+        """
+        lower the amount of money that is accepted at maximum
+
+        this can be called while accept is active
+
+        example use case: Two payment devices should accept 50€ in total. 10€ were inserted into the first device -> update the second device to a maximum of 40€.
+        """
         if self.requestedAccept > 0 and self.status == "accept":
             self.requestedAccept = maximumPayin
 
-    # stop accepting (does not work immediately - some payins may be possible!)
     def stopAccepting(self):
+        """
+        stop accepting (does not work immediately - some payins may be possible!)
+
+        :rtype: None
+        """
         if self.status == "accept":
             # if the last sent command is not ACCEPT, we have not sent the ACCEPT command yet. this means that poll wasn't called yet.
             assert self.lastCommand.startswith("ACCEPT"), "you must call poll() after accept() first before calling stopAccepting() !"
-            
+
             # the answer to ACCEPT was not yet received
             # instead of messing up everything, just wait for the answer and then send stop commands
             self.status = "stop"
@@ -202,33 +236,43 @@ class PaymentDeviceClient:
         assert not self.stopped
         self.status = "stop"
 
-    # Dispense up to the requested amount of money (as much as possible)
-    # Wait until hasStopped() is true, then retrieve the paid out value with getFinalAmountAndReset()
-    # An intermediate value (as a progess report) can be retrieved with getCurrentAmount, but the operation cannot be aborted.
-    # If you want to make sure that enough is available, see possibleDispense()
     def dispense(self, amount):
+        """
+        Dispense up to the requested amount of money (as much as possible)
+
+        - Wait until hasStopped() is true, then retrieve the paid out value with getFinalAmountAndReset()
+        - An intermediate value (as a progess report) can be retrieved with getCurrentAmount, but the operation cannot be aborted.
+        - If you want to make sure that enough is available, see possibleDispense()
+        """
         assert self.status == "idle"
         self.requestedDispense = amount
         self.status = "dispense"
 
-    # can any amount up to maximumAmount be paid out?
-    # (function may only be called while no operation is in progress, will raise Exception otherwise)
-    # return value:
-    # None: request in progress, please call the function again until it does not return None.
-    #        No other actions (dispense/accept/canPayout) may be called until a non-None value was returned!
-    #        call poll() repeatedly until possibleDispense()!=None
-    #        This one non-None response is not cached, another call will send return None again and send a new query to the device
-    #
-    # [maximumAmount, remainingAmount]:
-    #   maximumAmount (int): the device has enough money to pay out any amount up to maximumAmount
-    #   remainingAmount (int): How much money could be remaining at worst, if canBePaid==True? This is usually a per-device constant.
-    #
-    # IMPORTANT: it can be still possible to payout more, but not any value above maximumAmount!
-    #  For example a banknote dispenser filled with 2*10€ and 5*100€ bills will return:
-    #   possibleDispense() == [2999, 999] which means "can payout any value in 0...29,99€ with an unpaid rest of <= 9,99€"
-    #  But it can still fulfill a request of exactly 500€!
-    # remainingAmount will be == 0 for a small-coins dispenser that includes 1ct.
     def possibleDispense(self):
+        """
+        how much can be paid out?
+
+         (function may only be called while no operation is in progress, will raise Exception otherwise)
+
+         return value:
+
+         None: request in progress, please call the function again until it does not return None.
+                No other actions (dispense/accept/canPayout) may be called until a non-None value was returned!
+                call poll() repeatedly until possibleDispense()!=None
+                This one non-None response is not cached, another call will send return None again and send a new query to the device
+
+         [maximumAmount, remainingAmount]:
+           maximumAmount (int): the device has enough money to pay out any amount up to maximumAmount
+           remainingAmount (int): How much money could be remaining at worst, if canBePaid==True? This is usually a per-device constant.
+
+         IMPORTANT: it can be still possible to payout more, but not any value above maximumAmount!
+          For example a banknote dispenser filled with 2*10€ and 5*100€ bills will return:
+           possibleDispense() == [2999, 999] which means "can payout any value in 0...29,99€ with an unpaid rest of <= 9,99€"
+          But it can still fulfill a request of exactly 500€!
+         remainingAmount will be == 0 for a small-coins dispenser that includes 1ct.
+
+        :rtype: None | [int, int]
+        """
         if self.testDispenseAnswer != None:
             # we have a cached answer
             a = self.testDispenseAnswer
@@ -244,15 +288,26 @@ class PaymentDeviceClient:
         self.status = "testDispense"
         return None
 
-    # does the device support accept commands?
-    # (If this function has not returned True/False once before, it may only be called while no operation is in progress and will raise an Exception otherwise. )
-    # return value:
-    # None:  please call the function again later. The answer has not yet been received from the device
-    #        No other actions (dispense/accept/possibleDispense) may be called until a non-None value was returned!
-    #        call poll() repeatedly until canAccept()!=None
-    # True/False: Does (not) support accepting. (Now the answer is cached and may the function may be called again always)
-
     def canAccept(self):
+        """
+        does the device support accept commands?
+
+        (If this function has not returned True/False once before, it may only
+        be called while no operation is in progress and will raise an Exception
+        otherwise. )
+
+        return values and usage:
+
+        - None:  please call the function again later. The answer has not yet
+        been received from the device.
+        No other actions (dispense/accept/possibleDispense) may be called until
+        a non-None value was returned!
+        call poll() repeatedly until ``canAccept() != None``
+
+        - True/False: Does (not) support accepting. (Now the answer is cached and may the function may be called again always)
+
+        :rtype: boolean | None
+        """
         if self.canAccept_cachedResponse != None:
             return self.canAccept_cachedResponse
         if self.status == "canAccept":
@@ -261,110 +316,131 @@ class PaymentDeviceClient:
             raise Exception("canAccept cannot be used for the first time while dispensing or accepting")
         self.status = "canAccept"
 
-    # start service-mode emptying (storage to cashbox + enable manual payout)
-    # end this mode by stopEmptying()
-    # poll() must be called at least once before stopEmptying()
     def empty(self):
+        """
+        start service-mode emptying
+
+        The implementation of this modes is device specific:
+
+        - If the device has
+           an inaccessible storage, it should move the contents to the cashbox
+          so that it can be taken out for counting.
+        - If available, manual payout buttons are enabled.
+
+        usage:
+
+        - call empty()
+        - sleep, do something else, whatever you want...
+        - call poll() at least once before the next step:
+        - as soon as you want to stop, call stopEmptying()
+        - call hasStopped() until it returns True
+        - then call getFinalAmountAndReset()
+        """
         assert self.status == "idle"
         self.status = "empty"
 
-    # end the mode that was started by empty()
-    # call getFinalAmountAndReset() as soon as hasStopped()==True
     def stopEmptying(self):
-        assert self.status != "empty",  "stopEmptying() called before first poll()"
+        """
+        end the mode that was started by empty()
+
+        usage: see empty()
+        """
+        assert self.status != "empty", "stopEmptying() called before first poll()"
         assert self.status == "emptyWait"
         assert not self.stopped
         self.status = "stop"
 
-    # how much has currently been paid in? (value is not always up-to-date, but will not be higher than the actual value)
     def getCurrentAmount(self):
+        "how much has currently been paid in? (value is not always up-to-date, but will not be higher than the actual value)"
         return self.pollAmount
 
-    # returns True as soon as the operation (accept/dispense) has finished
     def hasStopped(self):
+        "returns True as soon as the operation (accept/dispense) has finished"
         return self.stopped
 
-    # call this as soon as hasStopped() is true. this returns the final amount paid in/out (negative for payout)
     def getFinalAmountAndReset(self):
+        "call this as soon as hasStopped() is true. this returns the final amount paid in/out (negative for payout)"
         assert self.hasStopped()
         r = self.finalAmount
         self._reset()
         return r
 
-if __name__ == "__main__":
-    if "--nv11-demo" in sys.argv:
-        nv11_demo()
-    else:
-        dummy_demo()
-
-
-def nv11_demo():
-    a = PaymentDeviceClient("../server/banknotenleser.py")
-    a.poll()
-    while a.canAccept() == None:
-        print "waiting for canAccept"
-        a.poll()
-        time.sleep(1)
-    print a.canAccept()
-    a.accept(2341)
-    for i in range(42):
-        a.poll()
-        print a.getCurrentAmount()
-        time.sleep(1)
-    a.stopAccepting()
-    while not a.hasStopped():
-        a.poll()
-        time.sleep(1)
-    print a.getFinalAmountAndReset()
-
-    print "can dispense: ..."
-    canDispense = None
-    while canDispense == None:
-        canDispense = a.possibleDispense()
-        a.poll()
-        time.sleep(1)
-    print "can dispense:", canDispense
-
-    a.dispense(2341)
-
-    while not a.hasStopped():
-        a.poll()
-        print "waiting for dispense to stop, currently dispensed", a.getCurrentAmount()
-        time.sleep(1)
-    print "final dispensed:", a.getFinalAmountAndReset()
-
-
-def dummy_demo():
-    a = PaymentDeviceClient("../server/exampleServer.py")
-    a.poll()
-    while a.canAccept() == None:
-        print "waiting for canAccept"
-        a.poll()
-        time.sleep(1)
-    print a.canAccept()
-    a.accept(2341)
-    for i in range(4):
-        a.poll()
-        print a.getCurrentAmount()
-        time.sleep(1)
-    a.stopAccepting()
-    while not a.hasStopped():
-        a.poll()
-        time.sleep(1)
-    print a.getFinalAmountAndReset()
-
-    print "can dispense: ..."
-    canDispense = None
-    while canDispense == None:
-        canDispense = a.possibleDispense()
-        a.poll()
-        time.sleep(1)
-    print "can dispense:", canDispense
-
-    a.dispense(2341)
-
-    while not a.hasStopped():
-        a.poll()
-        print "waiting for dispense to stop, currently dispensed", a.getCurrentAmount()
-        time.sleep(1)
-    print "final dispensed:", a.getFinalAmountAndReset()
+#==============================================================================
+# old demo code that is currently not working because
+# if __name__ == "__main__":
+#     if "--nv11-demo" in sys.argv:
+#         nv11_demo()
+#     else:
+#         dummy_demo()
+#
+#
+# def nv11_demo():
+#     a = PaymentDeviceClient("../server/banknotenleser.py")
+#     a.poll()
+#     while a.canAccept() == None:
+#         print "waiting for canAccept"
+#         a.poll()
+#         time.sleep(1)
+#     print a.canAccept()
+#     a.accept(2341)
+#     for i in range(42):
+#         a.poll()
+#         print a.getCurrentAmount()
+#         time.sleep(1)
+#     a.stopAccepting()
+#     while not a.hasStopped():
+#         a.poll()
+#         time.sleep(1)
+#     print a.getFinalAmountAndReset()
+#
+#     print "can dispense: ..."
+#     canDispense = None
+#     while canDispense == None:
+#         canDispense = a.possibleDispense()
+#         a.poll()
+#         time.sleep(1)
+#     print "can dispense:", canDispense
+#
+#     a.dispense(2341)
+#
+#     while not a.hasStopped():
+#         a.poll()
+#         print "waiting for dispense to stop, currently dispensed", a.getCurrentAmount()
+#         time.sleep(1)
+#     print "final dispensed:", a.getFinalAmountAndReset()
+#
+#
+# def dummy_demo():
+#     a = PaymentDeviceClient("../server/exampleServer.py")
+#     a.poll()
+#     while a.canAccept() == None:
+#         print "waiting for canAccept"
+#         a.poll()
+#         time.sleep(1)
+#     print a.canAccept()
+#     a.accept(2341)
+#     for i in range(4):
+#         a.poll()
+#         print a.getCurrentAmount()
+#         time.sleep(1)
+#     a.stopAccepting()
+#     while not a.hasStopped():
+#         a.poll()
+#         time.sleep(1)
+#     print a.getFinalAmountAndReset()
+#
+#     print "can dispense: ..."
+#     canDispense = None
+#     while canDispense == None:
+#         canDispense = a.possibleDispense()
+#         a.poll()
+#         time.sleep(1)
+#     print "can dispense:", canDispense
+#
+#     a.dispense(2341)
+#
+#     while not a.hasStopped():
+#         a.poll()
+#         print "waiting for dispense to stop, currently dispensed", a.getCurrentAmount()
+#         time.sleep(1)
+#     print "final dispensed:", a.getFinalAmountAndReset()
