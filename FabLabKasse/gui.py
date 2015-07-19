@@ -44,7 +44,7 @@ from libs.flickcharm import FlickCharm
 from libs.pxss import pxss
 import functools
 
-#import UI
+# import UI
 from UI.uic_generated.Kassenterminal import Ui_Kassenterminal
 from UI.PaymentMethodDialogCode import PaymentMethodDialog
 from UI.KeyboardDialogCode import KeyboardDialog
@@ -57,7 +57,7 @@ from shopping.cart_from_app.cart_gui import MobileAppCartGUI
 if __name__ == "__main__":
     # switching to german:
     locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
-    
+
     cfg = scriptHelper.getConfig()
 
 from shopping.backend.abstract import ProductNotFound, PrinterError
@@ -73,12 +73,14 @@ assert backendname in ["dummy", "oerp", "legacy_offline_kassenbuch"]
 shopping_backend_module = importlib.import_module("FabLabKasse.shopping.backend." + backendname)
 ShoppingBackend = shopping_backend_module.ShoppingBackend
 
+
 def format_decimal(value):
     "convert float, Decimal, int to a string with a locale-specific decimal point"
     return str(value).replace(".", locale.localeconv()['decimal_point'])
 
 
 class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
+
     def __init__(self):
         logging.info("GUI startup")
         Ui_Kassenterminal.__init__(self)
@@ -252,7 +254,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                 self.idleCheckTimer.start()
 
                 if cfg.has_option("idle_reset", "threshold_time"):
-                    self.idleTracker = pxss.IdleTracker(idle_threshold=1000*cfg.getint("idle_reset", "threshold_time"))
+                    self.idleTracker = pxss.IdleTracker(idle_threshold=1000 * cfg.getint("idle_reset", "threshold_time"))
                 else:
                     # default value is 1800 s
                     # TODO use proper solution for default values
@@ -284,7 +286,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             except OSError:
                 if showErrorMessage:
                     QtGui.QMessageBox.warning(self, "Ups",
-                            u"Servicemodus nicht aktiviert\n Bitte ./enableServiceMode ausführen")
+                                              u"Servicemodus nicht aktiviert\n Bitte ./enableServiceMode ausführen")
                 return
 
             delta = datetime.timedelta(0, 30, 0)
@@ -292,7 +294,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             if not (now - delta < lastEnabled < now):
                 if showErrorMessage:
                     QtGui.QMessageBox.warning(self, "Hey",
-                        u"Zu spät, Aktivierung gilt nur 30sec.")
+                                              u"Zu spät, Aktivierung gilt nur 30sec.")
                 return False
             os.unlink("./serviceModeEnabled")
             return True
@@ -373,7 +375,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.serviceProgress.cancel()
 
         def formatCent(x):  # TODO deduplicate, this is copied from PaymentDevicesManager
-            return u"{:.2f}\u2009€".format(float(x)/100).replace(".", locale.localeconv()['decimal_point'])
+            return u"{:.2f}\u2009€".format(float(x) / 100).replace(".", locale.localeconv()['decimal_point'])
         if self.serviceModeAction == "empty":
             text = u"Servicemodus manuell ausgeleert: {} "
         elif self.serviceModeAction == "accept":
@@ -381,7 +383,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         text = text.format(formatCent(a))
         logging.info(text)
         QtGui.QMessageBox.warning(self, "Service mode {}".format(self.serviceModeAction),
-            text + u" \nBitte Bargeld- und Kassenstand per CLI prüfen.")
+                                  text + u" \nBitte Bargeld- und Kassenstand per CLI prüfen.")
 
     def pollCashDevices(self):
         self.cashPayment.poll()
@@ -414,7 +416,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.updateProductsAndCategories()
 
     def on_category_clicked(self, index=None):
-        self.current_category = index.data(QtCore.Qt.UserRole+1).toInt()[0]  # TODO what does that mean
+        self.current_category = index.data(QtCore.Qt.UserRole + 1).toInt()[0]  # TODO what does that mean
         self.leaveSearch()
         self.updateProductsAndCategories()
 
@@ -425,9 +427,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
     def _add_to_category_path(self, name, categ_id, bold):
         """add button with text 'name' and callback for opening category categ_id to the category path"""
-        #l = Qt.QLabel()
-        #l.setText(u"►")
-        #self.layout_category_path.addWidget(l)
+        # l = Qt.QLabel()
+        # l.setText(u"►")
+        # self.layout_category_path.addWidget(l)
         button = Qt.QPushButton(u" ► " + name)
         button.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         if categ_id is not None:
@@ -515,7 +517,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             table.setColumnWidth(i, int(width * w / sum(widths)))
 
     def addOrderLine(self, prod_id, qty=0):
-        logging.debug("addOrderLine "+str(prod_id) + " " + str(self.shoppingBackend.get_current_order()))
+        logging.debug("addOrderLine " + str(prod_id) + " " + str(self.shoppingBackend.get_current_order()))
         if self.shoppingBackend.get_current_order() is None:
             order = self.shoppingBackend.create_order()
             self.shoppingBackend.set_current_order(order)
@@ -583,9 +585,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         def askUser():
             "ask the user whether he wants a receipt, return True if he does."
             reply = QtGui.QMessageBox.question(self, 'Message',
-                    u"Brauchst du eine Quittung?",
-                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-                    QtGui.QMessageBox.No)
+                                               u"Brauchst du eine Quittung?",
+                                               QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                                               QtGui.QMessageBox.No)
             return (reply == QtGui.QMessageBox.Yes)
 
         # Receipt printing
@@ -598,8 +600,8 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                     self.shoppingBackend.print_receipt(paymentmethod.receipt_order_id)
                 except PrinterError,  e:
                     QtGui.QMessageBox.warning(self, "Quittung", "Drucker scheint offline zu sein." +
-                        "\nFalls du wirklich eine Quittung brauchst, melde dich bei " +
-                        "kasse@fablab.fau.de mit Datum, Uhrzeit und Betrag.")
+                                              "\nFalls du wirklich eine Quittung brauchst, melde dich bei " +
+                                              "kasse@fablab.fau.de mit Datum, Uhrzeit und Betrag.")
                     logging.warning("printing receipt failed: {}".format(repr(e)))
         if paymentmethod.successful:
             paymentmethod.show_thankyou()
@@ -622,7 +624,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
     def on_order_clicked(self, leave_lineEdit_empty=False):
         order_idx = self.table_order.currentIndex()
-        logging.debug("on_order_clicked "+str(order_idx.row()))
+        logging.debug("on_order_clicked " + str(order_idx.row()))
         order_line_id = self.getSelectedOrderLineId()
         if order_line_id is not None:
             order_line = self.shoppingBackend.get_order_line(order_line_id)
@@ -637,7 +639,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
     def insertIntoLineEdit(self, char):
         self.lineEdit.setFocus()
-        self.lineEdit.setText(self.lineEdit.text()+char)
+        self.lineEdit.setText(self.lineEdit.text() + char)
         self.on_lineEdit_changed()
 
     def backspaceLineEdit(self):
@@ -656,7 +658,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # remove multiple commas and only keep last (last = right most)
         comma_count = newString.count('.')
         if comma_count > 1:
-            newString = newString.replace('.', '', comma_count-1)
+            newString = newString.replace('.', '', comma_count - 1)
 
         selected_order_line_id = self.getSelectedOrderLineId()  # selected order line
 
@@ -790,7 +792,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
         if selectLastItem:
             # select last line - used when a new line was just added
-            self.table_order.selectRow(self.table_order.model().rowCount()-1)
+            self.table_order.selectRow(self.table_order.model().rowCount() - 1)
             self.on_order_clicked(leave_lineEdit_empty=True)
         else:
             new_row_count = self.table_order.model().rowCount()
@@ -811,7 +813,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
     def insertIntoLineEdit_Suche(self, char):
         self.lineEdit_Suche.setFocus()
-        self.lineEdit_Suche.setText(self.lineEdit_Suche.text()+char)
+        self.lineEdit_Suche.setText(self.lineEdit_Suche.text() + char)
         self.searchItems(preview=True)
 
     def backspaceLineEdit_Suche(self):
@@ -883,9 +885,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         def ask_user():
             """ask the user whether he really wants to clear the cart, return True if he does."""
             reply = QtGui.QMessageBox.question(self, 'Message',
-                    u"Willst du den Warenkorb wirklich löschen?",
-                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-                    QtGui.QMessageBox.No)
+                                               u"Willst du den Warenkorb wirklich löschen?",
+                                               QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                                               QtGui.QMessageBox.No)
             return (reply == QtGui.QMessageBox.Yes)
         user_answer = True
         if hide_dialog is False:

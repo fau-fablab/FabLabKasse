@@ -24,7 +24,9 @@ import os
 
 
 class nonblockingProcess(object):
+
     "non-blocking subprocess, based on asyncproc"
+
     def __init__(self, cmd, env=None):
         self.process = asyncproc.Process(cmd, stderr=file("/dev/null", "w"),
                                          env=env or {})

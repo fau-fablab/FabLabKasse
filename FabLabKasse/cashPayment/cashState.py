@@ -411,8 +411,6 @@ def printVerify(db):
         print coloredError("Achtung, Abweichung:") + " Kasse: {}, Kassenbuch: {}, Zuviel in Kasse: {}".format(summeKasse, summeKassenbuch, summeKasse - summeKassenbuch)
 
 
-
-
 def printLog(db, date_from=None, date_to=None):
     """print all cash movements in the given time region
 

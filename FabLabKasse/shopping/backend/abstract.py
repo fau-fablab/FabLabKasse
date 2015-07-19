@@ -57,6 +57,7 @@ def float_to_decimal(number, digits):
         raise ValueError("attempted inaccurate conversion from {} to {}".format(repr(number), repr(result)))
     return result
 
+
 def format_qty(qty):
     "format quantity (number) as string"
     s = unicode(float(qty))
@@ -64,6 +65,7 @@ def format_qty(qty):
         s = s[:-2]
     s = s.replace(".", locale.localeconv()['decimal_point'])
     return s
+
 
 def format_money(amount):
     "format float as money string"
@@ -79,6 +81,7 @@ def format_money(amount):
 
 
 class Category(object):
+
     def __init__(self, categ_id, name, parent_id=None):
         self.categ_id = categ_id
         self.name = name
@@ -87,7 +90,9 @@ class Category(object):
     def __repr__(self):
         return "Category({}, {}, {})".format(self.categ_id, repr(self.name), self.parent_id)
 
+
 class Product(object):
+
     """simple representation for a product
     prod_id: int
     categ_id: int or None
@@ -99,10 +104,11 @@ class Product(object):
 
                   handling this is responsibility of the shopping backend
     """
+
     def __init__(self, prod_id, name, price, unit, location, categ_id=None, qty_rounding=0, text_entry_required=False):
         """price: Decimal
 
-        categ_id may be None if the product is not visible""" # TODO hide these products from search, or a more explicit solution
+        categ_id may be None if the product is not visible"""  # TODO hide these products from search, or a more explicit solution
         self.prod_id = prod_id
         self.name = name
         assert isinstance(price, (Decimal, int))
@@ -115,7 +121,9 @@ class Product(object):
         assert qty_rounding >= 0
         self.qty_rounding = qty_rounding
 
+
 class OrderLine(object):
+
     def __init__(self, order_line_id, qty, unit, name, price_per_unit, price_subtotal, delete_if_zero_qty=True):
         """
         one order line (roughly equal to a product in a shopping cart, although there may be multiple entries for one product)
@@ -138,7 +146,7 @@ class OrderLine(object):
         """
         self.order_line_id = order_line_id
         if order_line_id == None:
-            self.order_line_id = next(_id_counter) # may cause problems after ca. 2**30 calls because QVariant in gui somewhere converts values to int32. but who cares...
+            self.order_line_id = next(_id_counter)  # may cause problems after ca. 2**30 calls because QVariant in gui somewhere converts values to int32. but who cares...
         self.qty = qty
         self.unit = unit
         self.name = name
@@ -153,19 +161,26 @@ class OrderLine(object):
 
 
 class DebtLimitExceeded(Exception):
+
     """exception raised by pay_order_on_client: order not paid because
     the debt limit would have been exceeded"""
     pass
 
+
 class ProductNotFound(Exception):
+
     "requested product not found"
     pass
 
+
 class PrinterError(Exception):
+
     "cannot print receipt"
     pass
 
+
 class AbstractShoppingBackend(object):
+
     "manages products, categories and orders (cart)"
     __metaclass__ = ABCMeta
 
@@ -194,9 +209,9 @@ class AbstractShoppingBackend(object):
         value = Decimal(value).quantize(Decimal('1.00'), rounding=ROUND_HALF_UP)
         return value
 
-    ##########################################
+    # ====================================
     # categories
-    ##########################################
+    # ====================================
 
     @abstractmethod
     def get_root_category(self):
@@ -219,9 +234,9 @@ class AbstractShoppingBackend(object):
         return type: list(Category)"""
         pass
 
-    ##########################################
+    # ====================================
     # products
-    ##########################################
+    # ====================================
 
     @abstractmethod
     def get_products(self, current_category):
@@ -250,9 +265,9 @@ class AbstractShoppingBackend(object):
         '''
         pass
 
-    ##########################################
+    #
     # order handling
-    ##########################################
+    #
 
     @abstractmethod
     def create_order(self):
@@ -345,10 +360,9 @@ class AbstractShoppingBackend(object):
         "delete product from cart"
         pass
 
-    ##########################################
+    #
     # payment
-    ##########################################
-
+    #
 
     @abstractmethod
     def pay_order(self, method):
@@ -402,6 +416,7 @@ class AbstractShoppingBackend(object):
 
 
 class AbstractClient(object):
+
     """ a client that can pay by pin """
     __metaclass__ = ABCMeta
 
@@ -424,7 +439,7 @@ class AbstractClient(object):
         return 0
 
 
-def basicUnitTests(shopping_backend): # for implentations
+def basicUnitTests(shopping_backend):  # for implentations
 # TODO use these somewhere, integrate into unittest below
     shopping_backend.search_product("")
     shopping_backend.search_product(u"öläöäl")
@@ -432,6 +447,7 @@ def basicUnitTests(shopping_backend): # for implentations
 
 
 class AbstractShoppingBackendTest(unittest.TestCase):
+
     """test the AbstractShoppingBackend class
 
     TODO extend this test

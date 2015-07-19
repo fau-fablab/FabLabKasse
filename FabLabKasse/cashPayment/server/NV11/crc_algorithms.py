@@ -46,15 +46,19 @@ This is an example use of the different algorithms:
 """
 
 # Class Crc
-###############################################################################
+# ==================================
+
+
 class Crc(object):
+
     """
     A base class for CRC routines.
     """
 
     # Class constructor
-    ###############################################################################
-    def __init__(self, width, poly, reflect_in, xor_in, reflect_out, xor_out, table_idx_width = None):
+    # ==================================
+
+    def __init__(self, width, poly, reflect_in, xor_in, reflect_out, xor_out, table_idx_width=None):
         """The Crc constructor.
 
         The parameters are as follows:
@@ -65,13 +69,13 @@ class Crc(object):
             reflect_out
             xor_out
         """
-        self.Width          = width
-        self.Poly           = poly
-        self.ReflectIn      = reflect_in
-        self.XorIn          = xor_in
-        self.ReflectOut     = reflect_out
-        self.XorOut         = xor_out
-        self.TableIdxWidth  = table_idx_width
+        self.Width = width
+        self.Poly = poly
+        self.ReflectIn = reflect_in
+        self.XorIn = xor_in
+        self.ReflectOut = reflect_out
+        self.XorOut = xor_out
+        self.TableIdxWidth = table_idx_width
 
         self.MSB_Mask = 0x1 << (self.Width - 1)
         self.Mask = ((self.MSB_Mask - 1) << 1) | 1
@@ -88,9 +92,8 @@ class Crc(object):
         else:
             self.CrcShift = 0
 
-
     # function __get_nondirect_init
-    ###############################################################################
+    # ==================================
     def __get_nondirect_init(self, init):
         """
         return the non-direct init if the direct algorithm has been selected.
@@ -99,15 +102,14 @@ class Crc(object):
         for i in range(self.Width):
             bit = crc & 0x01
             if bit:
-                crc^= self.Poly
+                crc ^= self.Poly
             crc >>= 1
             if bit:
                 crc |= self.MSB_Mask
         return crc & self.Mask
 
-
     # function reflect
-    ###############################################################################
+    # ==================================
     def reflect(self, data, width):
         """
         reflect a data word, i.e. reverts the bit order.
@@ -118,9 +120,8 @@ class Crc(object):
             x = (x << 1) | (data & 0x01)
         return x
 
-
     # function bit_by_bit
-    ###############################################################################
+    # ==================================
     def bit_by_bit(self, in_data):
         """
         Classic simple and slow CRC implementation.  This function iterates bit
@@ -151,9 +152,8 @@ class Crc(object):
             register = self.reflect(register, self.Width)
         return register ^ self.XorOut
 
-
     # function bit_by_bit_fast
-    ###############################################################################
+    # ==================================
     def bit_by_bit_fast(self, in_data):
         """
         This is a slightly modified version of the bit-by-bit algorithm: it
@@ -180,9 +180,8 @@ class Crc(object):
             register = self.reflect(register, self.Width)
         return register ^ self.XorOut
 
-
     # function gen_table
-    ###############################################################################
+    # ==================================
     def gen_table(self):
         """
         This function generates the CRC table used for the table_driven CRC
@@ -207,9 +206,8 @@ class Crc(object):
             tbl[i] = register & (self.Mask << self.CrcShift)
         return tbl
 
-
     # function table_driven
-    ###############################################################################
+    # ==================================
     def table_driven(self, in_data):
         """
         The Standard table_driven CRC algorithm.
@@ -236,4 +234,3 @@ class Crc(object):
         if self.ReflectOut:
             register = self.reflect(register, self.Width)
         return register ^ self.XorOut
-

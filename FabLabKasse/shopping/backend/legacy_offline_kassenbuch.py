@@ -32,17 +32,16 @@ import socket
 import itertools
 
 
-    
 class ShoppingBackend(AbstractOfflineShoppingBackend):
-    
+
     def __init__(self, cfg):
         self._kasse = Kasse(cfg.get('general', 'db_file'))
-        
+
         produkte, produkte_wald = Produkt.load_from_dir('produkte/')
         categ_id_counter = itertools.count(start=1)
         categories = []
         products = []
-        
+
         def convert_products(prod_list, current_category):
             for p in prod_list:
                 qty_rounding = 0
@@ -50,8 +49,8 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
                     qty_rounding = 1
                 else:
                     qty_rounding = Decimal("0.01")
-                products.append(Product(prod_id=int(p.PLU), name=p.name, 
-                                        unit=p.basiseinheit, 
+                products.append(Product(prod_id=int(p.PLU), name=p.name,
+                                        unit=p.basiseinheit,
                                         price=p.verkaufseinheiten[p.basiseinheit]['preis'],
                                         location="",
                                         categ_id=current_category.categ_id,
@@ -62,7 +61,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
             new_categ = Category(categ_id=next(categ_id_counter), name=name, parent_id=super_category.categ_id)
             categories.append(new_categ)
             return new_categ
-                 
+
         def recursively_add_categories(name, data, super_category):
             # add a category:
             # 1. the category itself
@@ -70,7 +69,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
             # 2. the contained products
             convert_products(data[1], current_category)
             # 3. recurse: contained subcategories
-            for (sub_name, sub_data) in data[0].iteritems(): # walk through dict of subcategories
+            for (sub_name, sub_data) in data[0].iteritems():  # walk through dict of subcategories
                 recursively_add_categories(sub_name, sub_data, current_category)
 
         root = Category(categ_id=0, name="root pseudocategory, not used later", parent_id=None)
@@ -78,15 +77,13 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         for (name, data) in produkte_wald.iteritems():
             recursively_add_categories(name, data, root)
 
-        
         assert cfg.getint('payup_methods', 'overpayment_product_id') == 9999, "for this payment method you need to configure overpayment_product_id = 9999"
         assert cfg.getint('payup_methods', 'payout_impossible_product_id') == 9994, "for this payment method you need to configure 'payout_impossible_product_id == 9994"
-        #products.append(Product(prod_id=9994, name=u"nicht rückzahlbarer Rest", unit=u"Euro", location="-", price=Decimal("1"), categ_id=None))
+        # products.append(Product(prod_id=9994, name=u"nicht rückzahlbarer Rest", unit=u"Euro", location="-", price=Decimal("1"), categ_id=None))
         AbstractOfflineShoppingBackend.__init__(self, cfg, categories, products, generate_root_category=False)
-    
-    
+
     def list_clients(self):
-        clients={}
+        clients = {}
         for k in self._kasse.kunden:
             debt_limit = k.schuldengrenze
             if debt_limit < 0:
@@ -105,21 +102,20 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
             destination = u"Automatenkasse"
         else:
             raise Exception("unsupported payment method")
-        rechnung = self._rechnung_from_order_lines()        
+        rechnung = self._rechnung_from_order_lines()
         assert rechnung.summe == method.amount_paid - method.amount_returned
         rechnung.store(self._kasse.cur)
         logging.info("stored payment in Rechnung#{}".format(rechnung.id))
-        
 
         b1 = Buchung(unicode(destination), rechnung.summe, rechnung=rechnung.id)
         b2 = Buchung(unicode(origin), -rechnung.summe, rechnung=rechnung.id, datum=b1.datum)
-        self._kasse.buchen([b1,b2]) # implies database commit
-        
+        self._kasse.buchen([b1, b2])  # implies database commit
+
         self._get_current_order_obj().rechnung_for_receipt = rechnung
 
     def _rechnung_from_order_lines(self):
         "create Rechnung() object from current order"
-        
+
         assert self._get_current_order_obj().finished
         rechnung = Rechnung()
         for line in self.get_order_lines():
@@ -134,7 +130,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         assert rechnung.summe == total
         print rechnung.positionen
         return rechnung
-    
+
     def print_receipt(self, order_id):
         order = self._get_order_by_id(order_id)
         assert hasattr(order, "rechnung_for_receipt"), "given order is not ready for printing the receipt"
@@ -146,13 +142,13 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
     def get_orders(self):
         # TODO implement this function, currently not used by GUI
         raise NotImplementedError()
-    
+
     def _store_client_payment(self, client):
         kunde = Kunde.load_from_id(client.client_id, self._kasse.cur)
         rechnung = self._rechnung_from_order_lines()
         rechnung.store(self._kasse.cur)
         logging.info("stored client payment in Rechnung#{}".format(rechnung.id))
-        
+
         kunde.add_buchung(-rechnung.summe, rechnung=rechnung.id)
         kunde.store(self._kasse.cur)
         self._kasse.con.commit()

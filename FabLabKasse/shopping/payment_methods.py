@@ -30,7 +30,9 @@ from backend.abstract import DebtLimitExceeded
 
 # to register a new payment method, add it to the list at the bottom of this file
 
+
 class AbstractPaymentMethod(object):
+
     "interface for payment methods"
     __metaclass__ = ABCMeta
 
@@ -145,10 +147,11 @@ class AbstractPaymentMethod(object):
             self.shopping_backend.pay_order(self)
         return self.successful
 
+
 class AbstractClientPaymentMethod(AbstractPaymentMethod):
+
     "interface for payment methods"
     __metaclass__ = ABCMeta
-
 
     @staticmethod
     def is_charge_on_client():
@@ -156,6 +159,7 @@ class AbstractClientPaymentMethod(AbstractPaymentMethod):
 
 
 class ClientPayment(AbstractClientPaymentMethod):
+
     @staticmethod
     def is_enabled(cfg):
         return cfg.getboolean('payup_methods', 'client')
@@ -165,27 +169,27 @@ class ClientPayment(AbstractClientPaymentMethod):
         return "Kundenkonto + PIN"
 
     def show_thankyou(self):
-        pass # we already show our own thankyou dialog.
+        pass  # we already show our own thankyou dialog.
 
     def _show_dialog(self):
         client_diag = SelectClientDialog(parent=self.parent, shopping_backend=self.shopping_backend)
         okay = client_diag.exec_()
         self.successful = bool(okay)
-        self.client=client_diag.getClient()
+        self.client = client_diag.getClient()
 
     def execute_and_store(self):
         self._show_dialog()
         self.amount_paid = 0
         self.amount_returned = 0
-        self.print_receipt = False # never allow receipts because the account money is pre- or postpaid and for these payments there will be an extra receipt.
+        self.print_receipt = False  # never allow receipts because the account money is pre- or postpaid and for these payments there will be an extra receipt.
 
         if not self.successful:
             return
 
         try:
             new_debt = self.shopping_backend.pay_order_on_client(self.client)
-            QtGui.QMessageBox.information(self.parent, "Information", u"Vielen Dank.\n Dein neuer Kontostand beträgt "+
-                u"{}. \n(Positiv ist Guthaben)".format(self.shopping_backend.format_money(-new_debt)))
+            QtGui.QMessageBox.information(self.parent, "Information", u"Vielen Dank.\n Dein neuer Kontostand beträgt " +
+                                          u"{}. \n(Positiv ist Guthaben)".format(self.shopping_backend.format_money(-new_debt)))
             self.amount_paid = self.amount_to_pay
             self.successful = True
         except DebtLimitExceeded, e:
@@ -195,7 +199,9 @@ class ClientPayment(AbstractClientPaymentMethod):
             msgBox.setIcon(QtGui.QMessageBox.Warning)
             msgBox.exec_()
 
+
 class ManualCashPayment(AbstractPaymentMethod):
+
     @staticmethod
     def is_enabled(cfg):
         return cfg.getboolean('payup_methods', 'cash_manual')
@@ -215,13 +221,15 @@ class ManualCashPayment(AbstractPaymentMethod):
         self.successful = ok
         self.print_receipt = "ask"
 
+
 class AutoCashPayment(AbstractPaymentMethod):
+
     @staticmethod
     def is_enabled(cfg):
         return cfg.getboolean('payup_methods', 'cash')
 
     def show_thankyou(self):
-        pass # we already show our own thankyou message in the dialog.
+        pass  # we already show our own thankyou message in the dialog.
 
     @staticmethod
     def get_title():
@@ -231,13 +239,14 @@ class AutoCashPayment(AbstractPaymentMethod):
         pay_diag = PayupCashDialog(parent=self.parent, amount_total=self.amount_to_pay)
         ok = bool(pay_diag.exec_())
         paid_amount = pay_diag.getPaidAmount()
-        self.amount_paid = paid_amount # TODO add amount_returned
-        self.amount_returned = Decimal(0) # TODO read from dialog
+        self.amount_paid = paid_amount  # TODO add amount_returned
+        self.amount_returned = Decimal(0)  # TODO read from dialog
         self.successful = ok
         self.print_receipt = pay_diag.get_receipt_wanted()
 
 
 class FAUCardPayment(AbstractPaymentMethod):
+
     @staticmethod
     def get_title():
         return "FAUCard"

@@ -9,6 +9,7 @@ import codecs
 
 
 class Produkt:
+
     def __init__(self, plu, name, basiseinheit, basispreis, verkaufseinheiten=None, input_mode='DECIMAL'):
         self.PLU = plu
         self.name = name

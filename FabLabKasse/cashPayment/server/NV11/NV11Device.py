@@ -31,7 +31,9 @@ from ..hex import hex
 
 
 class ESSPDevice(object):
+
     "low layer eSSP protocol - implements the network layer and all communication-related commands"
+
     def __init__(self, port, presharedKey=0x0123456701234567, slaveID=0):
 
         ESSPDevice.Helper.unitTest()
@@ -315,7 +317,7 @@ class ESSPDevice(object):
             if self.buffer[1] & 0x7F == self.slaveID:
                 if bool(self.buffer[1] & 128) != bool(self.seq):
                     self.warn("response has wrong sequence number, discarding it.")
-                    data=False
+                    data = False
                 else:
                     data = ESSPDevice.Response(self.buffer[3:length + 3])
                     self.debug("response: {}".format(data))
@@ -526,7 +528,9 @@ class ESSPDevice(object):
 
 
 class NV11Device(ESSPDevice):
+
     "Interface client for Innovative Technology NV11 banknote validator/changer with eSSP Protocol"
+
     def __init__(self, port, presharedKey=0x0123456701234567, slaveID=0):
         ESSPDevice.__init__(self, port, presharedKey, slaveID)
 
@@ -570,7 +574,6 @@ class NV11Device(ESSPDevice):
         else:
             return self.unitData["real channel value"][channelId - 1]
 
-    
     def _getUnitData(self):
         """get device setup data -- see ESSP specification"""
         unitData = {}
@@ -652,20 +655,16 @@ class NV11Device(ESSPDevice):
         if not r.isOkay():
             self.log("could not payout (busy if data==3, otherwise error):" + str(r))
         return r.isOkay()  # False = could not payout, True = starting payout / waiting for start
-    
 
-    
-
-    def stackFromPayout(self): 
+    def stackFromPayout(self):
         """
         move the current note from payout store to the cashbox, so that a smaller note that isn't on top of the stack can be paid out.
-        does not check if this is useful, these checks need to be done at a higher level!    
+        does not check if this is useful, these checks need to be done at a higher level!
         """
         l = self.getPayoutValues()
         assert len(l) > 0
         self.log("moving note {} from payout-store to cashbox. payout store contents before:{} ".format(l[-1], l))
         self.command([0x43])
-
 
     def empty(self):
         self.log("counters:")
@@ -686,7 +685,7 @@ class NV11Device(ESSPDevice):
         # TODO properly document return type
         # should we use the POLL_WITH_ACK command?
         # from the docs, it looks better than POLL, but in practice it caused some strange trouble
-        USE_POLL_WITH_ACK=False
+        USE_POLL_WITH_ACK = False
         if USE_POLL_WITH_ACK:
             resp = self.command([0x56])  # Poll with ACK
         else:
@@ -841,7 +840,7 @@ class NV11Device(ESSPDevice):
             # when using poll-with-ACK, certain events need to be confirmed via ACK, otherwise they will reappear in the next poll response.
             # because of strange bugs, we have a extra safety delay added here.
             time.sleep(1)
-            self.command([0x57]) # event ACK
+            self.command([0x57])  # event ACK
             time.sleep(1)
 
         return r

@@ -5,15 +5,15 @@
 # Copyright (C) 2014  Julian Hammer <julian.hammer@fablab.fau.de>
 #                     Maximilian Gaukler <max@fablab.fau.de>
 #                     Timo Voigt <timo@fablab.fau.de>
-# 
+#
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
@@ -109,6 +109,7 @@ class NoDataFound(Exception):
 
 
 class Rechnung:
+
     def __init__(self, id=None, datum=None):
         self.id = id
 
@@ -240,6 +241,7 @@ class Rechnung:
 
 
 class Buchung:
+
     def __init__(self, konto, betrag, rechnung=None, kommentar=None, id=None, datum=None):
         self.id = id
         if not datum:
@@ -271,7 +273,7 @@ class Buchung:
         return b
 
     def _store(self, cur):
-        cur.execute("INSERT INTO buchung (datum, konto, rechnung, betrag, kommentar) VALUES " + \
+        cur.execute("INSERT INTO buchung (datum, konto, rechnung, betrag, kommentar) VALUES " +
                     "(?, ?, ?, ?, ?)", (self.datum, self.konto, self.rechnung, unicode(self.betrag), self.kommentar))
         self.id = cur.lastrowid
 
@@ -311,6 +313,7 @@ class Buchung:
 
 
 class Kasse:
+
     def __init__(self, sqlite_file=':memory:'):
         self.con = sqlite3.connect(sqlite_file)
         self.cur = self.con.cursor()
@@ -437,6 +440,7 @@ class Kasse:
 
 
 class Kunde:
+
     def __init__(self, name, pin='0000', schuldengrenze=None, email=None, telefon=None,
                  adresse=None, kommentar=None, id=None):
         self.id = id
@@ -570,6 +574,7 @@ class Kunde:
 
 
 class Kundenbuchung:
+
     def __init__(self, kunde, betrag, rechnung=None, kommentar=None, id=None, datum=None):
         self.id = id
         if not datum:
@@ -646,6 +651,7 @@ class Kundenbuchung:
 
 
 class UnicodeWriter:
+
     """
     A CSV writer which will write rows to CSV file "f",
     which is encoded in the given encoding.
@@ -788,7 +794,7 @@ if __name__ == '__main__':
         # PIN
         while True:
             print("zufällige PIN-Vorschläge: {:04} {:04} {:04}".format(random.randint(1, 9999), random.randint(1, 9999),
-                                                                  random.randint(1, 9999)))
+                                                                       random.randint(1, 9999)))
             pin = raw_input(u'PIN (vier Ziffern, 0000 bedeutet deaktiviert): ')
 
             if re.match(r'[0-9]{4}', pin):
@@ -927,7 +933,7 @@ if __name__ == '__main__':
     elif arguments['receipt']:
         r = Rechnung.load_from_id(int(arguments['<id>']), k.cur)
         print(r.receipt(header=cfg.get('receipt', 'header'), footer=cfg.get('receipt', 'footer'),
-                  export=bool(arguments["--export"])))
+                        export=bool(arguments["--export"])))
 
         if arguments['--print']:
             r.print_receipt(cfg)

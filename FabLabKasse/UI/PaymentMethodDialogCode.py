@@ -22,32 +22,34 @@ from .uic_generated.PaymentMethodDialog import Ui_PaymentMethodDialog
 from ..shopping.payment_methods import PAYMENT_METHODS
 import functools
 
+
 class PaymentMethodDialog(QtGui.QDialog, Ui_PaymentMethodDialog):
+
     def __init__(self, parent, cfg, amount):
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
-        
+
         self.method = None
-        
+
         # Clear all method buttons
         for i in range(self.layout_methods.count()):
             self.layout_methods.itemAt(i).widget().setVisible(False)
             self.layout_methods.itemAt(i).widget().deleteLater()
-             
+
         # select available methods (according to config file)
         for method in PAYMENT_METHODS:
             button = Qt.QPushButton(method.get_title())
             button.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-            button.clicked.connect(functools.partial(self.acceptAndSetMethod, method)) # cannot use lambda here because variable method will change in next iteration... python is counterintuitive here....
+            button.clicked.connect(functools.partial(self.acceptAndSetMethod, method))  # cannot use lambda here because variable method will change in next iteration... python is counterintuitive here....
             button.setVisible(method.is_enabled(cfg))
             self.layout_methods.addWidget(button)
-        
+
         self.label_betrag.setText(self.parent().shoppingBackend.format_money(amount))
         self.update()
-    
+
     def acceptAndSetMethod(self, method):
         self.method = method
         self.accept()
-        
+
     def getSelectedMethodInstance(self, parent, shopping_backend, amount_to_pay):
         return self.method(parent, shopping_backend, amount_to_pay)

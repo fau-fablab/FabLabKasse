@@ -20,6 +20,7 @@
 import re
 import serial.tools.list_ports
 
+
 def main():
     print "Listing all serial devices, pick the one you want and use the line in config.ini.\n"
     for (port, name, hwid) in serial.tools.list_ports.comports():

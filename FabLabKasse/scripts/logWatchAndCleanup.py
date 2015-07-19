@@ -38,16 +38,15 @@ import dateutil.parser
 import datetime
 from ..scriptHelper import FileLock
 
+
 def main():
     runOnlyOnce = FileLock("./logWatchAndCleanup.lock")
-    
-    
-    os.chdir(os.path.dirname(os.path.realpath(__file__))+"/../")
-    
-    
+
+    os.chdir(os.path.dirname(os.path.realpath(__file__)) + "/../")
+
     def isWarningLine(line):
         return "ERROR" in line or "WARN" in line
-    
+
     MAX_ERRORS_PER_LOG = 100
     LOG_MAX_AGE = 14  # after how many days will the log be deleted
     errorLines = {}
@@ -70,15 +69,14 @@ def main():
                     errorLines[f].append(line)
                     if len(errorLines[f]) > MAX_ERRORS_PER_LOG:
                         break
-    
+
             # found gzip old logfile
             if isOldUnzippedLog:
                 assert subprocess.call(["gzip", f]) == 0,  "calling gzip failed"
-    
-    
+
     if len(errorLines) == 0:
         sys.exit(0)
-    
+
     print("Hi, this is FabLabKasse/scripts/logWatch.sh.\nThere were warnings or errors in the recent logfile.\nPrinting the recent {} ones per file:\n".format(MAX_ERRORS_PER_LOG))
     for file in sorted(errorLines.keys()):
         print("\n\n========\n{}\n========".format(file))

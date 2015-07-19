@@ -12,7 +12,9 @@ from ... import scriptHelper
 from natsort import natsorted
 import re
 
+
 class ProductBasedOrderLine(OrderLine):
+
     """OrderLine that references a Product"""
 
     def __init__(self, product, qty, comment=None):
@@ -24,7 +26,7 @@ class ProductBasedOrderLine(OrderLine):
         if comment:
             comment = u": " + comment
         self.product = product
-        self.price_per_unit = product.price # duplicate because otherwise we get crashes from OrderLine.__init__ accessing qty.setter
+        self.price_per_unit = product.price  # duplicate because otherwise we get crashes from OrderLine.__init__ accessing qty.setter
         OrderLine.__init__(self, order_line_id=None, qty=0, unit=product.unit,
                            name=(product.name + comment), price_per_unit=product.price,
                            price_subtotal=0,
@@ -52,10 +54,11 @@ class ProductBasedOrderLine(OrderLine):
             # round up to multiple of qty
             if qty % qty_rounding > 0:
                 qty += qty_rounding - (qty % qty_rounding)
-        self.qty = qty.normalize() # use normalize() to strip trailing ,0000
+        self.qty = qty.normalize()  # use normalize() to strip trailing ,0000
 
 
 class OfflineCategoryTree(object):
+
     """local storage for a tree of categories and products"""
 
     def __init__(self, root_category_id, categories=[], products=[], generate_root_category=True):
@@ -99,7 +102,7 @@ class OfflineCategoryTree(object):
         string = string.replace(u"\ufeff", "")
         # all whitespace is treated equal
         string = re.sub(r'(\s+)', ' ', string, flags=re.UNICODE)
-        string = string.replace(u'\u2010','-') # unicode dash
+        string = string.replace(u'\u2010', '-')  # unicode dash
         return string.lower().strip()
 
     def _sort_products(self, product_list):
@@ -156,6 +159,7 @@ class OfflineCategoryTree(object):
 
 
 class Order(object):
+
     "simple shopping cart for use in ShoppingBackend"
 
     def __init__(self):
@@ -204,6 +208,7 @@ class Order(object):
 
 
 class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
+
     "manages products, categories and orders (cart)"
     __metaclass__ = ABCMeta
 
@@ -367,6 +372,7 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
 
 
 class Client(AbstractClient):
+
     """ a client that can pay by pin """
 
     def __init__(self, client_id=None, name="", pin=None, debt=None, debt_limit=None):

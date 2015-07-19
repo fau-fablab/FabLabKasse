@@ -44,14 +44,11 @@ def file_exists(filename):
 
 
 def main():
-    currentDir = os.path.dirname(__file__)+"/"
+    currentDir = os.path.dirname(__file__) + "/"
     os.chdir(currentDir)
     currentDir = os.getcwd() + "/"
-    os.chdir(currentDir+"/FabLabKasse/")
-    
-    
-    
-    
+    os.chdir(currentDir + "/FabLabKasse/")
+
     if "--example" in sys.argv:
         # load example config
         # test that there is no config.ini yet
@@ -61,28 +58,25 @@ def main():
         else:
             print("loading example configuration file. edit FabLabKasse/config.ini to change. You do not need the --example parameter later.")
             shutil.copyfile("config.ini.example", "config.ini")
-    
-    
-    os.chdir(currentDir+"/FabLabKasse/UI/")
+
+    os.chdir(currentDir + "/FabLabKasse/UI/")
     subprocess.call("./compile_all.py")
-    
-    os.chdir(currentDir+"/FabLabKasse/")
+
+    os.chdir(currentDir + "/FabLabKasse/")
     # subprocess.call("./importProdukte.py")
     myEnv = dict(os.environ)
     myEnv["LANG"] = "de_DE.UTF-8"
     myEnv["PYTHONIOENCODING"] = "UTF-8"
     myEnv["PYTHONPATH"] = currentDir  # FabLabKasse git folder should be the main module starting point
-    
-    
+
     cfg = scriptHelper.getConfig()
-    
+
     if not ('--no-update' in sys.argv):
         # start product import for some offline methods that load from a text file
         print("updating products [use --no-update to skip]")
         if cfg.get("backend", "backend") == "legacy_offline_kassenbuch":
             subprocess.call("./shopping/backend/legacy_offline_kassenbuch_tools/importProdukteOERP.py", env=myEnv)
-    
-    
+
     def runShutdown(program):
         "run sudo <program> and wait forever until the system reboots / shuts down"
         print("calling {}".format(program))
@@ -95,8 +89,8 @@ def main():
                 print("Waiting for system {}".format(program))
                 sys.stdout.flush()
                 time.sleep(1)
-    
-    os.chdir(currentDir+"/FabLabKasse/")
+
+    os.chdir(currentDir + "/FabLabKasse/")
     print("starting GUI")
     debug = ""
     if "--debug" in sys.argv:
@@ -117,4 +111,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

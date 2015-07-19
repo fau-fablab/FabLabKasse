@@ -30,18 +30,18 @@ class BanknoteStackHelper(object):
         """
         helper class for stack-based banknote payout systems.
         Such a system has a stack of banknotes from which the top one can be
-        
+
         - either paid out to the client (action "payout")
-        
+
         - or be irrevocably put away into a cashbox (action "stack"),
           from where it cannot be retrieved again for payout.
-    
+
         From the programmer's point of view, this stack is a list of banknotes,
         from which only the last one (stack.pop()) can be accessed.
-    
+
         This class makes the relevant decisions whether to pay out or stack away the current note.
         It also offers a matching implementation for CashServer.getCanPayout()
-        
+
         accepted_rest: see CashServer.getCanPayout()
         """
         self.accepted_rest = accepted_rest
@@ -180,6 +180,7 @@ class BanknoteStackHelper(object):
 
 
 class BanknoteStackHelperTester(BanknoteStackHelper):
+
     "unittest methods for BanknoteStackHelper"
     @classmethod
     def get_random_payout_parameters(cls, payout_stack=None, requested_payout=None):
@@ -247,6 +248,7 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
 
 
 class RandomLists(object):
+
     """randomly built lists with randomness taken from random.choice()
     not cryptographically secure!"""
 
@@ -258,7 +260,6 @@ class RandomLists(object):
         for unused_index in range(number_of_elements):
             my_list.append(random.randint(integer_range[0], integer_range[1]))
         return my_list
-
 
     @staticmethod
     def random_choice_list(possible_elements, number_of_elements):

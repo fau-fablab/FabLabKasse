@@ -104,6 +104,7 @@ def getDB():
 
 
 class FileLock(object):
+
     """
     exclusive file-lock, for locking a resource against other processes
 

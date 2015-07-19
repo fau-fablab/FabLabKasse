@@ -22,7 +22,10 @@ import re
 import logging
 
 from .abstract import AbstractClient, AbstractShoppingBackend, float_to_decimal, ProductNotFound, OrderLine, Product, Category
+
+
 class Client(AbstractClient):
+
     "oerp implementation of AbstractClient. do not instantiate this yourself, but please rather use Client.from_oerp or ShoppingBackend.list_clients"
 
     @classmethod
@@ -35,7 +38,7 @@ class Client(AbstractClient):
             return data
         except:  # TODO catch specific exception
             raise Exception("Client not found")
-        
+
         client = cls(client_id, data['name'])
         client.pin = data['x_pin']
         client._credit_limit = float_to_decimal(data['credit_limit'], 2)
@@ -47,36 +50,34 @@ class Client(AbstractClient):
 
     def get_debt_limit(self):
         return self._credit_limit
-    
+
     # TODO test_pin + check for disabled (=pin False or 0000 ?)
 
 
-
-
-
 class ShoppingBackend(AbstractShoppingBackend):
-    "OpenERP implementation of AbstractShoppingBackend"      
+
+    "OpenERP implementation of AbstractShoppingBackend"
+
     def __init__(self, cfg):
-        super(ShoppingBackend, self).__init__(cfg)        
+        super(ShoppingBackend, self).__init__(cfg)
         self._current_order = None
         # TODO assert cfg has relevant entries
         self.cfg.getint('openerp', 'base_category_id')
         assert self.cfg.get('openerp', 'anonymous_partner_id', None) is not None, "no 'anonymous_partner_id' configured"
 
 # TODO check donation product for price_unit
-#            # Add donation to order
+# Add donation to order
 #            order_line_data = oerp.execute(
 #                'sale.order.line', 'product_id_change', [], order['pricelist_id'][0],
 #                prod_id, return_value['amount_paid']-order['amount_total'],
-#                # UOM  qty_uos UOS    Name   partner_id
+# UOM  qty_uos UOS    Name   partner_id
 #                False, 0,      False, False, order['partner_id'][0])['value']
 #            order_line_data.update({'order_id': order_id, 'product_id': prod_id,
 #                                    'product_uom_qty':
 #                                         return_value['amount_paid']-order['amount_total'],
 #                                    'price_unit': 1.0})
 #            order_line_id = oerp.create('sale.order.line', order_line_data)
-#            
-
+#
 
         self.oerp = oerplib.OERP(server=cfg.get('openerp', 'server'), protocol='xmlrpc+ssl',
                                  database=cfg.get('openerp', 'database'), port=cfg.getint('openerp', 'port'),
@@ -116,7 +117,7 @@ class ShoppingBackend(AbstractShoppingBackend):
             c = oerp.read('product.category', c['parent_id'][0], ['name', 'parent_id'],
                           context=oerp.context)
         category_path.reverse()
-        return  [Category(categ_id=cat['id'], name=cat['name']) for cat in category_path]
+        return [Category(categ_id=cat['id'], name=cat['name']) for cat in category_path]
 
     def set_current_order(self, order_id):
         self._current_order = order_id
@@ -200,11 +201,10 @@ class ShoppingBackend(AbstractShoppingBackend):
         self.oerp.write('sale.order', self.get_current_order(), {'partner_id': client.client_id,
                                                                  'partner_shipping_id': client.client_id,
                                                                  'partner_invoice_id': client.client_id})
-        
 
     def add_order_line(self, prod_id, qty, comment=None):
         # TODO comment currently unused
-    
+
         partner_id = self.cfg.getint('openerp', 'anonymous_partner_id')
         oerp = self.oerp
         order_id = self.get_current_order()
@@ -269,13 +269,13 @@ class ShoppingBackend(AbstractShoppingBackend):
         categories = list(oerp.read('product.category', category_ids,
                                     ['name', 'sequence'],
                                     context=oerp.context))
-        
+
         # TODO change to new Category() interface
         # tODO sort by sequence?
         return (self._get_products_from_oerp(searchpattern), categories)
 
     def _get_products_from_oerp(self, query):
-        """ queries openerp for products with the specified query, 
+        """ queries openerp for products with the specified query,
         returns them in a format suitable for self.get_products()"""
         oerp = self.oerp
         product_ids = self.oerp.search('product.product', query + [('sale_ok', '=', True)])
@@ -309,7 +309,7 @@ class ShoppingBackend(AbstractShoppingBackend):
 
         if 'error' in product_prices:
             raise Exception("Could not get prices. Is the anonymous_partner_id set correctly?")
-        
+
         # TODO change to new Product() interface
         products_preprocessed = []
         for p in products:
@@ -323,8 +323,8 @@ class ShoppingBackend(AbstractShoppingBackend):
             else:
                 # TODO only if product is in this category :(
                 location = category_default_location
-            location=unicode(location)
-            data = Product(prod_id=p['id'],name=p['name'], price=float_to_decimal(p['list_price'],3), unit=unit, location=location, categ_id=None)
+            location = unicode(location)
+            data = Product(prod_id=p['id'], name=p['name'], price=float_to_decimal(p['list_price'], 3), unit=unit, location=location, categ_id=None)
             products_preprocessed.append(data)
         return products_preprocessed
 
@@ -334,22 +334,22 @@ class ShoppingBackend(AbstractShoppingBackend):
             assert type(i) == int
         "convert openerp order_line_id, type list(int), to list(OrderLine()) filled with data"
         lines = self.oerp.read('sale.order.line', ids, ['product_id', 'product_uom_qty',
-                                                                   'product_uom', 'price_unit',
-                                                                   'product_uos', 'price_subtotal'],
-                          context=self.oerp.context)
-        result=[]
+                                                        'product_uom', 'price_unit',
+                                                        'product_uos', 'price_subtotal'],
+                               context=self.oerp.context)
+        result = []
         for line in lines:
             data = OrderLine(order_line_id=line['id'],
-                                 qty=unicode(line['product_uom_qty']),
-                                 unit=line['product_uom'][1],
-                                 name=line['product_id'][1],
-                                 price_per_unit=float_to_decimal(line['price_unit'],3),
-                                 price_subtotal=float_to_decimal(line['price_subtotal'],3))
+                             qty=unicode(line['product_uom_qty']),
+                             unit=line['product_uom'][1],
+                             name=line['product_id'][1],
+                             price_per_unit=float_to_decimal(line['price_unit'], 3),
+                             price_subtotal=float_to_decimal(line['price_subtotal'], 3))
             if line['product_uos']:
                 data.unit = line['product_uos'][1]
             result.append(data)
         return result
-        
+
     def get_order_lines(self):
         oerp = self.oerp
                 # Retrieve current order
