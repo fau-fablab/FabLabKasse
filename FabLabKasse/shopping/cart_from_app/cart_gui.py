@@ -21,7 +21,7 @@
 
 from PyQt4 import Qt, QtGui
 from FabLabKasse.UI.LoadFromMobileAppDialogCode import LoadFromMobileAppDialog
-from FabLabKasse.shopping.cart_from_app.cart_model import MobileAppCartModel
+from FabLabKasse.shopping.cart_from_app.cart_model import MobileAppCartModel, InvalidCartJSONError
 from FabLabKasse.shopping.backend.abstract import ProductNotFound
 import logging
 
@@ -123,7 +123,13 @@ class MobileAppCartGUI(object):
             # this should not happen, maybe a race-condition
             return
         logging.debug(u"polling for cart {}".format(self.cart.cart_id))
-        response = self.cart.load()
+        try:
+            response = self.cart.load()
+        except InvalidCartJSONError:
+            QtGui.QMessageBox.warning(self.parent, "Warenkorb", u"Entschuldigung, beim Import ist leider ein Fehler aufgetreten.\n (Fehlerhafte Warenkorbdaten)")
+            self.diag.reject()
+            return
+
         if not response:
             self.poll_timer.start()
             return
