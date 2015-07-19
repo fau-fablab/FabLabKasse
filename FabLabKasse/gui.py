@@ -38,7 +38,7 @@ import locale
 import logging
 import datetime
 import os
-from decimal import Decimal
+from decimal import Decimal, DecimalException
 from PyQt4 import QtGui, QtCore, Qt
 from libs.flickcharm import FlickCharm
 from libs.pxss import pxss
@@ -726,7 +726,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         amount = self.lineEdit.text()
         try:
             qty = Decimal(unicode(amount.replace(locale.localeconv()['decimal_point'], ".")))
-        except:
+        except DecimalException:
             qty = Decimal(0)
         return qty
 
