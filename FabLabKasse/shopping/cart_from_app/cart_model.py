@@ -34,7 +34,9 @@ from decimal import Decimal
 
 
 class InvalidCartJSONError(Exception):
+
     """Cart JSON object received was wrong."""
+
     def __init__(self, text=None, property_name=None, value=None):
         """
         Cart JSON object received was wrong.
@@ -52,6 +54,7 @@ class InvalidCartJSONError(Exception):
 
 
 class MobileAppCartModel(QObject):
+
     """loads a cart from a mobile application"""
 
     cart_id_changed = pyqtSignal(unicode)
@@ -200,29 +203,42 @@ class MobileAppCartModel(QObject):
 
 
 class MobileAppCartModelTest(unittest.TestCase):
+
     """ Test MobileAppCartModel """
+
     def test_decode_json_cart(self):
+        """unittest: load cart from JSON.
+
+        Test normal use and various input format errors
+        """
         def prepare():
+            """
+            return a list of three objects for MobileAppCartModel._decode_json_cart():
+
+            - model: MobileAppCartModel
+            - valid_data: data for json encoding
+            - valid_cart: decoded cart like it should be output by _decode_json_cart()
+            """
             model = MobileAppCartModel(None)
             model.generate_random_id()
             valid_data = {}
             valid_data["cartCode"] = model.cart_id
             valid_data["items"] = []
-    
+
             product = {}
             product["id"] = 44
             product["productId"] = "9011"
             product["amount"] = "5."
-    
+
             valid_data["items"].append(product)
             valid_data["status"] = "PENDING"
             valid_data["pushId"] = "000"
             valid_data["sendToServer"] = 12398234781237
-            
+
             valid_cart = [(int(product["productId"]), Decimal(5))]
-            
+
             return [model, valid_data, valid_cart]
-        
+
         # test valid cart
         [model, data, valid_cart] = prepare()
         self.assertEqual(model._decode_json_cart(simplejson.dumps(data)), valid_cart)
