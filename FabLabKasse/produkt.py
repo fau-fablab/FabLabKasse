@@ -22,12 +22,11 @@ class Produkt:
 
     def add_verkaufseinheit(self, verkaufseinheit, preis, basismenge=None, input_mode='DECIMAL'):
         """Fügt eine neue Verkaufseinheit zum Produkt hinzu.
-        *verkaufseinheit* ist ein string, welcher die Einheit beschreibt, z.B. "Platte (600x300mm)"
-        *preis* ist der Preis für _eine_ solche Einheit
-        *basismenge* (optional) ein Umrechnungsfaktor: eine Basisheinheit mal Basismenge entspricht
-                     einer Verkaufseinheit
-        *input_mode* (optional) kann DECIMAL, INTEGER oder MINUTES sein. Ändert nichts an dem
-                     gespeicherten Wert, dieser ist immer Decimal.
+
+        :param basestr verkaufseinheit: ist ein string, welcher die Einheit beschreibt, z.B. "Platte (600x300mm)"
+        :param preis: ist der Preis für _eine_ solche Einheit
+        :param basismenge: (optional) ein Umrechnungsfaktor: eine Basisheinheit mal Basismenge entspricht einer Verkaufseinheit
+        :param input_mode: (optional) kann DECIMAL, INTEGER oder MINUTES sein. Ändert nichts an dem gespeicherten Wert, dieser ist immer Decimal.
         """
         preis = Decimal(preis)
         if basismenge is not None:

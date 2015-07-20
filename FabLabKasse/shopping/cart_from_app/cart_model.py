@@ -121,7 +121,8 @@ class MobileAppCartModel(QObject):
         :rtype: list[(int, Decimal)] | bool
 
         :raise: InvalidCartJSONError
-        if an invalid cart response was received from the server, (otherwise just returns False in normal cases of error)
+
+        raises InvalidCartJSONError if an invalid cart response was received from the server, (otherwise just returns False in normal cases of error)
 
         If the cart id seems already used, the random cart id is updated. please connect to the cart_id_changed() signal
         and update the shown QR code.

@@ -1,6 +1,7 @@
-cash payment
+``cash_payment``
 ===============================
 
+Infrastructure for accepting real coins and banknotes, including logging.
 
 
 Subpackages
@@ -14,14 +15,17 @@ Subpackages
 Submodules
 ----------
 
-FabLabKasse.cashPayment.cashState module
+``cashState``: logging
 ----------------------------------------
+
+This module also has a command-line interface that can be accessed as ``./cash`` from the FabLabKasse directory.
 
 .. automodule:: FabLabKasse.cashPayment.cashState
     :members:
     :undoc-members:
     :show-inheritance:
 
+    
 FabLabKasse.cashPayment.listSerialPorts module
 ----------------------------------------------
 

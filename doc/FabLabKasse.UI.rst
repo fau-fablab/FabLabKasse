@@ -1,5 +1,5 @@
-UI: User Interface
-======================
+``UI``: User Interface components and dialogs
+=============================================
 
 Subpackages
 -----------
@@ -15,14 +15,6 @@ FabLabKasse.UI.ClientDialogCode module
 --------------------------------------
 
 .. automodule:: FabLabKasse.UI.ClientDialogCode
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-FabLabKasse.UI.DialogBox module
--------------------------------
-
-.. automodule:: FabLabKasse.UI.DialogBox
     :members:
     :undoc-members:
     :show-inheritance:

@@ -22,14 +22,15 @@ from uic_generated.KeyboardDialog import Ui_KeyboardDialog
 
 
 class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
+    """
+    Example code::
 
-    '''
-    d = KeyboardDialog.askText('What?', parent=my_pyqt_window)
-    if d == None:
-        print "Aborted."
-    else:
-        print "You entered:" + d
-    '''
+        d = KeyboardDialog.askText('What?', parent=my_pyqt_window)
+        if d == None:
+            print "Aborted."
+        else:
+            print "You entered:" + d
+    """
 
     @staticmethod
     def askText(question, parent):

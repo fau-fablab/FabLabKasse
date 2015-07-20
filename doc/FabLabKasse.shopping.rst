@@ -1,5 +1,10 @@
-FabLabKasse.shopping
-============================
+``shopping``: backend for articles, payment etc.
+==================================================
+
+.. automodule:: FabLabKasse.shopping
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Subpackages
 -----------
@@ -12,19 +17,10 @@ Subpackages
 Submodules
 ----------
 
-FabLabKasse.shopping.payment_methods module
--------------------------------------------
+``payment_methods``: select and handle a payment method
+----------------------------------------------------------
 
 .. automodule:: FabLabKasse.shopping.payment_methods
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: FabLabKasse.shopping
     :members:
     :undoc-members:
     :show-inheritance:
