@@ -1,0 +1,11 @@
+/* first try to separate classes better visually */
+dl.class {
+ margin-top: 2em;
+ margin-bottom: 2em;
+ border-bottom: 1px solid #aaa;
+}
+
+/* lightly highlight classes */
+dl.class > dt {
+  background-color: #E1E9F0;
+}
