@@ -17,7 +17,7 @@ This software was mainly developed for Debian "jessie", but should also work on 
 
  - needed debian packages:
 
-        apt-get install python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort python-qrcode python-docopt python-requests python-simplejson
+        apt-get install python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort python-qrcode python-docopt python-requests python-simplejson python-sphinx
         pip install monotonic
         pip install oerplib # only for connection to OpenERP/odoo
 
@@ -26,7 +26,6 @@ This software was mainly developed for Debian "jessie", but should also work on 
  - for font: fonts-crosextra-carlito # or download Carlito-Regular.ttf from http://openfontlibrary.org/de/font/carlito#Carlito-Regular to ~/.fonts/
  - for development: qt4-designer
  - for graphical debugging: winpdb
- - for documentation: doxygen doxypy python-pygraphviz
 
 
 Modem-Manager interferes with the serial port. It is highly recommended to remove it:
