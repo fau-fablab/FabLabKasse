@@ -33,7 +33,7 @@ try:
     libXss = CDLL('libXss.so.1')
 except OSError:
     # the system does not provide libXss.so
-    logging.warning("libXss.so not found, IdleState will not be available")
+    logging.info("libXss.so not found, IdleState will not be available")
     normalmode = False
 
 
@@ -157,21 +157,28 @@ if normalmode:
     libXss.XScreenSaverAllocInfo.restype = POINTER(XScreenSaverInfo)
 
     _p_display = libXss.XOpenDisplay('')
-    display = _p_display.contents
-
-    # Get DefaultRootWindow(display), which is a macro
-    # Xlib.h
-    # define DefaultRootWindow(dpy)  (ScreenOfDisplay(dpy,DefaultScreen(dpy))->root)
-    # define ScreenOfDisplay(dpy, scr)(&((_XPrivDisplay)dpy)->screens[scr])
-    # define DefaultScreen(dpy)  (((_XPrivDisplay)dpy)->default_screen)
-    # ==> I found the following expanding version via Google Code Search
-    # ==> #define DefaultRootWindow(dpy)  (((dpy)->screens[(dpy)->default_screen]).root)
-    # Convert display.screens from c_void_p to POINTER(Screen * display.nscreens)
-    screens = cast(display.screens, POINTER(Screen * display.nscreens))
-    _default_root_window = screens.contents[display.default_screen].root
-    _p_info = pointer(XScreenSaverInfo())
-    del display
-    del screens
+    try:
+        display = _p_display.contents
+    
+        # Get DefaultRootWindow(display), which is a macro
+        # Xlib.h
+        # define DefaultRootWindow(dpy)  (ScreenOfDisplay(dpy,DefaultScreen(dpy))->root)
+        # define ScreenOfDisplay(dpy, scr)(&((_XPrivDisplay)dpy)->screens[scr])
+        # define DefaultScreen(dpy)  (((_XPrivDisplay)dpy)->default_screen)
+        # ==> I found the following expanding version via Google Code Search
+        # ==> #define DefaultRootWindow(dpy)  (((dpy)->screens[(dpy)->default_screen]).root)
+        # Convert display.screens from c_void_p to POINTER(Screen * display.nscreens)
+        screens = cast(display.screens, POINTER(Screen * display.nscreens))
+        _default_root_window = screens.contents[display.default_screen].root
+        _p_info = pointer(XScreenSaverInfo())
+        del display
+        del screens
+    except ValueError:
+        # null pointer problem, this happens when sphinx generates
+        # documentation on a system without running X11
+        logging.info("cannot load xss info - not running under X11."
+                     "Idle state will not be available.")
+        normalmode = False
 
 
 # The following code are copied directly from PyXSS-2.1/xss/__init__.py without

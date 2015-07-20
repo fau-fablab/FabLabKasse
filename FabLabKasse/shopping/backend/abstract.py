@@ -94,21 +94,34 @@ class Category(object):
 class Product(object):
 
     """simple representation for a product
-    prod_id: int
-    categ_id: int or None
-    name, location, unit: text
-    price: Decimal
-    qty_rounding: 0 (product can be bought in arbitrarily small quantities)
-                  int or Decimal (product can only be bought in multiples of this quantity, GUI input can be rounded/truncated)
-                  example: you cannot buy half a t-shirt, so you set qty_rounding = 1
+    
+    :param prod_id: numeric unique product ID
+    :type prod_id: int
+    :param categ_id: category ID of product, or None if the product is not directly visible
+    
+                     TODO hide these products from search, or a more explicit solution
+    :type categ_id: int | None
+    :param name: Name of product
+    :type name: unicode
+    :param location: Location of product (shown to the user)
+    :type location: unicode
+    :param unit: Unit of sale for this product (e.g. piece, kilogram)
+    :type unit: unicode
+    :type price: Decimal
+    :param price: price for one unit of this product
+    :param qty_rounding: Product can only be bought in multiples of this quantity, user (GUI) input will be rounded/truncated to the next multiple of this.
 
-                  handling this is responsibility of the shopping backend
+                         Set to 0 so that the product can be bought in arbitrarily small quantities.
+
+                         example: you cannot buy half a t-shirt, so you set qty_rounding = 1
+
+                         handling this is responsibility of the shopping backend
+
+    :type qty_rounding: int | Decimal
     """
 
     def __init__(self, prod_id, name, price, unit, location, categ_id=None, qty_rounding=0, text_entry_required=False):
-        """price: Decimal
-
-        categ_id may be None if the product is not visible"""  # TODO hide these products from search, or a more explicit solution
+        
         self.prod_id = prod_id
         self.name = name
         assert isinstance(price, (Decimal, int))
@@ -123,27 +136,29 @@ class Product(object):
 
 
 class OrderLine(object):
+    """
+    one order line (roughly equal to a product in a shopping cart, although there may be multiple entries for one product)
 
+    :param id: id of order-line, *must be unique and non-changing* inside one Order() (if None: autogenerate id)
+
+    :param Decimal qty: amount ("unlimited" number of digits is okay)
+
+    :param unicode unit: product unit of sale
+
+    :param unicode name: product name
+
+    :param Decimal price_per_unit: price for one unit
+
+    :param Decimal price_subtotal: price for ``qty`` * ``unit``  of this product
+
+    :param boolean delete_if_zero_qty: if the qty is zero and the user starts adding something else, then remove this line
+    
+    
+       [ usually True, set to False for products that also may as comment limes costing nothing ]
+    """
+    
     def __init__(self, order_line_id, qty, unit, name, price_per_unit, price_subtotal, delete_if_zero_qty=True):
-        """
-        one order line (roughly equal to a product in a shopping cart, although there may be multiple entries for one product)
 
-        id: id of order-line, *must be unique and non-changing* inside one Order() (if None: autogenerate id)
-
-        qty: Decimal ("unlimited" number of digits)
-
-        unit: text
-
-        name: text
-
-        price_per_unit: Decimal
-
-        price_subtotal: Decimal
-
-        delete_if_zero_qty: boolean - if the qty is zero and the user starts adding something else, then remove this line
-           [ usually True, set to False for products that also may as comment limes costing nothing ]
-
-        """
         self.order_line_id = order_line_id
         if order_line_id == None:
             self.order_line_id = next(_id_counter)  # may cause problems after ca. 2**30 calls because QVariant in gui somewhere converts values to int32. but who cares...
