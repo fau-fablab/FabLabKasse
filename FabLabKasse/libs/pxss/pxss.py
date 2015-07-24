@@ -210,11 +210,13 @@ class IdleTracker:
         (state_change, suggested_time_till_next_check, idle_time)
 
         suggested_time_till_next_check and idle_time is in milliseconds.
+
         state_change is one of:
-            None - No change in state
-            "idle" - user is idle (idle time is greater than idle threshold)
-            "unidle" - user is not idle (idle time is less than idle threshold)
-            "disabled" - idle time not available
+
+        - None - No change in state
+        - "idle" - user is idle (idle time is greater than idle threshold)
+        - "unidle" - user is not idle (idle time is less than idle threshold)
+        - "disabled" - idle time not available
 
         Note that "disabled" will be returned every time there is an error."""
         if not normalmode:
@@ -277,18 +279,20 @@ class XSSTracker:
         (state_change, suggested_time_till_next_check, idle_time)
 
         suggested_time_till_next_check and idle_time is in milliseconds.
+
         state_change is one of:
-            None - No change in state
-            "idle" - screensaver has turned on since user is now idle
-            "unidle" - screensaver has turned off since user is no longer idle
-            "disabled" - screensaver is disabled or extension not present
+
+        - None - No change in state
+        - "idle" - screensaver has turned on since user is now idle
+        - "unidle" - screensaver has turned off since user is no longer idle
+        - "disabled" - screensaver is disabled or extension not present
 
         Note that if the screensaver is disabled, it will return "disabled"
         every time."""
         try:
             self.info = get_info()
         except RuntimeError:  # XSS can raise a RuntimeError if the
-                             # XSS extension cannot be found.
+                              # XSS extension cannot be found.
             return ("disabled", self.when_disabled_wait, 0)
 
         state = self.info.state

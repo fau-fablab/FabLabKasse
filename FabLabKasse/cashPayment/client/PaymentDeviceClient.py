@@ -256,20 +256,25 @@ class PaymentDeviceClient(object):
 
          return value:
 
-         None: request in progress, please call the function again until it does not return None.
-                No other actions (dispense/accept/canPayout) may be called until a non-None value was returned!
-                call poll() repeatedly until possibleDispense()!=None
-                This one non-None response is not cached, another call will send return None again and send a new query to the device
+         - ``None``: request in progress, please call the function again until it does not return None.
+           No other actions (dispense/accept/canPayout) may be called until a non-None value was returned!
+           Call poll() repeatedly until possibleDispense()!=None.
 
-         [maximumAmount, remainingAmount]:
-           maximumAmount (int): the device has enough money to pay out any amount up to maximumAmount
-           remainingAmount (int): How much money could be remaining at worst, if canBePaid==True? This is usually a per-device constant.
+         - [maximumAmount, remainingAmount]: This one non-None response is not cached, another call will send return None again and send a new query to the device
+            - maximumAmount (int): the device has enough money to pay out any amount up to maximumAmount
+            - remainingAmount (int): How much money could be remaining at worst, if canBePaid==True? This is usually a per-device constant.
+              remainingAmount will be == 0 for a small-coins dispenser that includes 1ct.
 
-         IMPORTANT: it can be still possible to payout more, but not any value above maximumAmount!
-          For example a banknote dispenser filled with 2*10€ and 5*100€ bills will return:
-           possibleDispense() == [2999, 999] which means "can payout any value in 0...29,99€ with an unpaid rest of <= 9,99€"
-          But it can still fulfill a request of exactly 500€!
-         remainingAmount will be == 0 for a small-coins dispenser that includes 1ct.
+
+         .. IMPORTANT::
+            it can be still possible to payout more, but not any value above maximumAmount!
+
+            For example a banknote dispenser filled with 2*10€ and 5*100€ bills will return:
+
+            ``possibleDispense() == [2999, 999]`` which means "can payout any value in 0...29,99€ with an unpaid rest of <= 9,99€"
+
+            But it can still fulfill a request of exactly 500€!
+
 
         :rtype: None | [int, int]
         """
@@ -299,11 +304,10 @@ class PaymentDeviceClient(object):
         return values and usage:
 
         - None:  please call the function again later. The answer has not yet
-        been received from the device.
-        No other actions (dispense/accept/possibleDispense) may be called until
-        a non-None value was returned!
-        call poll() repeatedly until ``canAccept() != None``
-
+          been received from the device.
+          No other actions (dispense/accept/possibleDispense) may be called until
+          a non-None value was returned!
+          call poll() repeatedly until ``canAccept() != None``
         - True/False: Does (not) support accepting. (Now the answer is cached and may the function may be called again always)
 
         :rtype: boolean | None
@@ -323,7 +327,7 @@ class PaymentDeviceClient(object):
         The implementation of this modes is device specific:
 
         - If the device has
-           an inaccessible storage, it should move the contents to the cashbox
+          an inaccessible storage, it should move the contents to the cashbox
           so that it can be taken out for counting.
         - If available, manual payout buttons are enabled.
 

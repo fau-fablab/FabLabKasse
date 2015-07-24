@@ -32,8 +32,9 @@ Usage:
 
 Options:
   --force-new   Allow using set,add,move with devices that have no database entry yet
-  -h --help     Show this screen.
+  -h, --help    Show this screen.
   --version     Show version.
+
 
 Explanation:
 set: set new state, ignoring old state (after manually counting)
@@ -80,7 +81,10 @@ class CashState(object):
 
     """
     cash storage state for one particular storage (e.g. a cashbox) containing coins and banknotes
-    e.g. "13 * 1€ and 25 * 0,02€"
+
+    stores the information, how many coins/notes of each denomination are present, e.g. "13 * 1€ and 25 * 0,02€"
+
+    TODO: the code is currently hard-coded to euros and cents
     """
 
     def __init__(self, dictionary=None):
@@ -153,8 +157,7 @@ class CashState(object):
 
     def toJSON(self):
         """
-        convert state (dict of denomination : amount) {100: 3, 200: 5} to JSON encoded string
-        both denomination and amount must be integer
+        convert state to JSON encoded string like ``'{"200": 5, "100": 3}'``
         """
         s = json.dumps(self._d)
         assert self == CashState.fromJSON(s), \
@@ -178,6 +181,7 @@ class CashState(object):
         return self._d == other.toDict()
 
     def toHumanString(self):
+        """ output state in the format that :method:fromHumanString() takes"""
         s = "/"
         for (key, val) in sorted(self._d.iteritems()):
             if key >= 100 and key % 100 == 0:

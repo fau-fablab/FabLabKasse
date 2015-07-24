@@ -43,26 +43,25 @@ class Timeout(Exception):
 
 def with_timeout(timeout, func, *args, **kwargs):
     """Call a function, allowing it only to take a certain amount of time.
-       Parameters:
-        - timeout	The time, in seconds, the function is allowed to spend.
-                        This must be an integer, due to limitations in the
-                        SIGALRM handling.
-        - func		The function to call.
-        - *args		Non-keyword arguments to pass to func.
-        - **kwargs	Keyword arguments to pass to func.
 
-       Upon successful completion, with_timeout() returns the return value
-       from func.  If a timeout occurs, the Timeout exception will be raised.
+     :param timeout: The time, in seconds, the function is allowed to spend.
+                     This must be an integer, due to limitations in the
+                     SIGALRM handling.
+     :param func: The function to call.
+     :param \*args:	Non-keyword arguments to pass to func.
+     :param \*\*kwargs: Keyword arguments to pass to func.
 
-       If an alarm is pending when with_timeout() is called, with_timeout()
-       tries to restore that alarm as well as possible, and call the SIGALRM
-       signal handler if it would have expired during the execution of func.
-       This may cause that signal handler to be executed later than it would
-       normally do.  In particular, calling with_timeout() from within a
-       with_timeout() call with a shorter timeout, won't interrupt the inner
-       call.  I.e.,
-            with_timeout(5, with_timeout, 60, time.sleep, 120)
-       won't interrupt the time.sleep() call until after 60 seconds.
+    Upon successful completion, with_timeout() returns the return value
+    from func.  If a timeout occurs, the Timeout exception will be raised.
+
+    If an alarm is pending when with_timeout() is called, with_timeout()
+    tries to restore that alarm as well as possible, and call the SIGALRM
+    signal handler if it would have expired during the execution of func.
+    This may cause that signal handler to be executed later than it would
+    normally do. In particular, calling with_timeout() from within a
+    with_timeout() call with a shorter timeout, won't interrupt the inner
+    call.  I.e., `with_timeout(5, with_timeout, 60, time.sleep, 120)``
+    won't interrupt the time.sleep() call until after 60 seconds.
     """
 
     class SigAlarm(Exception):
@@ -226,14 +225,17 @@ class Process(object):
         """Terminate the process, with escalating force as needed.
            First try gently, but increase the force if it doesn't respond
            to persuassion.  The levels tried are, in order:
+
             - close the standard input of the process, so it gets an EOF.
             - send SIGTERM to the process.
             - send SIGKILL to the process.
+
            terminate() waits up to GRACEPERIOD seconds (default 1) before
            escalating the level of force.  As there are three levels, a total
            of (3-1)*GRACEPERIOD is allowed before the process is SIGKILL:ed.
            GRACEPERIOD must be an integer, and must be at least 1.
-              If the process was started with stdin not set to PIPE, the
+
+           If the process was started with stdin not set to PIPE, the
            first level (closing stdin) is skipped.
         """
         if self.__process.stdin:
