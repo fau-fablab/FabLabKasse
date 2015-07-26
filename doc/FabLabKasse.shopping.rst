@@ -22,5 +22,6 @@ Submodules
 
 .. automodule:: FabLabKasse.shopping.payment_methods
     :members:
+    :private-members:
     :undoc-members:
     :show-inheritance:

@@ -16,7 +16,23 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-"payment methods and their business logic"
+"""
+Payment methods and their business logic
+
+The GUI fetches the list of payment method classes from
+``payment_methods.PAYMENT_METHODS`` and lets the user choose from all methods
+that are enabled (:meth:`is_enabled`).
+
+The selected method is instantiated and :meth:`execute_and_store` called.
+The attributes described in :meth:`AbstractPaymentMethod._show_dialog` are
+used to store the payment and print a receipt. Then, an optional thank-you
+message is shown to the user (:meth:`_show_thankyou_message` ).
+
+To implement a new payment method, subclass :class:`AbstractPaymentMethod` for
+cash, credit card or similar methods. For client accounts (that are somehow
+paid later or pre-paid), subclass :class:`AbstractClientPaymentMethod`. Add
+your class to the list ``PAYMENT_METHODS`` at the end of ``payment_methods.py``
+"""
 
 import logging
 from abc import ABCMeta, abstractmethod  # abstract base class support
@@ -26,24 +42,21 @@ from ..UI.ClientDialogCode import SelectClientDialog
 from ..UI.PayupCashDialogCode import PayupCashDialog
 from ..UI.PayupManualDialogCode import PayupManualDialog
 from .. import scriptHelper
-from backend.abstract import DebtLimitExceeded
-
-# to register a new payment method, add it to the list at the bottom of this file
+from FabLabKasse.shopping.backend.abstract import DebtLimitExceeded
 
 
 class AbstractPaymentMethod(object):
 
-    "interface for payment methods"
+    """interface for payment methods
+    
+    :param QWidget parent: handle for main window - for Qt usage
+    :param FabLabKasse.shopping.backend.abstract.AbstractShoppingBackend shopping_backend: ShoppingBackend instance
+    :param Decimal amount_to_pay: requested amount (rounded to cents)
+    """
     __metaclass__ = ABCMeta
 
     def __init__(self, parent, shopping_backend, amount_to_pay):
-        """
-        parent: handle for main window - for Qt usage
 
-        shopping_backend: ShoppingBackend instance
-
-        amount_to_pay: Decimal value (rounded to cents) of requested amount
-        """
         self.parent = parent
         self.shopping_backend = shopping_backend
         self.amount_to_pay = amount_to_pay
@@ -58,11 +71,66 @@ class AbstractPaymentMethod(object):
 
     @abstractmethod
     def _show_dialog(self):
-        """show a GUI dialog and start payment. block until dialog has finished."""
+        """show a GUI dialog and start payment. block until dialog has finished.
+
+        :rtype: None
+
+        updates the following object properties:
+
+        - ``self.successful``: if False the payment-process has to be retried,
+          otherwise the transaction is complete
+        - ``self.amount_paid``:  amount of money which has been inserted into
+          the machine
+        - ``self.amount_returned``: amount of money that the machine returned
+          to the user
+
+
+        There are two standard cases:
+
+        - paid normally:
+          ``success == True and amount_paid - amount_returned == amount_to_pay``
+        - payment aborted normally:
+          ``success == False and amount_paid == amount_returned``
+
+        And two special cases for certain payment operations like paying in
+        cash:
+
+        - extra donation during payment process:
+          ``success == True and amount_paid - amount_returned > amount_to_pay``
+        - payment aborted, but some part of the paid money could not be paid
+          out again (e.g. because the machine can accept but not dispense
+          1-cent coins):
+          ``success == False and amount_paid > amount_returned``
+        """
         pass
 
+    def _end_of_payment(self):
+        """
+        This function is called after the payment has been stored in the
+        backend. It can be used if your payment method has its own logging
+        features and wants to store that the transaction is now fully complete.
+
+        The default implementation does nothing.
+
+        .. NOTE:
+           This function will be called even if the payment was not successful
+           or no money has been paid.
+           You can access the attributes `successful`, `amount_paid`,
+           `amount_returned` to check if you need to log the finished payment
+           or not.
+
+        :rtype: None
+        """
+
     def show_thankyou(self):
-        """ show a generic thank-you messge dialog. this is called after the dialog has ended. """
+        """ Show a thank-you messge dialog. Block until it is closed.
+
+        This is called by the GUI after execute_and_store has ended and
+        the receipt has been printed.
+
+        You can safely override this with an empty method if you don't want
+        this extra thank-you dialog.
+        """
         QtGui.QMessageBox.information(self.parent, "", u"Vielen Dank für deine Zahlung von {}.\nBitte das Aufräumen nicht vergessen!".format(self.shopping_backend.format_money(self.amount_paid - self.amount_returned)))
 
     @staticmethod
@@ -70,58 +138,55 @@ class AbstractPaymentMethod(object):
         """
         is this payment method available?
 
-        cfg: configuration from ScriptHelper.getConfig()
+        :param cfg: configuration from ScriptHelper.getConfig()
+        :rtype: bool
         """
         return False
 
     @staticmethod
     def get_title():
-        """ return human-readable name of payment method """
+        """human-readable name of payment method
+
+        :rtype: unicode"""
         return "title not implemented"
 
     @staticmethod
     def is_charge_on_client():
-        """ return False for normal payment (cash), True for virtual payment on client account """
+        """
+        :return: ``False`` for normal payment (cash, credit card, etc.), ``True`` for virtual payment on client account
+        :rtype: bool
+        """
         return False
 
     def execute_and_store(self):
-        """show dialog, make payment, store in shopping_backend, show thankyou message
+        """show dialog and process payment
 
-        (if possible, only override _show_dialog and not this method)
+        - show dialog, make payment, update the properties as described in :meth:`_show_dialog`
+        - call :meth:`_end_of_payment` as soon as possible, but after the properties have been updated
+        - show thankyou message :meth:`_show_thankyou_message`
 
-        update attributes for return state:
-
-        self.successful
-        if False the payment-process has to be retried, otherwise the transaction is complete
-
-        self.amount_paid
-        describes the amount of money, which has been inserted into the machine
-
-        self.amount_returned
-        describes the amount of money, that the machine returned to the user
-
-
-        there are four possible cases of return values:
-
-        paid normally: (success == True) and (amount_paid - amount_returned == amount_to_pay)
-
-        extra donation during payment process: (success == True) and (amount_paid - amount_returned > amount_to_pay)
-
-        payment aborted normally: (success == False) and (amount_paid == amount_returned)
-
-        payment aborted, but some part of the paid money could not be paid out again (e.g. because the machine can accept but not dispense 1cent coins):
-            (success == False) and (amount_paid > amount_returned)
+        .. NOTE::
+          If possible, only override _show_dialog and not this method.
         """
         self._show_dialog()
         assert self.amount_paid >= self.amount_returned
-        if not self.successful:
+        if self.successful:
+            assert self.amount_paid >= self.amount_to_pay
+            if self.amount_paid > self.amount_to_pay:
+                logging.info("user paid more than requested - adding product for overpayment to current order")
+                # Modify sale order according to overpayment
+                # rather handle these two calls in shoppingBackend??
+                prod_id = scriptHelper.getConfig().getint('payup_methods', 'overpayment_product_id')
+                self.shopping_backend.add_order_line(prod_id, self.amount_paid - self.amount_to_pay)
+                assert self.shopping_backend.get_current_total() == self.amount_paid, "adding product for overpayment failed"
+            self.shopping_backend.pay_order(self)
+        else:  # unsuccessful payment
             amount_not_paid_back = self.amount_paid - self.amount_returned
             if amount_not_paid_back == 0:
                 # completely refunded aborted payment - no receipt necessary
                 self.print_receipt = False
             else:
                 logging.info("cannot pay back everything of aborted payment. issuing receipt for the remaining rest.")
-
                 self.print_receipt = True
                 old_order = self.shopping_backend.get_current_order()
                 # create a new, separate order for the non-paid-back rest
@@ -138,31 +203,29 @@ class AbstractPaymentMethod(object):
 
                 # switch back to old order
                 self.shopping_backend.set_current_order(old_order)
-            return
-        if self.successful:
-            if self.amount_paid > self.amount_to_pay:
-                # Modify sale order according to overpayment
-                # rather handle these two calls in shoppingBackend??
-                logging.info("user paid more than requested - adding product for overpayment to current order")
-                prod_id = scriptHelper.getConfig().getint('payup_methods', 'overpayment_product_id')
-                self.shopping_backend.add_order_line(prod_id, self.amount_paid - self.amount_to_pay)
-                assert self.shopping_backend.get_current_total() == self.amount_paid, "adding product for overpayment failed"
-            self.shopping_backend.pay_order(self)
-        return self.successful
+
+        self._end_of_payment()
 
 
 class AbstractClientPaymentMethod(AbstractPaymentMethod):
 
-    "interface for payment methods"
+    """
+    abstract base for virtual payment on client account (no real money is
+    being) transfered, the client account balance just becomes lower)
+    """
     __metaclass__ = ABCMeta
 
     @staticmethod
     def is_charge_on_client():
         return True
 
+    @abstractmethod
+    def execute_and_store(self):
+        pass
+
 
 class ClientPayment(AbstractClientPaymentMethod):
-
+    "pay on client account with PIN and client number"
     @staticmethod
     def is_enabled(cfg):
         return cfg.getboolean('payup_methods', 'client')
@@ -191,12 +254,14 @@ class ClientPayment(AbstractClientPaymentMethod):
 
         try:
             new_debt = self.shopping_backend.pay_order_on_client(self.client)
-            QtGui.QMessageBox.information(self.parent, "Information", u"Vielen Dank.\n Dein neuer Kontostand beträgt " +
-                                          u"{}. \n(Positiv ist Guthaben)".format(self.shopping_backend.format_money(-new_debt)))
             self.amount_paid = self.amount_to_pay
             self.successful = True
+            self._end_of_payment()
+            QtGui.QMessageBox.information(self.parent, "Information", u"Vielen Dank.\n Dein neuer Kontostand beträgt " +
+                                          u"{}. \n(Positiv ist Guthaben)".format(self.shopping_backend.format_money(-new_debt)))
         except DebtLimitExceeded, e:
             self.successful = False
+            self._end_of_payment()
             msgBox = QtGui.QMessageBox(self.parent)
             msgBox.setText(e.message)
             msgBox.setIcon(QtGui.QMessageBox.Warning)
@@ -204,7 +269,9 @@ class ClientPayment(AbstractClientPaymentMethod):
 
 
 class ManualCashPayment(AbstractPaymentMethod):
-
+    """
+    Pay in cash, but enter manually how much money was put into the cashbox.
+    """
     @staticmethod
     def is_enabled(cfg):
         return cfg.getboolean('payup_methods', 'cash_manual')
@@ -226,6 +293,7 @@ class ManualCashPayment(AbstractPaymentMethod):
 
 
 class AutoCashPayment(AbstractPaymentMethod):
+    "Pay in cash, using payin and payout devices. See also :ref:`cash_payment`"
 
     @staticmethod
     def is_enabled(cfg):
