@@ -233,45 +233,51 @@ class CashServer:
 
     @abstractmethod
     def initializeDevice(self):
-        ''' setup device'''
+        """ setup device"""
         pass
 
     @abstractmethod
     def getCanPayout(self):
-        ''' return [x, y] so that for every payout request <= x the resulting payout is >= (request-y) '''
+        """ return [x, y] so that for every payout request <= x the resulting payout is >= (request-y) """
         pass
 
     @abstractmethod
     def getCanAccept(self):
-        ''' return True if device is an acceptor device '''
+        """ return True if device is an acceptor device """
         pass
 
     @abstractmethod
     def doEmpty(self):
-        ''' empty the payout store.  '''
+        """ empty the payout store.  """
         pass
 
     @abstractmethod
     def pollAndUpdateStatus(self):
-        ''' poll the device, update self.busy, and call event_receivedMoney and event_dispensedMoney
+        """ poll the device, update self.busy, and call event_receivedMoney and event_dispensedMoney
         set self.busy=False only if the device has completely stopped, i.e. no spontaneous dispense/accept/empty can happen
-        when dispensing/emptying has completed, change self.currentMode to "stopping" '''
+        when dispensing/emptying has completed, change self.currentMode to "stopping" """
         pass
 
     def getSleepTime(self):
-        ''' sleep time in seconds between polls - do not make this larger than 1sec or command handling will be slowed down '''
+        """ sleep time in seconds between polls - do not make this larger than 1sec or
+        command handling will be slowed down
+        """
         return 0.5
 
     def getIdleTime(self):
-        # slow down polling after specified time -- change to float("inf") to disable this feature
+        """ slow down polling after specified time -- change to float("inf") to disable this feature """
         return 60
 
     @property
     def moneyDispensedTotal(self):
-        ''' an implementation may read moneyDispensedTotal and moneyReceivedTotal, but writing must take place through event_dispensedMoney and event_receivedMoney.'''
+        """ an implementation may read moneyDispensedTotal and moneyReceivedTotal, but writing must take place
+        through event_dispensedMoney and event_receivedMoney.
+        """
         return self.__moneyDispensedTotal
 
     @property
     def moneyReceivedTotal(self):
-        ''' an implementation may read moneyDispensedTotal and moneyReceivedTotal, but writing must take place through event_dispensedMoney and event_receivedMoney.'''
+        """ an implementation may read moneyDispensedTotal and moneyReceivedTotal, but writing must take place
+        through event_dispensedMoney and event_receivedMoney.
+        """
         return self.__moneyReceivedTotal

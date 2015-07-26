@@ -37,12 +37,13 @@ This is an example use of the different algorithms:
 
 >>> from crc_algorithms import Crc
 >>>
->>> crc = Crc(width = 16, poly = 0x8005,
-...           reflect_in = True, xor_in = 0x0000,
-...           reflect_out = True, xor_out = 0x0000)
+>>> crc = Crc(width=16, poly=0x8005,
+...           reflect_in=True, xor_in=0x0000,
+...           reflect_out=True, xor_out=0x0000)
 >>> print("0x%x" % crc.bit_by_bit("123456789"))
 >>> print("0x%x" % crc.bit_by_bit_fast("123456789"))
 >>> print("0x%x" % crc.table_driven("123456789"))
+
 """
 
 # Class Crc
@@ -158,7 +159,7 @@ class Crc(object):
         """
         This is a slightly modified version of the bit-by-bit algorithm: it
         does not need to loop over the augmented bits, i.e. the Width 0-bits
-        wich are appended to the input message in the bit-by-bit algorithm.
+        which are appended to the input message in the bit-by-bit algorithm.
         """
         # If the input data is a string, convert to bytes.
         if isinstance(in_data, str):

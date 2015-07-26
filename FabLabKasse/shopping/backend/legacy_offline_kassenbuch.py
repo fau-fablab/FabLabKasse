@@ -114,7 +114,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         self._get_current_order_obj().rechnung_for_receipt = rechnung
 
     def _rechnung_from_order_lines(self):
-        "create Rechnung() object from current order"
+        """create Rechnung() object from current order"""
 
         assert self._get_current_order_obj().finished
         rechnung = Rechnung()

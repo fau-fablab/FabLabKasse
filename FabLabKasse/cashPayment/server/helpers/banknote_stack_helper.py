@@ -16,7 +16,7 @@
 #  The text of the license conditions can be read at
 #  <http://www.gnu.org/licenses/>.
 
-"helper for stack-based banknote payout systems. see BanknoteStackHelper.__init__()."
+"""helper for stack-based banknote payout systems. see BanknoteStackHelper.__init__()."""
 
 from __future__ import print_function
 import copy
@@ -42,17 +42,17 @@ class BanknoteStackHelper(object):
         This class makes the relevant decisions whether to pay out or stack away the current note.
         It also offers a matching implementation for CashServer.getCanPayout()
 
-        accepted_rest: see CashServer.getCanPayout()
+        :param accepted_rest: see CashServer.getCanPayout()
         """
         self.accepted_rest = accepted_rest
 
     def _would_stack_from_payout(self, payout_stack, requested_payout):
         """
         check if moving a note from the payout store away to the cashbox could be useful
-        requested_payout: remaining maximum payout amount
-        payout_stack: list of notes, the currently accessible one *last*. This is the format returned by NV11Device.getpayout_stack()
+        :param requested_payout: remaining maximum payout amount
+        :param payout_stack: list of notes, the currently accessible one *last*. This is the format returned by NV11Device.getpayout_stack()
 
-        returns:
+        :returns:
             False if moving is certainly useless and should not be allowed by the device driver
             True if it might be helpful. The driver should do further checks if it is really necessary.
         """
@@ -101,8 +101,6 @@ class BanknoteStackHelper(object):
         Because this function is guaranteed to yield results at least as good as the simple (statless) algorithm, it may be (statelessly) applied for every step of payout without bad effects.
         This guarantee is tested in BanknoteStackHelperTester.unittest_payout_forced_stacking().
 
-        returns True if stacking is recommended, even if the note could be paid out
-
         example 1: better payout
             stack: top 5€, 10€, 50€, bottom.
             requested amount 60€
@@ -114,6 +112,8 @@ class BanknoteStackHelper(object):
             requested amount 10€.
             -> best solution would be to NOT pay out the current 5€ note, although 5€ < 10€, but stack it away and pay out the 10€ note.
             otherwise 5€ storage would have been wasted.
+
+        :returns: True if stacking is recommended, even if the note could be paid out
         """
         result_with_stacking = self._simulate_simple_payout(payout_stack[:-1], requested_payout)
         result_without_stacking = self._simulate_simple_payout(payout_stack, requested_payout)
@@ -126,7 +126,9 @@ class BanknoteStackHelper(object):
             or result_with_stacking["storageRemaining"] > result_without_stacking["storageRemaining"]
 
     def get_next_payout_action(self, payout_stack, requested_payout):
-        """which action should be taken next? (see the documentation for BanknoteStackHelper for more context information)"""
+        """which action should be taken next?
+        (see the documentation for BanknoteStackHelper for more context information)
+        """
         if len(payout_stack) == 0:
             return "stop"
         if self._forced_stacking_is_helpful(payout_stack, requested_payout) and self._would_stack_from_payout(payout_stack, requested_payout):
@@ -181,7 +183,7 @@ class BanknoteStackHelper(object):
 
 class BanknoteStackHelperTester(BanknoteStackHelper):
 
-    "unittest methods for BanknoteStackHelper"
+    """unittest methods for BanknoteStackHelper"""
     @classmethod
     def get_random_payout_parameters(cls, payout_stack=None, requested_payout=None):
         """determine parameters for payout_stack and requested_payout"""
@@ -272,7 +274,7 @@ class RandomLists(object):
 
 
 def run_tests():
-    "run builtin unittests."
+    """run builtin unittests."""
     test = BanknoteStackHelperTester(2500)
     print(test.can_payout([5000, 10000, 10000, 2000]))
 

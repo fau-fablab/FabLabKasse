@@ -75,9 +75,9 @@ class MdbCashDevice:
 
     def __init__(self, port, addr=0b00001, extensionConfig=None):
         """
-        extensionConfig: settings for extension commands (by the interface hardware, not on the MDB bus). dictionary.
-        extensionConfig["hopper"]: Set to False to only use MDB. Set to a coin value to enable an external non-MDB hopper (like Compact Hopper SBB) with the given coin value (e.g. 200 for 2.00€). Currently this hopper is always used first for payout, so it should be filled with the highest possible coin value.
-        extensionConfig["leds"]: True to enable RGB-LEDs for payin/payout via extension command
+        :param extensionConfig: settings for extension commands (by the interface hardware, not on the MDB bus). dictionary.
+        :param extensionConfig["hopper"]: Set to False to only use MDB. Set to a coin value to enable an external non-MDB hopper (like Compact Hopper SBB) with the given coin value (e.g. 200 for 2.00€). Currently this hopper is always used first for payout, so it should be filled with the highest possible coin value.
+        :param extensionConfig["leds"]: True to enable RGB-LEDs for payin/payout via extension command
         """
         if not extensionConfig:
             extensionConfig = {"hopper": False,  "leds": False}
@@ -233,7 +233,9 @@ class MdbCashDevice:
         return responseData
 
     def extensionCmd(self, data):
-        "in addition to the MDB commands, the interface hardware provides extension commands for other features (LEDs, hopper, ...). Failure on these commands is not tolerated."
+        """in addition to the MDB commands, the interface hardware provides extension commands for other
+        features (LEDs, hopper, ...). Failure on these commands is not tolerated.
+        """
         self.serialCmd("X" + data)
         for j in range(30):
             # timeout for interface board: 1sec
@@ -292,7 +294,7 @@ class MdbCashDevice:
 
     def poll(self, wasJustReset=False):
         """ get events from device.
-        wasJustReset: set this to True at the first poll after the RESET command
+        :param wasJustReset: set this to True at the first poll after the RESET command
         """
         receivedResetEvent = False
 
@@ -405,8 +407,7 @@ class MdbCashDevice:
 
     def tryDispenseCoinFromExternalHopper(self):
         """dispense a coin from an external non-MDB hopper connected directly to the interface board.
-        returns False if it failed (or no external hopper is enabled)
-        returns True if one coin was dispensed
+        :returns: False if it failed (or no external hopper is enabled), True if one coin was dispensed
         """
         if not self.extensionConfig.get("hopper", False):
             logging.debug("skipping external hopper,  disabled")
@@ -464,7 +465,7 @@ class MdbCashDevice:
 
     def setLEDs(self, leds):
         """ set RGB-LED color via extension command, if it is enabled in the extensionConfig.
-        leds: list of two LED color values.
+        :param leds: list of two LED color values.
         color value: RR GG BB in hex plus a mode of N (normal) or special modes B (blink) or T (timeout: switch off after 20 sec)
         e.g. "00FF00N" = green normal, "FF0000B" = red blink, "0000FFT" = blue with timeout (will switch off after 20sec or the next command)
         """

@@ -31,7 +31,7 @@ from .cashServer import CashServer
 
 
 class MDBCoinChangerServer(CashServer):
-    '''
+    """
     Device driver for MDB bus based coin changers
 
     supported options:
@@ -50,7 +50,7 @@ class MDBCoinChangerServer(CashServer):
     - disable (default): hopper = False
     - 1,00 € coins:hopper = 100
     - 2,00 € coins: hopper = 200
-    '''
+    """
 
     def initializeDevice(self):
         logging.info(str(self.options))
@@ -64,15 +64,11 @@ class MDBCoinChangerServer(CashServer):
             extensionConfig["hopper"] = False
         self.dev = MdbCashDevice(port, extensionConfig=extensionConfig)
 
-
     def getCanPayout(self):
         return self.dev.getPossiblePayout()
 
-
-
     def getCanAccept(self):
         return True
-
 
     def doEmpty(self):
         pass  # empty == enable manual dispense buttons

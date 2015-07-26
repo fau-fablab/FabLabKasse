@@ -25,7 +25,7 @@ import os
 
 class nonblockingProcess(object):
 
-    "non-blocking subprocess, based on asyncproc"
+    """non-blocking subprocess, based on asyncproc"""
 
     def __init__(self, cmd, env=None):
         self.process = asyncproc.Process(cmd, stderr=file("/dev/null", "w"),
@@ -36,7 +36,7 @@ class nonblockingProcess(object):
         self.process.write(string)
 
     def readline(self):
-        "read line from process stdout, if available, else return None"
+        """read line from process stdout, if available, else return None"""
         # hasLine() implicitly reads new data
         if not self.hasLine():
             return None

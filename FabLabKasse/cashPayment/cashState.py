@@ -151,7 +151,7 @@ class CashState(object):
 
     def toDict(self):
         """
-        return dictionary {denomination: value, ...}
+        :returns: dictionary {denomination: value, ...}
         """
         return copy.deepcopy(self._d)
 
@@ -243,9 +243,9 @@ class CashStorage(object):
 
     def __init__(self, db, identifier, readonly=True):
         """
-        db: sqlite database
-        identifier: unique device name
-        readonly: forbid write access
+        :param db: sqlite database
+        :param identifier: unique device name
+        :param readonly: forbid write access
         """
         self.db = db
         self.db.execute("CREATE TABLE IF NOT EXISTS cash(id INTEGER PRIMARY KEY AUTOINCREMENT, device TEXT NOT NULL, date TEXT NOT NULL, state TEXT NOT NULL, updateType TEXT NOT NULL, isManual INTEGER NOT NULL, comment TEXT)")
@@ -259,10 +259,14 @@ class CashStorage(object):
                 raise ValueError("CashState identifier already in use for writing in this process")
             CashStorage.__usedIdentifiers.append(identifier)
 
-    # allowEmpty: True -> quietly continue - return CashState() when device or subindex does not exist in DB
-    # allowEmpty: False -> raise NoDataFound()  when device or subindex does not exist.
-    # default is True, because otherwise it would mess up starting with empty DB
     def getState(self, subindex="main", allowEmpty=True):
+        """
+        :param subindex:
+        :param allowEmpty: True -> quietly continue - return CashState() when device or subindex does not exist in DB
+                        False -> raise NoDataFound()  when device or subindex does not exist.
+                        default is True, because otherwise it would mess up starting with empty DB
+        :return:
+        """
         dev = self.identifier + "." + subindex
         cur = self.db.cursor()
         cur.execute("SELECT state FROM cash WHERE device = ? ORDER BY id DESC LIMIT 1 ", (dev, ))
@@ -305,7 +309,7 @@ class CashStorage(object):
         increment the current state by stateDelta=CashState({denomination:count,...})
         e.g. when a coin was accepted or paid out
 
-        _isLogMessage: internal, only to be used by log()
+        :param _isLogMessage: internal, only to be used by log()
         """
         assert type(stateDelta) == CashState
         # read - calculate - update
@@ -328,7 +332,9 @@ class CashStorage(object):
             # implicit commit/rollback because of "with" block
 
     def moveToOtherSubindex(self, fromSubindex, toSubindex, denomination, count, comment="", isManual=False):
-        """ move coins/banknotes (denomination * count) from one subindex to another (e.g. banknote recycler to banknote cashbox) """
+        """ move coins/banknotes (denomination * count) from one subindex to another
+        (e.g. banknote recycler to banknote cashbox)
+        """
         with self.db:
             self.db.execute("BEGIN IMMEDIATE")  # acquite write-lock *before* reading
             # read, calculate, then update
@@ -418,7 +424,7 @@ def printVerify(db):
 def printLog(db, date_from=None, date_to=None):
     """print all cash movements in the given time region
 
-    date_from, date_to: ISO date strings  like "2014-02-25", or None
+    :param date_from, date_to: ISO date strings  like "2014-02-25", or None
     """
     cur = db.cursor()
     cur.execute('SELECT device, date, state, updateType, isManual, comment FROM cash')
@@ -475,7 +481,7 @@ def printLog(db, date_from=None, date_to=None):
 
 
 def checkIfDeviceExists(db, identifier, subindex):
-    ''' check if given cash device has entries in the database. if not, exit with error message. '''
+    """ check if given cash device has entries in the database. if not, exit with error message. """
     try:
         # check if given name exists
         cash = CashStorage(db, identifier, readonly=True)
