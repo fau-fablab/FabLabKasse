@@ -133,6 +133,7 @@ class AbstractPaymentMethod(object):
                 # todo add to cfg tests at startup
                 prod_id = scriptHelper.getConfig().getint('payup_methods', 'payout_impossible_product_id')
                 self.shopping_backend.add_order_line(prod_id, amount_not_paid_back)
+                assert self.shopping_backend.get_current_total() == self.amount_paid, "adding product for 'impossible payout' failed"
                 self.shopping_backend.pay_order(self)
 
                 # switch back to old order
@@ -142,8 +143,10 @@ class AbstractPaymentMethod(object):
             if self.amount_paid > self.amount_to_pay:
                 # Modify sale order according to overpayment
                 # rather handle these two calls in shoppingBackend??
+                logging.info("user paid more than requested - adding product for overpayment to current order")
                 prod_id = scriptHelper.getConfig().getint('payup_methods', 'overpayment_product_id')
                 self.shopping_backend.add_order_line(prod_id, self.amount_paid - self.amount_to_pay)
+                assert self.shopping_backend.get_current_total() == self.amount_paid, "adding product for overpayment failed"
             self.shopping_backend.pay_order(self)
         return self.successful
 

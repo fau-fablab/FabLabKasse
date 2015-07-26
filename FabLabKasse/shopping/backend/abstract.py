@@ -174,6 +174,9 @@ class OrderLine(object):
     def __str__(self):
         return u"{} {} {} = {}".format(format_qty(self.qty), self.unit, self.name, format_money(self.price_subtotal))
 
+    def __repr__(self):
+        return u"<{}(id={}, qty={}, unit={}, name={}, price_per_unit={}, price_subtotal={})>".format(self.__class__.__name__, self.order_line_id, self.qty, self.unit, self.name, self.price_per_unit, self.price_subtotal)
+
 
 class DebtLimitExceeded(Exception):
 

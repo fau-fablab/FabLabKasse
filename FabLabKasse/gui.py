@@ -559,6 +559,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         assert isinstance(total, Decimal)
         assert total >= 0
         assert total % Decimal("0.01") == 0, "current order total is not rounded to cents"
+
+        logging.info(u"starting payment for cart: {}".format(self.shoppingBackend.get_order_lines()))
+
         if total > 250:
             # cash-accept is unlimited, but dispense is locked to maximum 200€ hardcoded. Limit to
             # a sensible amount here
