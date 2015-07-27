@@ -238,7 +238,19 @@ class CashServer:
 
     @abstractmethod
     def getCanPayout(self):
-        """ return [x, y] so that for every payout request <= x the resulting payout is >= (request-y) """
+        """
+        Get a two-element list of [maximumAmount, remainingAmount]:
+          - maximumAmount (int): the device has enough money to pay out any amount up to maximumAmount
+          - remainingAmount (int): How much money could be remaining at worst for any request <= maximumAmount? This is usually a per-device constant.
+
+              Examples for remainingAmount:
+               - 0 for a small-coins dispenser that includes 1ct.
+               - 99 for a coin dispenser that only has 1€ coins and larger.
+               - 499 for a banknote dispenser that has 5€ notes
+
+        :return: [x, y] so that for every payout request <= x the resulting payout is >= (request-y)
+        :rtype: list[int]
+        """
         pass
 
     @abstractmethod
@@ -253,7 +265,8 @@ class CashServer:
 
     @abstractmethod
     def pollAndUpdateStatus(self):
-        """ poll the device, update self.busy, and call event_receivedMoney and event_dispensedMoney
+        """ poll the device, update self.busy, and call :meth:`event_receivedMoney` and :meth:`event_dispensedMoney`
+
         set self.busy=False only if the device has completely stopped, i.e. no spontaneous dispense/accept/empty can happen
         when dispensing/emptying has completed, change self.currentMode to "stopping" """
         pass

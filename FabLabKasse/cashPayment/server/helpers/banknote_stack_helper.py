@@ -16,7 +16,7 @@
 #  The text of the license conditions can be read at
 #  <http://www.gnu.org/licenses/>.
 
-"""helper for stack-based banknote payout systems. see BanknoteStackHelper.__init__()."""
+"""helper for stack-based banknote payout systems. see :class:`BanknoteStackHelper`"""
 
 from __future__ import print_function
 import copy
@@ -25,36 +25,36 @@ import math
 
 
 class BanknoteStackHelper(object):
+    """
+    helper class for stack-based banknote payout systems.
+    Such a system has a stack of banknotes from which the top one can be
 
+    - either paid out to the client (action "payout")
+
+    - or be irrevocably put away into a cashbox (action "stack"),
+      from where it cannot be retrieved again for payout.
+
+    From the programmer's point of view, this stack is a list of banknotes,
+    from which only the last one (stack.pop()) can be accessed.
+
+    This class makes the relevant decisions whether to pay out or stack away the current note.
+    It also offers a matching implementation for :meth:`FabLabKasse.cashPayment.server.CashServer.getCanPayout`
+
+    :param accepted_rest: see :meth:`FabLabKasse.cashPayment.server.cashServer.CashServer.getCanPayout`
+    """
     def __init__(self, accepted_rest):
-        """
-        helper class for stack-based banknote payout systems.
-        Such a system has a stack of banknotes from which the top one can be
-
-        - either paid out to the client (action "payout")
-
-        - or be irrevocably put away into a cashbox (action "stack"),
-          from where it cannot be retrieved again for payout.
-
-        From the programmer's point of view, this stack is a list of banknotes,
-        from which only the last one (stack.pop()) can be accessed.
-
-        This class makes the relevant decisions whether to pay out or stack away the current note.
-        It also offers a matching implementation for CashServer.getCanPayout()
-
-        :param accepted_rest: see CashServer.getCanPayout()
-        """
         self.accepted_rest = accepted_rest
 
     def _would_stack_from_payout(self, payout_stack, requested_payout):
         """
         check if moving a note from the payout store away to the cashbox could be useful
-        :param requested_payout: remaining maximum payout amount
-        :param payout_stack: list of notes, the currently accessible one *last*. This is the format returned by NV11Device.getpayout_stack()
+        :param int requested_payout: remaining maximum payout amount
+        :param list[int] payout_stack: list of notes, the currently accessible one *last*. This is the format returned by :meth:`:meth:`FabLabKasse.cashPayment.server.NV11.NV11Device.getpayout_stack`
 
         :returns:
             False if moving is certainly useless and should not be allowed by the device driver
             True if it might be helpful. The driver should do further checks if it is really necessary.
+        :rtype: bool
         """
         if len(payout_stack) == 0:
             # no notes to payout
@@ -197,7 +197,10 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
         return [payout_stack, requested_payout]
 
     def unittest_payout_forced_stacking(self):
-        """test for BanknoteStackHelper._forced_stacking_is_helpful()"""
+        """test one random set of parameters for BanknoteStackHelper._forced_stacking_is_helpful()
+
+        :rtype: None
+        :raise: AssertionError if the test failed"""
         [payout_stack, requested_payout] = self.get_random_payout_parameters()
 
         origpayout_stack = copy.deepcopy(payout_stack)
@@ -224,7 +227,10 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
         assert sum(payout_stack) >= payout_without_forced_stacking["storageRemaining"]
 
     def unittest_payout(self):
-        """test for BanknoteStackHelper.can_payout(), BanknoteStackHelper.get_next_payout_action()"""
+        """test one random set of parameters for BanknoteStackHelper.can_payout(), BanknoteStackHelper.get_next_payout_action()
+
+        :rtype: None
+        :raise: AssertionError if the test failed"""
         [payout_stack, requested_payout] = self.get_random_payout_parameters()
         payout_stack_original = copy.deepcopy(payout_stack)  # for debugging
         payout_stack_original = payout_stack_original  # suppress unused-warning
@@ -252,7 +258,8 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
 class RandomLists(object):
 
     """randomly built lists with randomness taken from random.choice()
-    not cryptographically secure!"""
+
+    .. WARNING:: not cryptographically secure!"""
 
     @staticmethod
     def random_integer_list(integer_range, number_of_elements):
@@ -274,7 +281,7 @@ class RandomLists(object):
 
 
 def run_tests():
-    """run builtin unittests."""
+    """run builtin unittests with several random values."""
     test = BanknoteStackHelperTester(2500)
     print(test.can_payout([5000, 10000, 10000, 2000]))
 
