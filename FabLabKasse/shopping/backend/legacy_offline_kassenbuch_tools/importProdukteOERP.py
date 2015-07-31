@@ -40,17 +40,17 @@ class cache(object):
 
 
 @cache
-def categ_id_to_list_of_names(c_id):
+def categ_id_to_list_of_names(c_id, oerp, cfg):
     categ = oerp.read('product.category', c_id, ['parent_id', 'name'], context=oerp.context)
 
     if categ['parent_id'] == False or \
             categ['parent_id'][0] == cfg.getint('openerp', 'base_category_id'):
         return [categ['name']]
     else:
-        return categ_id_to_list_of_names(categ['parent_id'][0]) + [categ['name']]
+        return categ_id_to_list_of_names(categ['parent_id'][0], oerp, cfg) + [categ['name']]
 
 
-def importProdukteOERP(data):
+def importProdukteOERP(data, oerp, cfg):
     print "OERP Import"
     prod_ids = oerp.search('product.product', [('default_code', '!=', False)])
     print "reading {} products from OERP, this may take some minutes...".format(len(prod_ids))
@@ -70,7 +70,7 @@ def importProdukteOERP(data):
         if not p['active'] or not p['sale_ok']:
             continue
         p['code'] = int(p['code'])
-        p['categ'] = categ_id_to_list_of_names(p['categ_id'][0])
+        p['categ'] = categ_id_to_list_of_names(p['categ_id'][0], oerp, cfg)
 
         if p['categ'][0] not in data:
             data[p['categ'][0]] = []
@@ -131,7 +131,7 @@ def main():
     user = oerp.login(user=cfg.get('openerp', 'user'), passwd=cfg.get('openerp', 'password'))
 
     data = {}
-    data = importProdukteOERP(data)
+    data = importProdukteOERP(data, oerp, cfg)
     outputdir = os.path.dirname(os.path.realpath(__file__)) + '/../../../produkte/'
 
     saveToDir(data, outputdir)
