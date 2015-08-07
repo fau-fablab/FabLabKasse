@@ -1,3 +1,3 @@
 [submodule "FabLabKasse/libs/flickcharm"]
 	path = FabLabKasse/libs/flickcharm
-	url = git@github.com:fau-fablab/flickcharm-python.git
+	url = https://github.com/fau-fablab/flickcharm-python.git

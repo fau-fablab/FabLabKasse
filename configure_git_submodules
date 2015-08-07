@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+if [ $(dirname ${BASH_SOURCE[0]}) != "." ]
+   then
+      echo "Please execute this script from the root directory of the repository"
+      exit
+fi
+
+###### flickcharm ########
+cd FabLabKasse/libs/flickcharm/
+git remote set-url origin https://github.com/fau-fablab/flickcharm-python.git
+git remote set-url --push origin git@github.com:fau-fablab/flickcharm-python.git
+
+echo "configured submodule flickcharm:"
+git remote -v
+
+cd ../../../
+#### end flickcharm ######
