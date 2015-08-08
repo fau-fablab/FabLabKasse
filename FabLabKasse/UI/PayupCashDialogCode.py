@@ -26,7 +26,7 @@ from decimal import Decimal
 class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
 
     def __init__(self, parent, amount_total):
-        "payment method dialog for automatic cash payin and payout"
+        """payment method dialog for automatic cash payin and payout"""
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
         # maximize window - WORKAROUND because showMaximized() doesn't work
@@ -71,8 +71,9 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
     @staticmethod
     def getSuggestedDonations(toPay, payout):
         """ heuristically determine a list of up to three recommended donation values.
-        toPay: how much was paid for articles
-        payout: how much was paid too much and would be paid back to the user"""
+        :param toPay: how much was paid for articles
+        :param payout: how much was paid too much and would be paid back to the user
+        """
         # step 1: collect a list of useful donation values, where no small coins are paid out
         donationCandidates = set()
 
@@ -295,14 +296,12 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
         self.pushButton_acceptLowPayout.setVisible(False)
         self.state = "startAccepting"
 
-    """user does not want money back, but donates it all"""
-
     def donateReturn(self):
+        """user does not want money back, but donates it all"""
         self.payoutReturn(0)
 
-    """user requests amount X to be paid back"""
-
     def payoutReturn(self, requestedPayback):
+        """user requests amount X to be paid back"""
         if self.state != "askPayout":
             return
         assert requestedPayback <= self.centsReceived - self.centsToPay
@@ -347,7 +346,8 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
 
     def accept(self):
         """Button Finish: Exit the dialog if possible
-        This is the only function from which PayupCashDialog can be closed (by the user). """
+        This is the only function from which PayupCashDialog can be closed (by the user).
+        """
         if self.state != "finished":
             return
         if self.centsToPay == 0:  # payout aborted
@@ -355,6 +355,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
         else:
             QtGui.QDialog.accept(self)
         # cleanup the timer so that the python GC will clear this dialog when it is no longer needed.
-        # otherwise for every dialog creation, a stale timer will be lying around and calling .update() (at least under particular circumstances, probably depending on timing)
+        # otherwise for every dialog creation, a stale timer will be lying around and calling .update() (at least under
+        # particular circumstances, probably depending on timing)
         # TODO is there a better approach for cleanup?
         self.timer.deleteLater()

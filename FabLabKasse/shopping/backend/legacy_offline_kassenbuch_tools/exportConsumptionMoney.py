@@ -34,7 +34,7 @@ import datetime
 
 
 def aggregate_consumption(rechnungen):
-    '''Returns consumption from given rechnungen'''
+    """Returns consumption from given rechnungen"""
     consumption = {}
     consumptionUnits = {}
     name = {}

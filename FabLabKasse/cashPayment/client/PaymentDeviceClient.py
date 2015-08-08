@@ -44,7 +44,8 @@ class PaymentDeviceClient(object):
     def __init__(self, cmd, options):
         """
         :param cmd: class name of the device driver
-        :param options: dictionary of options (name (required), device, ...) that were set in config.ini as deviceN_foo=value
+        :param options: dictionary of options (name (required), device, ...)
+                        that were set in config.ini as deviceN_foo=value
         :type options: dict(unicode, unicode)
         """
         self.stopped = False
@@ -87,7 +88,8 @@ class PaymentDeviceClient(object):
 
         call this regularly
 
-        :raise: Exception if the device crashed - do not try to recover from this exception, or the result of any following calls will be undefined
+        :raise: Exception if the device crashed - do not try to recover from this exception, or the result of any
+                following calls will be undefined
         """
         if not self.process.isAlive():
             raise Exception("device {} server crashed -- check cash-{}.log. If it crashed before writing the logfile, try launching the server yourself with the commandline from gui.log ".format(self, self.options["name"]))
@@ -213,7 +215,9 @@ class PaymentDeviceClient(object):
 
         this can be called while accept is active
 
-        example use case: Two payment devices should accept 50€ in total. 10€ were inserted into the first device -> update the second device to a maximum of 40€.
+        example use case:
+         - Two payment devices should accept 50€ in total.
+         - 10€ were inserted into the first device -> update the second device to a maximum of 40€.
         """
         if self.requestedAccept > 0 and self.status == "accept":
             self.requestedAccept = maximumPayin
@@ -241,7 +245,8 @@ class PaymentDeviceClient(object):
         Dispense up to the requested amount of money (as much as possible)
 
         - Wait until hasStopped() is true, then retrieve the paid out value with getFinalAmountAndReset()
-        - An intermediate value (as a progess report) can be retrieved with getCurrentAmount, but the operation cannot be aborted.
+        - An intermediate value (as a progess report) can be retrieved with getCurrentAmount, but the operation cannot
+            be aborted.
         - If you want to make sure that enough is available, see possibleDispense()
         """
         assert self.status == "idle"
@@ -308,7 +313,8 @@ class PaymentDeviceClient(object):
           No other actions (dispense/accept/possibleDispense) may be called until
           a non-None value was returned!
           call poll() repeatedly until ``canAccept() != None``
-        - True/False: Does (not) support accepting. (Now the answer is cached and may the function may be called again always)
+        - True/False: Does (not) support accepting. (Now the answer is cached and may the function may be called again
+            always)
 
         :rtype: boolean | None
         """
@@ -355,15 +361,17 @@ class PaymentDeviceClient(object):
         self.status = "stop"
 
     def getCurrentAmount(self):
-        "how much has currently been paid in? (value is not always up-to-date, but will not be higher than the actual value)"
+        """how much has currently been paid in?
+        (value is not always up-to-date, but will not be higher than the actual value)
+        """
         return self.pollAmount
 
     def hasStopped(self):
-        "returns True as soon as the operation (accept/dispense) has finished"
+        """returns True as soon as the operation (accept/dispense) has finished"""
         return self.stopped
 
     def getFinalAmountAndReset(self):
-        "call this as soon as hasStopped() is true. this returns the final amount paid in/out (negative for payout)"
+        """call this as soon as hasStopped() is true. this returns the final amount paid in/out (negative for payout)"""
         assert self.hasStopped()
         r = self.finalAmount
         self._reset()

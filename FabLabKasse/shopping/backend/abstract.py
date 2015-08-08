@@ -59,7 +59,7 @@ def float_to_decimal(number, digits):
 
 
 def format_qty(qty):
-    "format quantity (number) as string"
+    """format quantity (number) as string"""
     s = unicode(float(qty))
     if s.endswith(".0"):
         s = s[:-2]
@@ -68,7 +68,7 @@ def format_qty(qty):
 
 
 def format_money(amount):
-    "format float as money string"
+    """format float as money string"""
     # format:
     # 1.23 -> 1,23 €
     # 3.741 -> 3,741 €
@@ -137,7 +137,8 @@ class Product(object):
 
 class OrderLine(object):
     """
-    one order line (roughly equal to a product in a shopping cart, although there may be multiple entries for one product)
+    one order line (roughly equal to a product in a shopping cart,
+    although there may be multiple entries for one product)
 
     :param id: id of order-line, *must be unique and non-changing* inside one Order() (if None: autogenerate id)
 
@@ -187,23 +188,23 @@ class DebtLimitExceeded(Exception):
 
 class ProductNotFound(Exception):
 
-    "requested product not found"
+    """requested product not found"""
     pass
 
 
 class PrinterError(Exception):
 
-    "cannot print receipt"
+    """cannot print receipt"""
     pass
 
 
 class AbstractShoppingBackend(object):
 
-    "manages products, categories and orders (cart)"
+    """manages products, categories and orders (cart)"""
     __metaclass__ = ABCMeta
 
     def __init__(self, cfg):
-        "cfg: config from ScriptHelper.getConfig()"
+        """cfg: config from ScriptHelper.getConfig()"""
         self.cfg = cfg
 
     def format_money(self, amount):
@@ -249,7 +250,8 @@ class AbstractShoppingBackend(object):
 
         [child_of_root, ..., parent_of_current, current_category]
 
-        return type: list(Category)"""
+        :rtype: list(Category)
+        """
         pass
 
     # ====================================
@@ -260,7 +262,7 @@ class AbstractShoppingBackend(object):
     def get_products(self, current_category):
         """return products in current category
 
-        return type: list(Product)
+        :rtype: list(Product)
         """
         pass
 
@@ -268,19 +270,19 @@ class AbstractShoppingBackend(object):
     def search_product_from_code(self, code):
         """search via barcode, PLU or similar unique-ID entry. code may be any string
 
-        returns product id
+        :returns: product id
 
-        raises ProductNotFound() if nothing found"""
+        :raises: ProductNotFound() if nothing found"""
         pass
 
     @abstractmethod
     def search_from_text(self, searchstr):
-        '''
+        """
         search searchstr in products and categories
-        return tuple (list of categories, products for table)
+        :return: tuple (list of categories, products for table)
 
-        return type is like in (get_subcategories(), get_products())
-        '''
+        :rtype: list(Product)
+        """
         pass
 
     #
@@ -311,7 +313,8 @@ class AbstractShoppingBackend(object):
     def get_order_lines(self):
         """return current order lines
 
-        return type: OrderLine"""
+        :rtype: OrderLine
+        """
         pass
 
     @abstractmethod
@@ -351,7 +354,7 @@ class AbstractShoppingBackend(object):
         pass
 
     def product_requires_text_entry(self, prod_id):
-        "when adding prod_id, should the user be asked for a text entry for entering comments like his name?"
+        """when adding prod_id, should the user be asked for a text entry for entering comments like his name?"""
         return False
 
     @abstractmethod
@@ -375,7 +378,7 @@ class AbstractShoppingBackend(object):
         pass
 
     def delete_order_line(self, order_line_id):
-        "delete product from cart"
+        """delete product from cart"""
         pass
 
     #
@@ -385,7 +388,7 @@ class AbstractShoppingBackend(object):
     @abstractmethod
     def pay_order(self, method):
         """store payment of current order to database
-        @param method: payment method object, whose type is ued to determine where the order should be stored in the database
+        :param method: payment method object, whose type is used to determine where the order should be stored in the database
         method.amount_paid - method.amount_returned is how much money was gained by this sale, must be equal to self.get_current_total()
         """
         # TODO assert amount_paid - amount_returned == self.get_current_total()
@@ -394,9 +397,9 @@ class AbstractShoppingBackend(object):
     def pay_order_on_client(self, client):
         """charge the order on client's account
 
-        client: AbstractClient
+        :param client: AbstractClient
 
-        raises DebtLimitExceeded when the client's debt limit would be exceeded
+        :raises: DebtLimitExceeded when the client's debt limit would be exceeded
         """
         debt = client.get_debt()
         new_debt = debt + self.get_current_total()
@@ -417,7 +420,8 @@ class AbstractShoppingBackend(object):
     def _pay_order_on_client_unchecked(self, client):
         """charge the order on client's account, not checking for debt limit
 
-        client: AbstractClient"""
+        :param client: AbstractClient
+        """
         pass
 
     @abstractmethod
@@ -429,7 +433,9 @@ class AbstractShoppingBackend(object):
     def print_receipt(self, order_id):
         """print the receipt for a given, already paid order_id
 
-        The receipt data must be stored in the backend, because for accountability reasons all receipt texts need to be stored anyway."""
+        The receipt data must be stored in the backend, because for accountability reasons all receipt texts
+        need to be stored anyway.
+        """
         pass
 
 
@@ -445,20 +451,20 @@ class AbstractClient(object):
         self.name = name
 
     def test_pin(self, pin):
-        "is the given pin (4-digit string) correct and the client enabled for paying?"
+        """is the given pin (4-digit string) correct and the client enabled for paying?"""
         return False
 
     def get_debt(self):
-        "how much is the current debt (<0 = client has pre-paid)"
+        """how much is the current debt (<0 = client has pre-paid)"""
         return float("inf")
 
     def get_debt_limit(self):
-        "how much is the limit for the debt that may not be exceeded"
+        """how much is the limit for the debt that may not be exceeded"""
         return 0
 
 
 def basicUnitTests(shopping_backend):  # for implentations
-# TODO use these somewhere, integrate into unittest below
+    # TODO use these somewhere, integrate into unittest below
     shopping_backend.search_product("")
     shopping_backend.search_product(u"öläöäl")
     shopping_backend.search_product(u"       ")

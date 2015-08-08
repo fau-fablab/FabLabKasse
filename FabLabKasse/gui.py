@@ -75,7 +75,7 @@ ShoppingBackend = shopping_backend_module.ShoppingBackend
 
 
 def format_decimal(value):
-    "convert float, Decimal, int to a string with a locale-specific decimal point"
+    """convert float, Decimal, int to a string with a locale-specific decimal point"""
     return str(value).replace(".", locale.localeconv()['decimal_point'])
 
 
@@ -511,7 +511,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         QtCore.QTimer.singleShot(0, functools.partial(self._resize_table_columns, self.table_products, [5, 2.5, 2, 1]))
 
     def _resize_table_columns(self, table, widths):
-        "resize Qt table columns by the weight factors specified in widths, using the whole width (excluding scrollbar width)"
+        """resize Qt table columns by the weight factors specified in widths,
+        using the whole width (excluding scrollbar width)
+        """
         w = table.width() - table.verticalScrollBar().width() - 5
         for i, width in enumerate(widths):
             table.setColumnWidth(i, int(width * w / sum(widths)))
@@ -547,7 +549,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.leaveSearch(keepResultsVisible=True)  # show basket, but also keep search results visible
 
     def payup(self):
-        " ask the user to pay the current order. returns True if the payment was successful, False or None otherwise. "
+        """ask the user to pay the current order.
+        returns True if the payment was successful, False or None otherwise.
+        """
         if self.shoppingBackend.get_current_order() is None:
             # There is no order. Thus payup does not make sense.
             return
@@ -586,7 +590,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         assert paymentmethod.amount_paid >= 0
 
         def askUser():
-            "ask the user whether he wants a receipt, return True if he does."
+            """ask the user whether he wants a receipt, return True if he does."""
             reply = QtGui.QMessageBox.question(self, 'Message',
                                                u"Brauchst du eine Quittung?",
                                                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
@@ -701,7 +705,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             self.start_plu_entry()  # update lineEdit_input and label_qty
 
     def start_plu_entry(self):
-        "clear quantity textbox, start entering PLU. This is called e.g. after quantity-entry is finished"
+        """clear quantity textbox, start entering PLU. This is called e.g. after quantity-entry is finished"""
         # Change to PLU mode by deselecting the order
         self.table_order.setCurrentIndex(QtCore.QModelIndex())
         self.lineEdit.setText('')

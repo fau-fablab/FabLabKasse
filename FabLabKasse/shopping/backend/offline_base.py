@@ -35,7 +35,7 @@ class ProductBasedOrderLine(OrderLine):
 
     @property
     def qty(self):
-        "quantity (may only be set with set_quantity_rounded)"
+        """quantity (may only be set with set_quantity_rounded)"""
         return self._qty
 
     @qty.setter
@@ -47,7 +47,7 @@ class ProductBasedOrderLine(OrderLine):
         self.price_subtotal = self.price_per_unit * self._qty
 
     def set_quantity_rounded(self, qty):
-        "update quantity, taking Product.qty_rounding into account"
+        """update quantity, taking Product.qty_rounding into account"""
         qty = Decimal(qty)
         qty_rounding = self.product.qty_rounding
         if qty_rounding > 0:
@@ -160,7 +160,7 @@ class OfflineCategoryTree(object):
 
 class Order(object):
 
-    "simple shopping cart for use in ShoppingBackend"
+    """simple shopping cart for use in ShoppingBackend"""
 
     def __init__(self):
         self._lines = []
@@ -189,7 +189,7 @@ class Order(object):
         del self._lines[self._idx_from_id(order_line_id)]
 
     def add_order_line(self, product, qty, comment=None):
-        " add a Product() object with specified quantity to the cart"
+        """ add a Product() object with specified quantity to the cart"""
         assert not self._finished, "finished orders may not be modified"
         assert comment == None or isinstance(comment, basestring)
         self._lines.append(ProductBasedOrderLine(product, qty, comment))
@@ -209,7 +209,7 @@ class Order(object):
 
 class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
 
-    "manages products, categories and orders (cart)"
+    """manages products, categories and orders (cart)"""
     __metaclass__ = ABCMeta
 
     def __init__(self, cfg, categories, products, generate_root_category=False):
@@ -253,9 +253,9 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
     def search_product_from_code(self, code):
         """search via barcode, PLU or similar unique-ID entry. code may be any string
 
-        returns *valid* product id
+        :returns: *valid* product id
 
-        raises ProductNotFound() if nothing found"""
+        :raises: ProductNotFound() if nothing found"""
         if code.isdigit() and int(code) in self.tree.products:
             return int(code)
         else:
@@ -360,7 +360,7 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
     def _store_client_payment(self, client):
         """save client payment of current order to database
 
-        client: AbstractClient"""
+        :param client: AbstractClient"""
         pass
 
     def print_receipt(self, order_id):

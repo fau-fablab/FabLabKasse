@@ -145,7 +145,7 @@ class PaymentDevicesManager(object):
 
         if this function returns None, the value is still being fetched.
         In this case, sleep some time, then call poll() and then call the function again.
-         """
+        """
         if self.mode == "idle":
             # fill canPayoutAmounts with "None" values
             self.canPayoutAmounts = [None for _ in self.devices]
@@ -174,7 +174,7 @@ class PaymentDevicesManager(object):
 
         the return value is only a conservative estimate, not the theoretical optimum
 
-        return = [totalMaximumRequest, totalRemaining]
+        :return: [totalMaximumRequest, totalRemaining]
         """
 
         if len(canPayoutAmounts) == 0:
@@ -401,7 +401,7 @@ class PaymentDevicesManager(object):
 
 
 def demo():
-    "Simple demonstration using two exampleServer devices"
+    """Simple demonstration using two exampleServer devices"""
     p = PaymentDevicesManager(["exampleServer", "exampleServer"])
 
     def wait():

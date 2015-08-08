@@ -80,9 +80,11 @@ class NoDataFound(Exception):
 class CashState(object):
 
     """
-    cash storage state for one particular storage (e.g. a cashbox) containing coins and banknotes
+    cash storage state, used for one particular storage (e.g. a cashbox) containing coins and banknotes
 
     stores the information, how many coins/notes of each denomination are present, e.g. "13 * 1€ and 25 * 0,02€"
+
+    This class supports addition and subtraction.
 
     TODO: the code is currently hard-coded to euros and cents
     """
@@ -144,14 +146,23 @@ class CashState(object):
 
     @property
     def sum(self):
+        """
+        Sum of all coins in all subdevices
+        """
         return sum([key * value for (key, value) in self._d.iteritems()])
 
     def sumStr(self):
+        """
+        Output sum formatted as string
+
+        :rtype: str
+        """
         return "{:.2f}".format(self.sum / 100.)
 
     def toDict(self):
         """
-        return dictionary {denomination: value, ...}
+        :returns: dictionary {denomination: value, ...}
+        :rtype: dict[int, int]
         """
         return copy.deepcopy(self._d)
 
@@ -166,7 +177,9 @@ class CashState(object):
 
     @classmethod
     def fromJSON(cls, s):
-        """ load from CashState.toJSON """
+        """ load from CashState.toJSON
+
+        :rtype: CashState"""
         state = json.loads(s)
         convertedState = {}
         assert type(state) == dict, "error decoding state"
@@ -181,7 +194,9 @@ class CashState(object):
         return self._d == other.toDict()
 
     def toHumanString(self):
-        """ output state in the format that :method:fromHumanString() takes"""
+        """ output state in the format ``/13x10c,53x200E/`` that :meth:`fromHumanString` takes
+
+        :rtype: str"""
         s = "/"
         for (key, val) in sorted(self._d.iteritems()):
             if key >= 100 and key % 100 == 0:
@@ -197,11 +212,14 @@ class CashState(object):
         return s
 
     def toVerboseString(self):
+        """ output state and sum in the format ``/13x10c,7x2E/ \t 15,30€`` for two-column printing
+
+        :rtype: str"""
         return "{}\t{}".format(self.sumStr(), self.toHumanString())
 
     @classmethod
     def fromHumanString(cls, s):
-        """ state from string with a more human-friendly format: /13x10c,53x200E/ """
+        """ state from string with a more human-friendly format: ``/13x10c,53x200E/`` """
         state = {}
         s = s.strip()
         assert (s[0] == "/" and s[-1] == "/"), \
@@ -232,10 +250,11 @@ class CashStorage(object):
     """
     cash storage (coins, banknotes) for vending machines
 
-    hierarchy:
-    identifier (unique device name)
-    -> subindex (unique index for separate cash storages, e.g. cashbox, tube1, etc. in a coin dispenser)
-    -> {denomination: count,  ...}  (type and count of coins/banknotes. denomination is an integer value (Euro cents).
+    Hierarchy:
+
+    - identifier (unique device name)
+    - -> subindex (unique index for separate cash storages, e.g. cashbox, tube1, etc. in a coin dispenser)
+    - -> {denomination: count,  ...}  (type and count of coins/banknotes. denomination is an integer value (Euro cents).
     """
 
     # TODO does not enforce uniqueness among separate processes :(
@@ -243,9 +262,9 @@ class CashStorage(object):
 
     def __init__(self, db, identifier, readonly=True):
         """
-        db: sqlite database
-        identifier: unique device name
-        readonly: forbid write access
+        :param db: sqlite database
+        :param unicode identifier: unique device name
+        :param bool readonly: forbid write access
         """
         self.db = db
         self.db.execute("CREATE TABLE IF NOT EXISTS cash(id INTEGER PRIMARY KEY AUTOINCREMENT, device TEXT NOT NULL, date TEXT NOT NULL, state TEXT NOT NULL, updateType TEXT NOT NULL, isManual INTEGER NOT NULL, comment TEXT)")
@@ -259,10 +278,17 @@ class CashStorage(object):
                 raise ValueError("CashState identifier already in use for writing in this process")
             CashStorage.__usedIdentifiers.append(identifier)
 
-    # allowEmpty: True -> quietly continue - return CashState() when device or subindex does not exist in DB
-    # allowEmpty: False -> raise NoDataFound()  when device or subindex does not exist.
-    # default is True, because otherwise it would mess up starting with empty DB
     def getState(self, subindex="main", allowEmpty=True):
+        """
+        :param str subindex: subdevice name
+        :param bool allowEmpty:
+             - True -> quietly continue - return CashState() when device or subindex does not exist in DB
+             - False -> raise NoDataFound()  when device or subindex does not exist.
+
+            default is True, because otherwise it would mess up starting with empty DB
+        :return: cash state of given subdevice
+        :rtype: CashState
+        """
         dev = self.identifier + "." + subindex
         cur = self.db.cursor()
         cur.execute("SELECT state FROM cash WHERE device = ? ORDER BY id DESC LIMIT 1 ", (dev, ))
@@ -276,10 +302,14 @@ class CashStorage(object):
             return CashState.fromJSON(row[0])
 
     def getStateVerbose(self, subindex):
+        """:return: state formatted for two-column printing by :meth:`CashState.toVerboseString`
+        :param str subindex: subdevice name
+        :rtype: unicode"""
         state = self.getState(subindex)
         return state.toVerboseString()
 
     def _storeState(self, subindex, state, updateType, isManual, comment):
+        """write state to database"""
         assert not self.readonly
         device = self.identifier + "." + subindex
         date = datetime.now()  # .strftime( '%Y-%m-%d %H:%M:%S.%f')
@@ -305,7 +335,14 @@ class CashStorage(object):
         increment the current state by stateDelta=CashState({denomination:count,...})
         e.g. when a coin was accepted or paid out
 
-        _isLogMessage: internal, only to be used by log()
+        :param str subindex: subdevice name
+        :param CashState stateDelta: state increment to add
+        :param bool isManual: False if this was caused by normal, "automatic"
+            user interaction (e.g. inserting a coin), True if the change was
+            forced by an administrator by calling ``./cash add ...`` or
+            similar.
+        :param unicode comment: comment that is stored to the DB and visible in the cash log
+        :param _isLogMessage: internal, only to be used by log()
         """
         assert type(stateDelta) == CashState
         # read - calculate - update
@@ -328,7 +365,9 @@ class CashStorage(object):
             # implicit commit/rollback because of "with" block
 
     def moveToOtherSubindex(self, fromSubindex, toSubindex, denomination, count, comment="", isManual=False):
-        """ move coins/banknotes (denomination * count) from one subindex to another (e.g. banknote recycler to banknote cashbox) """
+        """ move coins/banknotes (denomination * count) from one subindex to another
+        (e.g. banknote recycler to banknote cashbox)
+        """
         with self.db:
             self.db.execute("BEGIN IMMEDIATE")  # acquite write-lock *before* reading
             # read, calculate, then update
@@ -357,6 +396,11 @@ class CashStorageList(object):
 
     @property
     def states(self):
+        """
+        fetch cash states of all devices.
+        :return: cash state by device as dict: ``{deviceName: cashSate, ...}``
+        :rtype: dict[str, CashState]
+        """
         cur = self.db.cursor()
         cur.execute("SELECT device FROM cash GROUP BY device;")
         state = {}
@@ -367,6 +411,10 @@ class CashStorageList(object):
         return state
 
     def statesStr(self):
+        """
+        get cash states of all devices as string, together with a total sum
+        :rtype: str
+        """
         s = "States per subindex:\n"
         totalState = CashState()
 
@@ -394,13 +442,21 @@ class CashStorageList(object):
         s += coloredBold("TOTAL") + ":\t{}".format(totalState.toVerboseString())
         return s
 
-    # How much money is inside the whole vending machine?
+
     @property
     def total(self):
+        """How much money is inside the whole vending machine?
+        :rtype: Decimal"""
         return sum([state.sum for state in self.states.values()]) * Decimal('0.01')
 
 
 def printVerify(db):
+    """
+    Check cash state against state in accounting (kassenbuch.py)
+    Print result to console.
+
+    :rtype: None
+    """
     cfg = scriptHelper.getConfig()
     k = Kasse(cfg.get('general', 'db_file'))
     summeKassenbuch = 0
@@ -418,7 +474,10 @@ def printVerify(db):
 def printLog(db, date_from=None, date_to=None):
     """print all cash movements in the given time region
 
-    date_from, date_to: ISO date strings  like "2014-02-25", or None
+    :param date_from: ISO date strings  like "2014-02-25", or None
+    :type date_from: str | None
+    :param date_to: same as date_from
+    :type date_to: str | None
     """
     cur = db.cursor()
     cur.execute('SELECT device, date, state, updateType, isManual, comment FROM cash')
@@ -475,7 +534,7 @@ def printLog(db, date_from=None, date_to=None):
 
 
 def checkIfDeviceExists(db, identifier, subindex):
-    ''' check if given cash device has entries in the database. if not, exit with error message. '''
+    """ check if given cash device has entries in the database. if not, exit with error message. """
     try:
         # check if given name exists
         cash = CashStorage(db, identifier, readonly=True)

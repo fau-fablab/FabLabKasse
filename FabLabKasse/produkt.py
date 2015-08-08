@@ -25,8 +25,10 @@ class Produkt:
 
         :param basestr verkaufseinheit: ist ein string, welcher die Einheit beschreibt, z.B. "Platte (600x300mm)"
         :param preis: ist der Preis für _eine_ solche Einheit
-        :param basismenge: (optional) ein Umrechnungsfaktor: eine Basisheinheit mal Basismenge entspricht einer Verkaufseinheit
-        :param input_mode: (optional) kann DECIMAL, INTEGER oder MINUTES sein. Ändert nichts an dem gespeicherten Wert, dieser ist immer Decimal.
+        :param basismenge: (optional) ein Umrechnungsfaktor: eine Basisheinheit mal Basismenge entspricht einer
+                        Verkaufseinheit
+        :param input_mode: (optional) kann DECIMAL, INTEGER oder MINUTES sein. Ändert nichts an dem gespeicherten Wert,
+                        dieser ist immer Decimal.
         """
         preis = Decimal(preis)
         if basismenge is not None:

@@ -206,9 +206,7 @@ class IdleTracker:
         self.last_state = None
 
     def check_idle(self):
-        """Returns a tuple:
-        (state_change, suggested_time_till_next_check, idle_time)
-
+        """
         suggested_time_till_next_check and idle_time is in milliseconds.
 
         state_change is one of:
@@ -218,7 +216,9 @@ class IdleTracker:
         - "unidle" - user is not idle (idle time is less than idle threshold)
         - "disabled" - idle time not available
 
-        Note that "disabled" will be returned every time there is an error."""
+        Note that "disabled" will be returned every time there is an error.
+        :returns: tuple (state_change, suggested_time_till_next_check, idle_time)
+        """
         if not normalmode:
             return ("disabled", self.when_disabled_wait, 0)
         try:
@@ -275,10 +275,7 @@ class XSSTracker:
         self.last_state = xss.ScreenSaverDisabled
 
     def check_idle(self):
-        """Returns a tuple:
-        (state_change, suggested_time_till_next_check, idle_time)
-
-        suggested_time_till_next_check and idle_time is in milliseconds.
+        """suggested_time_till_next_check and idle_time is in milliseconds.
 
         state_change is one of:
 
@@ -288,7 +285,9 @@ class XSSTracker:
         - "disabled" - screensaver is disabled or extension not present
 
         Note that if the screensaver is disabled, it will return "disabled"
-        every time."""
+        every time.
+        :returns: tuple (state_change, suggested_time_till_next_check, idle_time)
+        """
         try:
             self.info = get_info()
         except RuntimeError:  # XSS can raise a RuntimeError if the

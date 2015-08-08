@@ -26,7 +26,9 @@ from .abstract import AbstractClient, AbstractShoppingBackend, float_to_decimal,
 
 class Client(AbstractClient):
 
-    "oerp implementation of AbstractClient. do not instantiate this yourself, but please rather use Client.from_oerp or ShoppingBackend.list_clients"
+    """oerp implementation of AbstractClient.
+    do not instantiate this yourself, but please rather use Client.from_oerp or ShoppingBackend.list_clients
+    """
 
     @classmethod
     def from_oerp(cls, client_id, oerp):
@@ -56,7 +58,7 @@ class Client(AbstractClient):
 
 class ShoppingBackend(AbstractShoppingBackend):
 
-    "OpenERP implementation of AbstractShoppingBackend"
+    """OpenERP implementation of AbstractShoppingBackend"""
 
     def __init__(self, cfg):
         super(ShoppingBackend, self).__init__(cfg)
@@ -253,7 +255,7 @@ class ShoppingBackend(AbstractShoppingBackend):
 
     def search_from_text(self, searchstr):
         oerp = self.oerp
-                # Build search pattern
+        # Build search pattern
         searchstr = searchstr.lower().strip()
         searchpattern = searchstr.split(' ')
         searchpattern = map(lambda s: ('name', 'ilike', u'%' + s + u'%'), searchpattern)
@@ -276,7 +278,8 @@ class ShoppingBackend(AbstractShoppingBackend):
 
     def _get_products_from_oerp(self, query):
         """ queries openerp for products with the specified query,
-        returns them in a format suitable for self.get_products()"""
+        returns them in a format suitable for self.get_products()
+        """
         oerp = self.oerp
         product_ids = self.oerp.search('product.product', query + [('sale_ok', '=', True)])
         # TODO read category from product, then fetch all categs.
@@ -352,7 +355,7 @@ class ShoppingBackend(AbstractShoppingBackend):
 
     def get_order_lines(self):
         oerp = self.oerp
-                # Retrieve current order
+        # Retrieve current order
         if self.get_current_order() is None:
             return []
         print self.get_current_order()

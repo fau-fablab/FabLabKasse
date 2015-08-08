@@ -42,7 +42,8 @@ class InvalidCartJSONError(Exception):
         Cart JSON object received was wrong.
 
         :param text: reason
-        :param property_name: use property_name and value if an unexpected value for a property occurs. The infotext is then filled automatically.
+        :param property_name: use property_name and value if an unexpected value for a property occurs.
+                            The infotext is then filled automatically.
         :param value: see property_name
         """
         if not text:
@@ -61,7 +62,7 @@ class MobileAppCartModel(QObject):
 
     def __init__(self, config):
         """
-        config: the config parser from gui.py
+        :param config: the config parser from gui.py
         """
         QObject.__init__(self)
         self.cfg = config
@@ -122,7 +123,8 @@ class MobileAppCartModel(QObject):
 
         :raise: InvalidCartJSONError
 
-        raises InvalidCartJSONError if an invalid cart response was received from the server, (otherwise just returns False in normal cases of error)
+        raises InvalidCartJSONError if an invalid cart response was received from the server,
+        (otherwise just returns False in normal cases of error)
 
         If the cart id seems already used, the random cart id is updated. please connect to the cart_id_changed() signal
         and update the shown QR code.

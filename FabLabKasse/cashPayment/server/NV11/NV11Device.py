@@ -32,7 +32,7 @@ from ..hex import hex
 
 class ESSPDevice(object):
 
-    "low layer eSSP protocol - implements the network layer and all communication-related commands"
+    """low layer eSSP protocol - implements the network layer and all communication-related commands"""
 
     def __init__(self, port, presharedKey=0x0123456701234567, slaveID=0):
 
@@ -159,10 +159,10 @@ class ESSPDevice(object):
 
         def readUnsigned32(self, CheckOverrun=True):
             d = self.readUnsigned(numBytes=4, littleEndian=True)
-             # values should be far far away from the integer maximum.
-             # if the most significant byte is very large, a decoding error is very likely
-             # even the value counters won't be that large for heavy use:
-             # 10k€/month * 100 ct/euro * 12 months/year * 10 years < 2**31 !
+            # values should be far far away from the integer maximum.
+            # if the most significant byte is very large, a decoding error is very likely
+            # even the value counters won't be that large for heavy use:
+            # 10k€/month * 100 ct/euro * 12 months/year * 10 years < 2**31 !
             if CheckOverrun:
                 assert d <= 2 ** 31
             return d
@@ -207,7 +207,7 @@ class ESSPDevice(object):
             for b in bytesList:
                 output.append(b)
                 if b == 0x7F:
-                # 0x7F is repeated once ("byte stuffing")
+                    # 0x7F is repeated once ("byte stuffing")
                     output.append(b)
             return output
 
@@ -529,7 +529,7 @@ class ESSPDevice(object):
 
 class NV11Device(ESSPDevice):
 
-    "Interface client for Innovative Technology NV11 banknote validator/changer with eSSP Protocol"
+    """Interface client for Innovative Technology NV11 banknote validator/changer with eSSP Protocol"""
 
     def __init__(self, port, presharedKey=0x0123456701234567, slaveID=0):
         ESSPDevice.__init__(self, port, presharedKey, slaveID)
@@ -624,7 +624,9 @@ class NV11Device(ESSPDevice):
         return unitData
 
     def setRouteToPayout(self, values):
-        """route all notes in the given list of values to the payout-store. others will be directly put to the cashbox and are not availble for return."""
+        """route all notes in the given list of values to the payout-store.
+        others will be directly put to the cashbox and are not availble for return.
+        """
         for v in values:
             assert v % self.unitData["real value multiplier"] == 0
             assert v / self.unitData["real value multiplier"] in self.unitData["reported channel value"]
@@ -637,7 +639,9 @@ class NV11Device(ESSPDevice):
             self.command([0x3B, route] + ESSPDevice.Helper.Unsigned32ToBytes(v * self.unitData["real value multiplier"]) + ESSPDevice.Helper.AsciiToBytes(self.unitData["country"]))
 
     def getPayoutValues(self):
-        """get values of notes on payout stack. The last one of these is on top of the stack and will be paid out by the payout-command."""
+        """get values of notes on payout stack.
+        The last one of these is on top of the stack and will be paid out by the payout-command.
+        """
         s = self.command([0x41]).getDataStream()  # get note positions
         num = s.readByte()
         values = [s.readUnsigned32() for i in range(num)]
@@ -658,7 +662,8 @@ class NV11Device(ESSPDevice):
 
     def stackFromPayout(self):
         """
-        move the current note from payout store to the cashbox, so that a smaller note that isn't on top of the stack can be paid out.
+        move the current note from payout store to the cashbox, so that a smaller note that isn't on top of the stack
+        can be paid out.
         does not check if this is useful, these checks need to be done at a higher level!
         """
         l = self.getPayoutValues()

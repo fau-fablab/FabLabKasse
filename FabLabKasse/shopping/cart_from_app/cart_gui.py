@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-"GUI + logic for loading the cart from a mobile application."
+"""GUI + logic for loading the cart from a mobile application."""
 
 from PyQt4 import Qt, QtGui
 from FabLabKasse.UI.LoadFromMobileAppDialogCode import LoadFromMobileAppDialog
@@ -30,13 +30,15 @@ import logging
 
 class MobileAppCartGUI(object):
 
-    "GUI + logic for loading the cart from a mobile application. It shows a QR Code as one-time-token for authentication."
+    """GUI + logic for loading the cart from a mobile application.
+    It shows a QR Code as one-time-token for authentication.
+    """
 
     def __init__(self, parent, cfg):
         """
-        parent: GUI main object. used as Qt GUI parent and for accessing shoppingBackend
+        :param parent: GUI main object. used as Qt GUI parent and for accessing shoppingBackend
 
-        cfg: The config parser from gui.py
+        :param cfg: The config parser from gui.py
         """
         self.random_code = ""
         appstore_url = None
@@ -118,7 +120,7 @@ class MobileAppCartGUI(object):
         return successful
 
     def poll(self):
-        "query the server if a cart was stored"
+        """query the server if a cart was stored"""
         if not self.diag.isVisible():
             # this should not happen, maybe a race-condition
             return
@@ -140,7 +142,7 @@ class MobileAppCartGUI(object):
         self.parent.updateOrder()
 
     def dialog_finished(self):
-        "user somehow exited the dialog. clean up everything."
+        """user somehow exited the dialog. clean up everything."""
         self.poll_timer.stop()
         self.diag.deleteLater()
         self.poll_timer.deleteLater()
