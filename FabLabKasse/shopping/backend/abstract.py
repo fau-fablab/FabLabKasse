@@ -172,11 +172,11 @@ class OrderLine(object):
         self.price_subtotal = price_subtotal
         self.delete_if_zero_qty = delete_if_zero_qty
 
-    def __str__(self):
+    def __unicode__(self):
         return u"{} {} {} = {}".format(format_qty(self.qty), self.unit, self.name, format_money(self.price_subtotal))
 
     def __repr__(self):
-        return u"<{}(id={}, qty={}, unit={}, name={}, price_per_unit={}, price_subtotal={})>".format(self.__class__.__name__, self.order_line_id, self.qty, self.unit, self.name, self.price_per_unit, self.price_subtotal)
+        return "<{}(id={}, qty={}, unit={}, name={}, price_per_unit={}, price_subtotal={})>".format(self.__class__.__name__, repr(self.order_line_id), repr(self.qty), repr(self.unit), repr(self.name), repr(self.price_per_unit), repr(self.price_subtotal))
 
 
 class DebtLimitExceeded(Exception):
