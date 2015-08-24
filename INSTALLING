@@ -47,6 +47,16 @@ Modem-Manager interferes with the serial port. It is highly recommended to remov
         sudo python setup.py install
 
 
+### 1c. Fedora
+
+ - needed fedora packages:
+
+        dnf install python python-qt4 python-qt4-devel python-dateutil python-lxml python-crypto python-termcolor python-natsort python-qrcode python-docopt python-requests python-simplejson python-monotonic
+        pip install oerplib # only for connection to OpenERP/odoo
+
+ - for development: qt4-designer
+ - for documentation: dnf: doxygen python-pygraphviz; pip: doxypy
+
 
 2.  Configuration
 -----------------
