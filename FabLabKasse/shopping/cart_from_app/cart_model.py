@@ -30,6 +30,8 @@ import os
 from PyQt4.QtCore import pyqtSignal, QObject
 import unittest
 from decimal import Decimal
+from tempfile import NamedTemporaryFile
+from base64 import b64decode
 # TODO self-signed ssl , we need HTTPS :(
 
 
@@ -53,7 +55,6 @@ class InvalidCartJSONError(Exception):
             text += u"Property {} has unexpected value: {}".format(property_name, repr(value))
         Exception.__init__(self, text)
 
-
 class MobileAppCartModel(QObject):
 
     """loads a cart from a mobile application"""
@@ -66,6 +67,16 @@ class MobileAppCartModel(QObject):
         """
         QObject.__init__(self)
         self.cfg = config
+        if config.has_option('mobile_app', 'ssl_cert'):
+            self._ssl_cert = str(config.get('mobile_app', 'ssl_cert'))
+            if self._ssl_cert.startswith("base64://"):
+                # write contents of base64 to temporary file
+                f = NamedTemporaryFile(delete=False)
+                f.write(b64decode(self._ssl_cert[len("base64://"):]))
+                self._ssl_cert = f.name
+                f.close()
+        else:
+            self._ssl_cert = None
         self._server_url = None
         self._timeout = None
         self._cart_id = None
@@ -133,14 +144,16 @@ class MobileAppCartModel(QObject):
             self.generate_random_id()
             return False
         try:
-            req = requests.get(self.server_url + self.cart_id, timeout=self.timeout)  # , HTTPAdapter(max_retries=5))
+            req = requests.get(self.server_url + self.cart_id, timeout=self.timeout, verify=self._ssl_cert)
             # TODO retries
             req.raise_for_status()
         except requests.exceptions.HTTPError as exc:
             logging.debug(u"app-checkout: app server responded with HTTP error {}".format(exc))
             return False
         except requests.exceptions.RequestException as exc:
-            logging.debug(u"app-checkout: general error in HTTP request: {}".format(exc))
+            # WORKAROUND: SSLError is somehow broken, sometimes its __str__()  method does not return a string
+            # therefore we use repr()
+            logging.debug(u"app-checkout: general error in HTTP request: {}".format(repr(exc)))
             return False
         if req.text == "":
             # logging.debug("app-checkout: empty response from server")
@@ -197,7 +210,7 @@ class MobileAppCartModel(QObject):
         else:
             status = "cancelled"
         try:
-            req = requests.post(self.server_url + status + "/" + self.cart_id, timeout=self.timeout)  # , HTTPAdapter(max_retries=5))
+            req = requests.post(self.server_url + status + "/" + self.cart_id, timeout=self.timeout, verify=self._ssl_cert)  # , HTTPAdapter(max_retries=5))
             logging.debug("response: {}".format(repr(req.text)))
             req.raise_for_status()
         except IOError:
