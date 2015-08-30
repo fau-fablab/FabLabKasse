@@ -22,12 +22,12 @@ export QT_PLUGIN_PATH=/usr/lib/kde4/plugins/
 
 # blue background and xeyes - appears during start and exit
 xsetroot -solid blue
-xeyes -geometry 300x200+800+768 &
+xeyes -geometry 300x200+600+400 &
 
 echo "Start" >&2
 
 # terminal window showing log output
-xterm ~/FabLabKasse/scripts/xsession-tail-helper.sh &
+xterm ~/FabLabKasse/FabLabKasse/scripts/xsession-tail-helper.sh &
 
 # start GUI
 ~/FabLabKasse/run.py

@@ -23,7 +23,7 @@ This software was mainly developed for Debian "jessie", but should also work on 
         pip install monotonic
         pip install oerplib # only for connection to OpenERP/odoo
 
- - for the real terminal implementation: xserver-xorg git nodm ssh
+ - for the real terminal implementation: xserver-xorg git nodm ssh x11-apps xterm
  - for the style: kde-style-oxygen kde-workspace-bin
  - for font: fonts-crosextra-carlito # or download Carlito-Regular.ttf from http://openfontlibrary.org/de/font/carlito#Carlito-Regular to ~/.fonts/
  - for development: qt4-designer
