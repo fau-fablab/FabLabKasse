@@ -54,7 +54,7 @@ class AbstractPaymentMethod(object):
         self.receipt_order_id = shopping_backend.get_current_order()
 
     def __repr__(self):
-        return u"<{}(amount_to_pay={}, amount_paid={}, amount_returned={}, successful={}, ...)>".format(type(self).__name__, self.amount_to_pay, self.amount_paid, self.amount_returned, self.successful)
+        return "<{}(amount_to_pay={}, amount_paid={}, amount_returned={}, successful={}, ...)>".format(type(self).__name__, self.amount_to_pay, self.amount_paid, self.amount_returned, self.successful)
 
     @abstractmethod
     def _show_dialog(self):

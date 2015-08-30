@@ -60,6 +60,7 @@ def do_something(value):
 ```
 
 - for the docstrings, use the type syntax as defined at https://www.jetbrains.com/pycharm/help/type-hinting-in-pycharm.html#d301935e18526
+- custom __repr__() methods must return ASCII strings, not unicode objects.
 
 ## High level (structure)
 
