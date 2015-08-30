@@ -66,7 +66,7 @@ def do_something(value):
 - Make your code modular, reusable and well-documented. Not only for others, but also for your future self.
 - Use enough assertions in all code that has to do with money (payment, accounting, etc.).
 - For signaling errors, prefer Exceptions to return codes.
-- Avoid print, use logging.info, logging.warning etc. because these are automatically saved to a logfile
+- Avoid print! Use logging.info, logging.warning etc. because these are automatically saved to a logfile.
 - Importing a file must not cause any side-effects. For scripts that should do something when called from the shell, you can use the following pattern:
 
 ```
@@ -86,3 +86,13 @@ if __name__ == "__main__":
 - Develop features in a separate branch, rebasing into logically divided commits is encouraged
 - Please no fast-forward-merging (use `git merge --no-ff`, standard behaviour of Github pull requests)
 - [This article](http://nvie.com/posts/a-successful-git-branching-model/) propagates a similar model
+
+# Commit messages
+
+Please start your commit messages with FIX / ADD / IMPROVE / REFACTOR / DOC if it is possible and makes sense:
+
+- new feature: `ADD clear-cart-button to user interface`
+- improved existing feature: `IMPROVE payment_methods: add assertions and logging for payments`
+- better code with the same behaviour: `REFACTOR usage of AbstractShoppingBackend.delete_current_order()`
+- bugfix: `FIX crash when loading cart from app`
+- only documentation changed: `DOC: better docstrings for AbstractShoppingBackend`

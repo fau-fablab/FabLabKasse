@@ -8,6 +8,8 @@ This project contains submodules. For this you have to checkout e.g. recursively
 
 `git clone --recursive git@github.com:fau-fablab/FabLabKasse.git`
 
+Please note that currently you need a github account and attach your public SSH key to it. If this is not possible, you can manually edit .gitmodules to use https checkout.
+
 1.  Dependencies
 ----------------
 
@@ -17,7 +19,7 @@ This software was mainly developed for Debian "jessie", but should also work on 
 
  - needed debian packages:
 
-        apt-get install python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort python-qrcode python-docopt python-requests python-simplejson python-sphinx
+        apt-get install python-pip python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort python-qrcode python-docopt python-requests python-simplejson python-sphinx
         pip install monotonic
         pip install oerplib # only for connection to OpenERP/odoo
 
