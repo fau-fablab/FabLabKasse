@@ -53,11 +53,17 @@ def main():
         # load example config
         # test that there is no config.ini yet
         if file_exists("config.ini"):
-            print("Warning: Configuration FabLabKasse/config.ini already exists, will not overwrite it. You can just start run.py without the --example argument to make this message disappear.")
-            time.sleep(2)
+            print("Warning: Configuration FabLabKasse/config.ini already exists, will not overwrite it.")
+            if not "--only-load-config" in sys.argv:
+                print("You can just start run.py without the --example argument to make this message disappear.")
+                time.sleep(2)
         else:
             print("loading example configuration file. edit FabLabKasse/config.ini to change. You do not need the --example parameter later.")
             shutil.copyfile("config.ini.example", "config.ini")
+	if "--only-load-config" in sys.argv:
+         # the Vagrant VM provisioning script uses this to copy a default config before the first start.
+         sys.exit(0)
+
 
     os.chdir(currentDir + "/FabLabKasse/UI/")
     subprocess.call("./compile_all.py")

@@ -17,6 +17,8 @@ This software was mainly developed for Debian "jessie", but should also work on 
 
 ### 1a. Debian
 
+If you have a standalone PC or VM only for FabLabKasse, you can also use `FabLabKasse/scripts/install_debian.sh`, which sets up a kiosk system that autostarts FabLabKasse.
+
  - needed debian packages:
 
         apt-get install python-pip python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort python-qrcode python-docopt python-requests python-simplejson python-sphinx
@@ -63,8 +65,9 @@ Modem-Manager interferes with the serial port. It is highly recommended to remov
 2.  Configuration
 -----------------
 
+    cd FabLabKasse/
     cp config.ini.example config.ini
-    edit config.ini file
+    # now edit config.ini file
 
 Please use database name "production" for the real terminal, and something else for tests and development!
 
@@ -78,14 +81,16 @@ TODO ... importProdukte.py ...
 4.  Setting up the terminal
 ---------------------------
 
-You need a touchscreen (preferably USB) with 1280x1024 resolution
+Please take a look at install_debian.sh, which does most of the tasks described in this section
+
+You need a touchscreen (preferably USB with 1280x1024 resolution).
 
     adduser kasse --disabled-password
 
 If you want to use the reboot/shutdown option from the menu,
 cp tools/sudoers.d/kassenterm-reboot-shutdown /etc/sudoers.d/
 
-TODO: setup nodm for autologin of kasse
+Setup nodm for autologin of the 'kasse' user.
 
 TODO touchscreen calibration: ssh kasse@terminal DISPLAY=:0 xinput_calibration, make permanent by copying output to /etc/X11/xorg.conf (or /etc/xorg.conf.d/someFile)
 
