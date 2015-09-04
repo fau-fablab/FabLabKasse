@@ -25,8 +25,6 @@ import logging
 # from FabLabKasse.shopping
 from FabLabKasse.shopping.backend.abstract import float_to_decimal
 import simplejson
-import random
-import os
 from PyQt4.QtCore import pyqtSignal, QObject
 import unittest
 from decimal import Decimal
@@ -78,15 +76,25 @@ class MobileAppCartModel(QObject):
         else:
             self._ssl_cert = None
         self._server_url = None
+        self._api_key = None
         self._timeout = None
         self._cart_id = None
 
-    def generate_random_id(self):
-        """set random_id to a securely generated random value
+    def _get_cart_id(self):
+        """
+        query app server for current cart id
 
-        Debugging: set environment variable MOBILE_APP_FORCE_CODE=12345 to force a specific code"""
-        rng = random.SystemRandom()
-        self.cart_id = os.environ.get("MOBILE_APP_FORCE_CODE", str(rng.randint(0, 2 ** 63))).strip()
+        :raise: requests.exceptions.HTTPError
+        :raise: requests.exceptions.RequestException
+        :rtype: None
+        """
+        get_params = {'password': self.api_key}
+        req = requests.get(self.server_url + "createCode", params=get_params,
+                           timeout=self.timeout, verify=self._ssl_cert)
+        req.raise_for_status()
+        if req.text == "":
+            return
+        self.cart_id = req.text.strip()
 
     @property
     def server_url(self):
@@ -98,6 +106,15 @@ class MobileAppCartModel(QObject):
         return self._server_url
 
     @property
+    def api_key(self):
+        """
+        Return the appservers api key
+        """
+        if self._api_key is None:
+            self._api_key = self.cfg.get('mobile_app', 'server_api_key')
+
+        return self._api_key
+
     def timeout(self):
         """
         Timeout for single requests
@@ -140,12 +157,11 @@ class MobileAppCartModel(QObject):
         If the cart id seems already used, the random cart id is updated. please connect to the cart_id_changed() signal
         and update the shown QR code.
         """
-        if self.cart_id is None:
-            self.generate_random_id()
-            return False
         try:
+            if self.cart_id is None:
+                self._get_cart_id()
+                return False
             req = requests.get(self.server_url + self.cart_id, timeout=self.timeout, verify=self._ssl_cert)
-            # TODO retries
             req.raise_for_status()
         except requests.exceptions.HTTPError as exc:
             logging.debug(u"app-checkout: app server responded with HTTP error {}".format(exc))
@@ -235,8 +251,9 @@ class MobileAppCartModelTest(unittest.TestCase):
             - valid_data: data for json encoding
             - valid_cart: decoded cart like it should be output by _decode_json_cart()
             """
-            model = MobileAppCartModel(None)
-            model.generate_random_id()
+            from ConfigParser import ConfigParser
+            model = MobileAppCartModel(ConfigParser())
+            model._cart_id = "15596984"
             valid_data = {}
             valid_data["cartCode"] = model.cart_id
             valid_data["items"] = []
