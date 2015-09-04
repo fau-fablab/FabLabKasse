@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
 ```
 
-- Unittests must be in separate XYZ_unittest.py files and use the python unittest module so that they can be found by run_unittests.sh. Please see `FabLabKasse/example_unittest.py` for a working example.
+- Unittests must use the python unittest module so that they can be found by run_unittests.sh. Please see `FabLabKasse/example_unittest.py` for a working example.
 
 # Contributing
 
