@@ -4,3 +4,6 @@
 
 # lock files
 *.lock
+
+# vagrant dir
+.vagrant/
