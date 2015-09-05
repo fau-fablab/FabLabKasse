@@ -115,6 +115,7 @@ class MobileAppCartModel(QObject):
 
         return self._api_key
 
+    @property
     def timeout(self):
         """
         Timeout for single requests
