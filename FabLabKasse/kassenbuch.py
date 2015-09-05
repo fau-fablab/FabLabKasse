@@ -539,19 +539,6 @@ class Kunde:
 
         return summe
 
-    @property
-    def beschreibung(self):
-        s = u''
-        if self.rechnung:
-            s += 'Kunde: ' + unicode(self.name) + ' (' + unicode(self.id) + ') '
-            if self.kommentar:
-                s += '(' + self.kommentar + ')'
-        elif self.kommentar:
-            s += self.kommentar
-        else:
-            s = u'KEINE BESCHREIBUNG'
-        return s
-
     def to_string(self, short=False):
         summary = (u'Kunde {name} ({id}):\n    Schuldengrenze: {schuldengrenze:.2f} EUR\n    ' +
                    u'Mail: {email}\n    Telefon: {telefon}\n    Adresse: {adresse}\n    ' +
