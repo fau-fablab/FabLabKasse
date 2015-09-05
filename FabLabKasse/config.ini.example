@@ -36,6 +36,9 @@ server_url = https://ec2-52-28-126-35.eu-central-1.compute.amazonaws.com:4433/ch
 server_api_key = dummyPassword
 appstore_url = https://play.google.com/store/apps/details?id=de.fau.cs.mad.fablab.android
 
+; custom number of retries
+num_retries = 10
+
 ; custom SSL certificate (if not trusted by the system CAs) in .crt file format, which can be exported from most webbrowsers
 ; either use a path to a file (the path may not start with 'base64'):
 ; ssl_cert = ./foo.crt

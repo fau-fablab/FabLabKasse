@@ -21,7 +21,8 @@
 
 from PyQt4 import Qt, QtGui
 from FabLabKasse.UI.LoadFromMobileAppDialogCode import LoadFromMobileAppDialog
-from FabLabKasse.shopping.cart_from_app.cart_model import MobileAppCartModel, InvalidCartJSONError
+from FabLabKasse.shopping.cart_from_app.cart_model import MobileAppCartModel
+from FabLabKasse.shopping.cart_from_app.cart_model import InvalidCartJSONError, MissingAPIKeyError, MaximumNumRetriesException
 from FabLabKasse.shopping.backend.abstract import ProductNotFound
 import logging
 
@@ -128,7 +129,15 @@ class MobileAppCartGUI(object):
         try:
             response = self.cart.load()
         except InvalidCartJSONError:
-            QtGui.QMessageBox.warning(self.parent, "Warenkorb", u"Entschuldigung, beim Import ist leider ein Fehler aufgetreten.\n (Fehlerhafte Warenkorbdaten)")
+            QtGui.QMessageBox.warning(self.parent, "Warenkorb", u"Entschuldigung, beim Import ist leider ein Fehler aufgetreten.\n(Fehlerhafte Warenkorbdaten)")
+            self.diag.reject()
+            return
+        except MaximumNumRetriesException:
+            QtGui.QMessageBox.critical(self.parent, "Serverfehler", u"Entschuldigung, dieses Feature ist momentan nicht verfügbar.\n(Server nicht erreichbar oder Antwort fehlerhaft)")
+            self.diag.reject()
+            return
+        except MissingAPIKeyError:
+            QtGui.QMessageBox.critical(self.parent, "Konfigurationsfehler", u"Entschuldigung, dieses Feature ist momentan nicht verfügbar.\n(API-Key fehlt.)")
             self.diag.reject()
             return
 

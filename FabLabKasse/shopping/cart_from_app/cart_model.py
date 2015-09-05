@@ -30,7 +30,6 @@ import unittest
 from decimal import Decimal
 from tempfile import NamedTemporaryFile
 from base64 import b64decode
-# TODO self-signed ssl , we need HTTPS :(
 
 
 class InvalidCartJSONError(Exception):
@@ -52,6 +51,33 @@ class InvalidCartJSONError(Exception):
         if property_name:
             text += u"Property {} has unexpected value: {}".format(property_name, repr(value))
         Exception.__init__(self, text)
+
+class MissingAPIKeyError(Exception):
+
+    """No API key has been specified, cannot recover."""
+
+    def __init__(self):
+        """
+        The Appserver needs an API key for communication without one, no communication is possible.
+        """
+        text = "No API key found for the APP-Server in config (key server_api_key)."
+        logging.error(text)
+        Exception.__init__(self, text)
+
+
+class MaximumNumRetriesException(Exception):
+
+    """The threshold number of retries has been passed"""
+
+    def __init__(self):
+        """
+        After num_retries is the appserver still not reachable.
+        """
+        text = "The Appserver is after num_retries retries (see config) still not reachable."
+        logging.error(text)
+        Exception.__init__(self, text)
+
+
 
 class MobileAppCartModel(QObject):
 
@@ -79,6 +105,8 @@ class MobileAppCartModel(QObject):
         self._api_key = None
         self._timeout = None
         self._cart_id = None
+        self._num_retries = None
+        self._retries_counter = 0
 
     def _get_cart_id(self):
         """
@@ -109,9 +137,14 @@ class MobileAppCartModel(QObject):
     def api_key(self):
         """
         Return the appservers api key
+
+        :raise: MissingAPIKeyError
         """
         if self._api_key is None:
-            self._api_key = self.cfg.get('mobile_app', 'server_api_key')
+            if self.cfg.has_option('mobile_app', 'server_api_key'):
+                self._api_key = self.cfg.get('mobile_app', 'server_api_key')
+            else:
+                raise MissingAPIKeyError()
 
         return self._api_key
 
@@ -143,9 +176,35 @@ class MobileAppCartModel(QObject):
         self._cart_id = value
         self.cart_id_changed.emit(value)
 
+    @property
+    def num_retries(self):
+        """maximum number of retries before the server is considered down"""
+        if self._num_retries is None:
+            if self.cfg.has_option('mobile_app', 'num_retries'):
+                self._num_retries = self.cfg.getint('mobile_app', 'num_retries')
+            else:
+                self._num_retries = 10
+                logging.info(u"using default number of retries '10' as it wasn't set in the config")
+        return self._num_retries
+
+    def _tick_error_counter(self):
+        """Raises an Exception after num_retries
+        Call this function whenever the HTTP request to the server returns an error.
+        After the specified number of retries this function raises a MaximumNumRetriesException
+
+        :raise: MaximumNumRetriesException
+        """
+        self._retries_counter += 1
+        if self._retries_counter > self.num_retries:
+            raise MaximumNumRetriesException
+
+    def _reset_error_counter(self):
+        """call this function if there has been a succesfull request to reset the error counter"""
+        self._retries_counter = 0
+
     def load(self):
         """Load cart from server and return it, or ``False`` if no cart has
-        been uploaded yet for the current id or if an error occured
+        been uploaded yet for the current id or if an error occurred
 
         :return:  list of tuples (product_code, quantity) or False
         :rtype: list[(int, Decimal)] | bool
@@ -166,18 +225,23 @@ class MobileAppCartModel(QObject):
             req.raise_for_status()
         except requests.exceptions.HTTPError as exc:
             logging.debug(u"app-checkout: app server responded with HTTP error {}".format(exc))
+            self._tick_error_counter()
             return False
         except requests.exceptions.RequestException as exc:
             # WORKAROUND: SSLError is somehow broken, sometimes its __str__()  method does not return a string
             # therefore we use repr()
             logging.debug(u"app-checkout: general error in HTTP request: {}".format(repr(exc)))
+            self._tick_error_counter()
             return False
         if req.text == "":
             # logging.debug("app-checkout: empty response from server")
             # no logging here since this is a standard use-case
+            self._reset_error_counter()
             return False
         try:
-            return self._decode_json_cart(req.text)
+            cart = self._decode_json_cart(req.text)
+            self._reset_error_counter()
+            return cart
         except InvalidCartJSONError, exception:
             logging.warning("Cannot decode Cart JSON: {}".format(exception))
             raise
