@@ -101,10 +101,13 @@ def main():
     debug = ""
     if "--debug" in sys.argv:
         debug = "--debug"
-        fu = subprocess.Popen("winpdb -a gui.py".split(" "), stdin=subprocess.PIPE)
-        fu.stdin.write("gui")
-        fu.stdin.close()
-    subprocess.call("python2.7 -m FabLabKasse.gui {}".format(debug).split(" "), env=myEnv)
+    gui = subprocess.Popen("python2.7 -m FabLabKasse.gui {}".format(debug).split(" "), env=myEnv)
+    if debug:
+        time.sleep(1)
+        debugger = subprocess.Popen(["winpdb", "-a", os.path.abspath("gui.py")], stdin=subprocess.PIPE)
+        debugger.stdin.write("gui")
+        debugger.stdin.close()
+    gui.communicate()
     print("GUI exited")
     if "--debug" in sys.argv:
         sys.exit(0)
