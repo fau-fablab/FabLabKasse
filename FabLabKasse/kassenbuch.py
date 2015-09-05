@@ -4,6 +4,7 @@
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
 # Copyright (C) 2014  Julian Hammer <julian.hammer@fablab.fau.de>
 #                     Maximilian Gaukler <max@fablab.fau.de>
+#                     Patrick Kanzler <patrick.kanzler@fablab.fau.de>
 #                     Timo Voigt <timo@fablab.fau.de>
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
@@ -50,6 +51,8 @@ import re
 import sys
 import random
 import scriptHelper
+
+import doctest
 
 import libs.escpos.printer as escpos_printer
 
@@ -103,6 +106,12 @@ def moneyfmt(value, places=2, curr='', sep=',', dp=',',
     build(curr)
     build(neg if sign else pos)
     return ''.join(reversed(result))
+
+
+def load_tests(loader, tests, ignore):
+    """loader function to load the doctests in this module into unittest"""
+    tests.addTests(doctest.DocTestSuite('FabLabKasse.kassenbuch'))
+    return tests
 
 
 class NoDataFound(Exception):
