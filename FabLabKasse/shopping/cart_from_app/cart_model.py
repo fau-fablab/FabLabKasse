@@ -52,6 +52,7 @@ class InvalidCartJSONError(Exception):
             text += u"Property {} has unexpected value: {}".format(property_name, repr(value))
         Exception.__init__(self, text)
 
+
 class MissingAPIKeyError(Exception):
 
     """No API key has been specified, cannot recover."""
@@ -76,7 +77,6 @@ class MaximumNumRetriesException(Exception):
         text = "The Appserver is after num_retries retries (see config) still not reachable."
         logging.error(text)
         Exception.__init__(self, text)
-
 
 
 class MobileAppCartModel(QObject):

@@ -7,3 +7,6 @@
 
 # vagrant dir
 .vagrant/
+
+# compiled files
+*.pyc
