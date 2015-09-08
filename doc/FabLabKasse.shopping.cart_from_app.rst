@@ -11,7 +11,11 @@ You can use the HTML-based simulator as a replacement for FabLabKasse and also a
 Workflow
 --------
     
- - Generate random number (12345), show as a QR code to the user
+ - Fetch a random number from the appserver (e.g. 12345)
+
+    ``HTTP GET server/checkout/createCode``
+
+ - show a QR code including this number to the user
     (this is to guard against DOS or collisions with other people also sending a cart at the same time)
 
  - User has his cart in the app, and pushes "send to cashdesk", scans code
@@ -20,7 +24,7 @@ Workflow
 
  - cashdesk polls for a cart:
 
-    ``HTTP GET server/checkout/cart/12345``
+    ``HTTP GET server/checkout/12345``
 
    - -> If a cart was sent, the response is a JSON object containing the cart
 
