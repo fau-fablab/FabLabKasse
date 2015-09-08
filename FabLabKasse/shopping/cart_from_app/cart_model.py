@@ -321,15 +321,15 @@ class MobileAppCartModelTest(unittest.TestCase):
             from ConfigParser import ConfigParser
             model = MobileAppCartModel(ConfigParser())
             model._cart_id = "15596984"
-            valid_data = {}
-            valid_data["cartCode"] = model.cart_id
-            valid_data["items"] = []
 
             product = {}
             product["id"] = 44
             product["productId"] = "9011"
             product["amount"] = "5."
 
+            valid_data = {}
+            valid_data["cartCode"] = model.cart_id
+            valid_data["items"] = []
             valid_data["items"].append(product)
             valid_data["status"] = "PENDING"
             valid_data["pushId"] = "000"
@@ -356,7 +356,7 @@ class MobileAppCartModelTest(unittest.TestCase):
                 data[field] = "fooo"
                 model._decode_json_cart(simplejson.dumps(data))
 
-        # wrong datatype inside items list
+        # test wrong datatype inside items list
         [model, data, _] = prepare()
         with self.assertRaises(InvalidCartJSONError):
             data["items"][0] = "fooo"
@@ -370,19 +370,25 @@ class MobileAppCartModelTest(unittest.TestCase):
                 del data["items"][0][field]
                 model._decode_json_cart(simplejson.dumps(data))
 
-        # invalid values for amount
+        # test invalid values for amount
         for invalid_amount_value in ["-5", "1.241234234232343242342234", "1e20"]:
             [model, data, _] = prepare()
             data["items"][0]["amount"] = invalid_amount_value
             with self.assertRaises(InvalidCartJSONError):
                 model._decode_json_cart(simplejson.dumps(data))
 
-        # invalid values for product id
+        # test invalid values for product id
         for invalid_id_value in ["1.5", ""]:
             [model, data, _] = prepare()
             data["items"][0]["productId"] = invalid_id_value
             with self.assertRaises(InvalidCartJSONError):
                 model._decode_json_cart(simplejson.dumps(data))
+
+        # test empty cart
+        [model, data, _] = prepare()
+        data["items"] = []
+        with self.assertRaises(InvalidCartJSONError):
+            model._decode_json_cart(simplejson.dumps(data))
 
 
 if __name__ == "__main__":
