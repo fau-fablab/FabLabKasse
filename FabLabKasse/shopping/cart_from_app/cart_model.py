@@ -390,6 +390,25 @@ class MobileAppCartModelTest(unittest.TestCase):
         with self.assertRaises(InvalidCartJSONError):
             model._decode_json_cart(simplejson.dumps(data))
 
+        # test naughty strings
+        from os.path import dirname, abspath
+        import codecs
+        naughtystrings = ""
+        naughtyfile = abspath(dirname(__file__) + "/../../libs/naughtystrings/blns.txt")
+        with codecs.open(naughtyfile, 'r', "utf-8") as f:
+            naughtystrings = f.readlines()
+            naughtystrings.insert(0, u"")
+        [model, data1, _] = prepare()
+        data2 = data1.copy()
+        for nstring in naughtystrings:
+            nstring = nstring.strip(u'\n')
+            if not nstring.startswith(u'#'):
+                data1["status"] = nstring
+                data2["items"][0]["productId"] = nstring
+                with self.assertRaises(InvalidCartJSONError):
+                    model._decode_json_cart(simplejson.dumps(data1))
+                    model._decode_json_cart(simplejson.dumps(data2))
+
 
 if __name__ == "__main__":
     unittest.main()
