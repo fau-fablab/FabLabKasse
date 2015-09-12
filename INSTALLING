@@ -37,7 +37,7 @@ Modem-Manager interferes with the serial port. It is highly recommended to remov
 
 ### 1b. Mac OS
 
- - python installieren
+ - python 2.7  installieren
  - Qt: http://qt-project.org/downloads
  - SIP: http://www.riverbankcomputing.com/software/sip/download (entpacken, `configure`, `make`, `make install`)
  - PyQt4: http://www.riverbankcomputing.com/software/pyqt/download (entpacken, `configure`, `make`, `make install`)
