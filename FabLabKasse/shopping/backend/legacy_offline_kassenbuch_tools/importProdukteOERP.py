@@ -54,7 +54,7 @@ def importProdukteOERP(data, oerp, cfg):
     print "OERP Import"
     prod_ids = oerp.search('product.product', [('default_code', '!=', False)])
     print "reading {} products from OERP, this may take some minutes...".format(len(prod_ids))
-    prods = oerp.read('product.product', prod_ids, ['code', 'name', 'uom_id', 'list_price', 'categ_id', 'active', 'sale_ok'],
+    prods = oerp.read('product.product', prod_ids, ['code', 'name', 'uom_id', 'lst_price', 'categ_id', 'active', 'sale_ok'],
                       context=oerp.context)
 
     # Only consider things with numerical PLUs in code field
@@ -64,7 +64,7 @@ def importProdukteOERP(data, oerp, cfg):
     integer_uoms = oerp.search('product.uom', [('rounding', '=', 1)])
 
     for p in prods:
-        if p['list_price'] <= 0:
+        if p['lst_price'] <= 0:
             # WORKAROUND: solange die Datenqualität so schlecht ist, werden Artikel mit Preis 0 erstmal ignoriert.
             continue
         if not p['active'] or not p['sale_ok']:
@@ -79,7 +79,7 @@ def importProdukteOERP(data, oerp, cfg):
         if p['uom_id'][0] in integer_uoms:
             p['input_mode'] = 'INTEGER'
         data[p['categ'][0]].append(
-            (p['code'], p['name'], p['uom_id'][1], p['list_price'], p['input_mode'], p['categ'][1:], []))
+            (p['code'], p['name'], p['uom_id'][1], p['lst_price'], p['input_mode'], p['categ'][1:], []))
 
     return data
 
