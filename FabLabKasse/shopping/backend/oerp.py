@@ -292,7 +292,7 @@ class ShoppingBackend(AbstractShoppingBackend):
         products = oerp.read(
             'product.product',
             product_ids,
-            ['name', 'property_stock_location', 'uos_id', 'uom_id', 'list_price'],
+            ['name', 'property_stock_location', 'uos_id', 'uom_id', 'lst_price'],
             context=oerp.context)
 
         # get pricelist
@@ -327,7 +327,7 @@ class ShoppingBackend(AbstractShoppingBackend):
                 # TODO only if product is in this category :(
                 location = category_default_location
             location = unicode(location)
-            data = Product(prod_id=p['id'], name=p['name'], price=float_to_decimal(p['list_price'], 3), unit=unit, location=location, categ_id=None)
+            data = Product(prod_id=p['id'], name=p['name'], price=float_to_decimal(p['lst_price'], 3), unit=unit, location=location, categ_id=None)
             products_preprocessed.append(data)
         return products_preprocessed
 
