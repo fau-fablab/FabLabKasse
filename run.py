@@ -83,6 +83,16 @@ def main():
         if cfg.get("backend", "backend") == "legacy_offline_kassenbuch":
             subprocess.call("./shopping/backend/legacy_offline_kassenbuch_tools/importProdukteOERP.py", env=myEnv)
 
+    def check_winpdb_version():
+        """returns true on supported version of winpdb
+
+        :return: True, if winpdb-version is sufficient
+        :rtype: Boolean
+        """
+        # TODO implement version check
+        # call winpdb --version
+        return True
+
     def runShutdown(program):
         "run sudo <program> and wait forever until the system reboots / shuts down"
         print("calling {}".format(program))
@@ -104,6 +114,9 @@ def main():
     gui = subprocess.Popen("python2.7 -m FabLabKasse.gui {}".format(debug).split(" "), env=myEnv)
     if debug:
         time.sleep(1)
+        if not check_winpdb_version():
+            print("your version of winpdb is probably not supported")
+            print("consider updating winpdb")
         debugger = subprocess.Popen(["winpdb", "-a", os.path.abspath("gui.py")], stdin=subprocess.PIPE)
         debugger.stdin.write("gui")
         debugger.stdin.close()
