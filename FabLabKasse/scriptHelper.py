@@ -23,7 +23,7 @@ import signal
 import logging
 import logging.handlers
 import sys
-import fcntl
+import portalocker
 import sqlite3
 from ConfigParser import ConfigParser
 import codecs
@@ -108,12 +108,12 @@ class FileLock(object):
     """
     exclusive file-lock, for locking a resource against other processes
 
-    Only works on Linux (?)
+    Uses portalocker for platform-independence
     """
 
     def __init__(self, name):
         self.file = open(name + ".lock", "w")
         try:
-            fcntl.flock(self.file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            portalocker.lock(self.file, portalocker.LOCK_EX | portalocker.LOCK_NB)
         except IOError:
             raise Exception("lock " + name + " already taken, is another process already running?")

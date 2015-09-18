@@ -10,8 +10,8 @@ Subpackages
 
     FabLabKasse.libs.escpos
     FabLabKasse.libs.flickcharm
-    FabLabKasse.libs.pxss
     FabLabKasse.libs.process_helper
+    FabLabKasse.libs.pxss
 
 Module contents
 ---------------
