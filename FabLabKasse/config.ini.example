@@ -32,9 +32,11 @@ threshold_time = 1800
 [mobile_app]
 ; load cart via smartphone app
 enabled = no
+; backend server
 server_url = https://ec2-52-28-126-35.eu-central-1.compute.amazonaws.com:4433/checkout/ ; production new
 server_api_key = dummyPassword
-appstore_url = https://play.google.com/store/apps/details?id=de.fau.cs.mad.fablab.android
+; website that redirects to appstore
+appstore_url = https://fablab.fau.de/app/redirect.php
 
 ; custom number of retries
 num_retries = 10
