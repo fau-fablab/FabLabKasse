@@ -320,7 +320,7 @@ class MobileAppCartModelTest(unittest.TestCase):
             """
             from ConfigParser import ConfigParser
             model = MobileAppCartModel(ConfigParser())
-            model._cart_id = "15596984"
+            model._cart_id = "FAU15596984"
 
             product = {}
             product["id"] = 44
