@@ -84,14 +84,21 @@ def main():
             subprocess.call("./shopping/backend/legacy_offline_kassenbuch_tools/importProdukteOERP.py", env=myEnv)
 
     def check_winpdb_version():
-        """returns true on supported version of winpdb
+        """returns true if version of winpdb is larger than 1.4.8
+
+        uses the assumption that winpdb --version returns something like Winpdb 1.4.8 - Tychod
 
         :return: True, if winpdb-version is sufficient
         :rtype: Boolean
         """
-        # TODO implement version check
+        def versiontuple(v):
+            """simple tupel for comparing versions"""
+            return tuple(map(int, (v.split("."))))
+
         # call winpdb --version
-        return True
+        versionstring = subprocess.check_output("winpdb --version", shell=True)
+        version = versionstring.split(" ")[1]
+        return versiontuple(version) >= versiontuple("1.4.8")
 
     def runShutdown(program):
         "run sudo <program> and wait forever until the system reboots / shuts down"
@@ -115,7 +122,7 @@ def main():
     if debug:
         time.sleep(1)
         if not check_winpdb_version():
-            print("your version of winpdb is probably not supported")
+            print("WARNING: your version of winpdb is probably not supported")
             print("consider updating winpdb")
         debugger = subprocess.Popen(["winpdb", "-a", os.path.abspath("gui.py")], stdin=subprocess.PIPE)
         debugger.stdin.write("gui")
