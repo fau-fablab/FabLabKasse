@@ -1,4 +1,6 @@
 # FabLabKasse
+[![Code Health](https://landscape.io/github/fau-fablab/FabLabKasse/development/landscape.svg?style=flat)](https://landscape.io/github/fau-fablab/FabLabKasse/development)
+
 FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops
 
 
