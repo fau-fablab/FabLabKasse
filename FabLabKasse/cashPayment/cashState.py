@@ -236,7 +236,7 @@ class CashState(object):
             assert key[-1] in ["c", "E"],  "key must end with c for cents or E for euro. example: 13x10c"
             keyInt = int(key[0:-1])
             if key[-1] == "E":
-                keyInt = keyInt * 100
+                keyInt *= 100
             key = keyInt
             val = int(val)
             assert key not in state.keys(), \

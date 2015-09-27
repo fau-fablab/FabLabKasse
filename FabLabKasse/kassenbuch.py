@@ -567,7 +567,7 @@ class Kunde:
             s += u', adresse=%s' % self.adresse
         if self.kommentar is not None:
             s += u', kommentar=%s' % self.kommentar
-        s = s + ')>'
+        s += ')>'
         return s.__repr__()  # workaround: python2.7 has trouble with __repr__ returning unicode strings - http://bugs.python.org/issue5876
 
 
