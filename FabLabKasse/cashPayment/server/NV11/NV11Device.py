@@ -122,7 +122,8 @@ class ESSPDevice(object):
         def stringToByteArray(string):
             return ([ord(x) for x in string])
 
-    class ByteStreamReader:  # read data values from a list of bytes
+    class ByteStreamReader(object):
+        """  read data values from a list of bytes """
 
         def __init__(self, bytesList):
             self.buffer = copy.deepcopy(bytesList)
@@ -331,7 +332,9 @@ class ESSPDevice(object):
     #
     # High-Level Send/Receive: Command/Response
     #
-    class Response:  # status + data
+    class Response(object):
+        """ status + data
+        """
         statusStrings = {
             -1:   "decoded response contains no data",
                         0xF0: "OK",

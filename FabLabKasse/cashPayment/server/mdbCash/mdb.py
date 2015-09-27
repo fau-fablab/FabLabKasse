@@ -38,7 +38,7 @@ class MissingResetEventError(Exception):
     pass
 
 
-class MdbCashDevice:
+class MdbCashDevice(object):
     # changer commands - subtracting 8 from the (wrong) values in the specification
     CMD_RESET = 0x08 - 8
     CMD_TUBE_STATUS = 0x0A - 8

@@ -119,7 +119,7 @@ class NoDataFound(Exception):
     pass
 
 
-class Rechnung:
+class Rechnung(object):
 
     def __init__(self, id=None, datum=None):
         self.id = id
@@ -251,7 +251,7 @@ class Rechnung:
         printer.cut()
 
 
-class Buchung:
+class Buchung(object):
 
     def __init__(self, konto, betrag, rechnung=None, kommentar=None, id=None, datum=None):
         self.id = id
@@ -323,7 +323,7 @@ class Buchung:
         return s.__repr__()  # workaround: python2.7 has trouble with __repr__ returning unicode strings - http://bugs.python.org/issue5876
 
 
-class Kasse:
+class Kasse(object):
 
     def __init__(self, sqlite_file=':memory:'):
         self.con = sqlite3.connect(sqlite_file)
@@ -450,7 +450,7 @@ class Kasse:
         return s
 
 
-class Kunde:
+class Kunde(object):
 
     def __init__(self, name, pin='0000', schuldengrenze=None, email=None, telefon=None,
                  adresse=None, kommentar=None, id=None):
@@ -571,7 +571,7 @@ class Kunde:
         return s.__repr__()  # workaround: python2.7 has trouble with __repr__ returning unicode strings - http://bugs.python.org/issue5876
 
 
-class Kundenbuchung:
+class Kundenbuchung(object):
 
     def __init__(self, kunde, betrag, rechnung=None, kommentar=None, id=None, datum=None):
         self.id = id
@@ -648,7 +648,7 @@ class Kundenbuchung:
         return s.__repr__()  # workaround: python2.7 has trouble with __repr__ returning unicode strings - http://bugs.python.org/issue5876
 
 
-class UnicodeWriter:
+class UnicodeWriter(object):
 
     """
     A CSV writer which will write rows to CSV file "f",

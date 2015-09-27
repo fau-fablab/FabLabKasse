@@ -101,7 +101,7 @@ def main():
         return versiontuple(version) >= versiontuple("1.4.8")
 
     def runShutdown(program):
-        "run sudo <program> and wait forever until the system reboots / shuts down"
+        """run sudo <program> and wait forever until the system reboots / shuts down"""
         print("calling {}".format(program))
         time.sleep(1)
         if subprocess.call(["sudo", program]) != 0:

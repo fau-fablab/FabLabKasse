@@ -8,7 +8,7 @@ import ast
 import codecs
 
 
-class Produkt:
+class Produkt(object):
 
     def __init__(self, plu, name, basiseinheit, basispreis, verkaufseinheiten=None, input_mode='DECIMAL'):
         self.PLU = plu
