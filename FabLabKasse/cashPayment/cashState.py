@@ -91,7 +91,7 @@ class CashState(object):
 
     def __init__(self, dictionary=None):
         # a default value dictionary={} would be a dangerous piece of code, google PyLint W0102 for more infos.
-        if dictionary == None:
+        if dictionary is None:
             dictionary = {}
         for key in dictionary.keys():
             assert type(key) == int
@@ -433,7 +433,7 @@ class CashStorageList(object):
         for (dev, state) in sorted(self.states.iteritems()) + [(".", CashState())]:
             [device, _] = dev.split(".")
             if device != currentDev:
-                if currentDev != None:
+                if currentDev is not None:
                     s += "{}\t{}\n".format(currentDev, perDeviceSum.toVerboseString())
                 currentDev = device
                 perDeviceSum = CashState()

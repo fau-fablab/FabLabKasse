@@ -368,7 +368,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.cashPayment.poll()
         self.serviceProgress.setLabelText(self.cashPayment.statusText())
         a = self.cashPayment.getFinalAmount()
-        if a == None:
+        if a is None:
             # noch nicht fertig
             return
         self.serviceTimer.stop()
@@ -526,7 +526,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         text = None
         if self.shoppingBackend.product_requires_text_entry(prod_id):
             text = KeyboardDialog.askText('Kommentar:', parent=self)
-            if text == None:
+            if text is None:
                 return
         self.shoppingBackend.add_order_line(prod_id, qty, comment=text)
         self.updateOrder(selectLastItem=True)

@@ -134,7 +134,7 @@ class NV11CashServer(CashServer):
 
             action = self.banknoteStackHelper.get_next_payout_action(self.dev.getPayoutValues(),  self.moneyDispenseAllowed - self.moneyDispensedTotal)
             if action == "payout":
-                assert self.dev.tryPayout(self.moneyDispenseAllowed - self.moneyDispensedTotal) == True
+                assert self.dev.tryPayout(self.moneyDispenseAllowed - self.moneyDispensedTotal) is True
                 self.payoutActive = True
             elif action == "stack":
                 self.dev.stackFromPayout()

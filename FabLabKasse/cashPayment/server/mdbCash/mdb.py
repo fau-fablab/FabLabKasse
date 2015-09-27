@@ -579,7 +579,7 @@ class MdbCashDevice:
 
         # first try to dispense from external hopper
         hopperCoinValue = self.extensionConfig.get("hopper", False)
-        if hopperCoinValue != False and 0 < hopperCoinValue <= maximumDispense:
+        if hopperCoinValue is not False and 0 < hopperCoinValue <= maximumDispense:
             if self.tryDispenseCoinFromExternalHopper():
                 return {"count": 1, "denomination": hopperCoinValue, "storage": "hopper"}
 

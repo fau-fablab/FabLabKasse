@@ -398,17 +398,17 @@ class ESSPDevice(object):
             for i in range(20):
                 time.sleep(0.01)
                 r = self.read()
-                if r != False:
+                if r is not False:
                     break
             if encrypted:
-                if r != False and r.isEncrypted():
+                if r is not False and r.isEncrypted():
                     r = self.decryptResponse(r)
                 else:
-                    if r == False:
+                    if r is False:
                         self.log("response timeout")
                     else:
                         self.log("unsuccessful response: " + str(r))
-            if r == False:
+            if r is False:
                 self.warn("Timeout or CRC/Crypto error -- resend necessary (not fatal, this may happen rarely)")
                 self.resendLast()
                 continue

@@ -104,7 +104,7 @@ class MDBCoinChangerServer(CashServer):
             if self.moneyDispensedTotal <= self.moneyDispenseAllowed:
                 if not self.busy:
                     dispensedNow = self.dev.dispenseValue(self.moneyDispenseAllowed - self.moneyDispensedTotal)
-                    if dispensedNow == False:  # cannot dispense anymore
+                    if dispensedNow is False:  # cannot dispense anymore
                         self.currentMode = "stopping"
                     else:
                         self.event_dispensedMoney(dispensedNow["count"], dispensedNow["denomination"], dispensedNow["storage"], "dispensed")
