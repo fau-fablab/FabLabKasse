@@ -105,7 +105,7 @@ class ESSPDevice(object):
         @staticmethod
         def UnsignedToBytes(x, n):
             r = []
-            for i in range(n):
+            for _ in range(n):
                 r.append(x & 0xFF)
                 x = x >> 8
             return r
@@ -394,8 +394,9 @@ class ESSPDevice(object):
         time.sleep(0.25)
         self.flushRead()
         self.send(data)
-        for retry_count in [0, 1, 2]:  # 3 tries
-            for i in range(20):
+        num_retries = 3
+        for _ in range(num_retries):
+            for __ in range(20):
                 time.sleep(0.01)
                 r = self.read()
                 if r is not False:
@@ -602,8 +603,8 @@ class NV11Device(ESSPDevice):
 
         unitData["numChannels"] = s.readByte()
         assert unitData["numChannels"] in range(1, 17)
-        unmultipliedChannelValue = [s.readByte() for n in range(unitData["numChannels"])]
-        unitData["channel security (obsolete)"] = [s.readByte() for n in range(unitData["numChannels"])]
+        unmultipliedChannelValue = [s.readByte() for _ in range(unitData["numChannels"])]
+        unitData["channel security (obsolete)"] = [s.readByte() for _ in range(unitData["numChannels"])]
         unitData["real value multiplier"] = s.readUnsigned24BigEndian()  # second value multiplier
         assert unitData["internal value multiplier"] != 0
 
@@ -644,7 +645,7 @@ class NV11Device(ESSPDevice):
         """
         s = self.command([0x41]).getDataStream()  # get note positions
         num = s.readByte()
-        values = [s.readUnsigned32() for i in range(num)]
+        values = [s.readUnsigned32() for _ in range(num)]
         s.assertFinished()
         self.debug("payout values:" + str(values))
         return values

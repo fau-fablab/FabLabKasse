@@ -266,7 +266,7 @@ class RandomLists(object):
         """ return a list of length number_of_elements
         with elements in the range integer_range[0] <= element <= integer_range[1]"""
         my_list = []
-        for unused_index in range(number_of_elements):
+        for _ in range(number_of_elements):
             my_list.append(random.randint(integer_range[0], integer_range[1]))
         return my_list
 
@@ -275,7 +275,7 @@ class RandomLists(object):
         """return a random list with len(list)==number_of_elements,
         list[i] in possible_elements (duplicates are possible)"""
         ret = []
-        for unused_index in range(number_of_elements):
+        for _ in range(number_of_elements):
             ret.append(random.choice([500, 1000, 2000, 5000]))
         return ret
 
@@ -301,7 +301,7 @@ def run_tests():
     # test random values and, especially hard, accepted_rest=999
     for accepted_rest in RandomLists.random_integer_list([4, 123456], 42) + [999] * 10:
         test = BanknoteStackHelperTester(accepted_rest)
-        for unused_index in range(1234):
+        for _ in range(1234):
             test.unittest_payout()
             test.unittest_payout_forced_stacking()
 

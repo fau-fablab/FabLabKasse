@@ -357,7 +357,7 @@ class PaymentDevicesManagerTest(unittest.TestCase):
         cfg = ConfigParser()
         cfg.readfp(codecs.open('./FabLabKasse/config.ini.example', 'r', 'utf8'))
 
-        for i in range(0, 9):
+        for _ in range(0, 9):
             history = []
 
             p = PaymentDevicesManager(cfg=cfg)
