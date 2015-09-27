@@ -83,6 +83,23 @@ def main():
         if cfg.get("backend", "backend") == "legacy_offline_kassenbuch":
             subprocess.call("./shopping/backend/legacy_offline_kassenbuch_tools/importProdukteOERP.py", env=myEnv)
 
+    def check_winpdb_version():
+        """returns true if version of winpdb is larger than 1.4.8
+
+        uses the assumption that winpdb --version returns something like Winpdb 1.4.8 - Tychod
+
+        :return: True, if winpdb-version is sufficient
+        :rtype: Boolean
+        """
+        def versiontuple(v):
+            """simple tupel for comparing versions"""
+            return tuple(map(int, (v.split("."))))
+
+        # call winpdb --version
+        versionstring = subprocess.check_output("winpdb --version", shell=True)
+        version = versionstring.split(" ")[1]
+        return versiontuple(version) >= versiontuple("1.4.8")
+
     def runShutdown(program):
         "run sudo <program> and wait forever until the system reboots / shuts down"
         print("calling {}".format(program))
@@ -101,10 +118,16 @@ def main():
     debug = ""
     if "--debug" in sys.argv:
         debug = "--debug"
-        fu = subprocess.Popen("winpdb -a gui.py".split(" "), stdin=subprocess.PIPE)
-        fu.stdin.write("gui")
-        fu.stdin.close()
-    subprocess.call("python2.7 -m FabLabKasse.gui {}".format(debug).split(" "), env=myEnv)
+    gui = subprocess.Popen("python2.7 -m FabLabKasse.gui {}".format(debug).split(" "), env=myEnv)
+    if debug:
+        time.sleep(1)
+        if not check_winpdb_version():
+            print("WARNING: your version of winpdb is probably not supported")
+            print("consider updating winpdb")
+        debugger = subprocess.Popen(["winpdb", "-a", os.path.abspath("gui.py")], stdin=subprocess.PIPE)
+        debugger.stdin.write("gui")
+        debugger.stdin.close()
+    gui.communicate()
     print("GUI exited")
     if "--debug" in sys.argv:
         sys.exit(0)
