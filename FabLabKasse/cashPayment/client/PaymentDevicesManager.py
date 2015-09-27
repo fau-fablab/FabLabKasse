@@ -19,11 +19,15 @@
 #  The text of the license conditions can be read at
 #  <http://www.gnu.org/licenses/>.
 import random
+import unittest
 from PaymentDeviceClient import PaymentDeviceClient
 import logging
 import time
 from ConfigParser import NoOptionError
 
+# for unittest
+from ConfigParser import ConfigParser
+import codecs
 
 class PaymentDevicesManager(object):
 
@@ -206,63 +210,6 @@ class PaymentDevicesManager(object):
                 pass
         return [totalMaximumRequest, totalRemaining]
 
-    def _canPayout_Unittest(self):
-        """
-        test the _canPayout_total() function with one random datapoint
-
-        :rtype: boolean
-        :return: True on success, False on error
-        """
-        history = []
-
-        def randFactor():  # 0 or 1 or something inbetween
-            r = random.random() * 1.2 - 0.1
-            if r < 0:
-                r = 0
-            if r > 1:
-                r = 1
-            return r
-
-        def myRandInt(n):  # 0 ... n, with a finite >0 probability for both endpoints
-            return int(randFactor() * n)
-        canPayoutAmounts = []
-        n = random.randint(2, 5)
-        # fill canPayoutAmounts with random foo
-        for _ in range(n):
-            canPayoutAmounts.append([int(randFactor() * randFactor() * 70000), myRandInt(1023)])
-
-        [canMaximumRequest, canRemain] = self._canPayout_total(canPayoutAmounts)
-        requested = myRandInt(canMaximumRequest)
-        paidOut = 0
-        for [maximumRequest, maximumRemaining] in canPayoutAmounts:
-            nowRequested = requested - paidOut
-            nowRequested_limited = nowRequested
-            if nowRequested > maximumRequest:
-                # requested more than the guaranteed amount
-                nowRequested_limited = maximumRequest + myRandInt(nowRequested - maximumRequest)
-            nowPaidOut = nowRequested_limited - myRandInt(maximumRemaining)
-            if nowPaidOut < 0:
-                nowPaidOut = 0
-
-            if nowRequested <= maximumRequest:
-                # request is in the accepted range, will be satisfied
-                assert maximumRequest >= nowRequested >= nowPaidOut >= nowRequested - maximumRemaining
-            else:
-                # requested more than guaranteed, may not be satisfied
-                assert nowRequested >= nowPaidOut >= maximumRequest - maximumRemaining
-            history.append([requested, paidOut, nowPaidOut, nowRequested])
-            paidOut += nowPaidOut
-        try:
-            assert requested - canRemain <= paidOut <= requested
-            assert paidOut >= 0
-        except:
-            print "Failed:", requested, paidOut, canMaximumRequest, canRemain, history
-            print canPayoutAmounts
-            return False
-        finally:
-            canPayoutAmounts = None
-        return True
-
     def payin(self, requested, maximum):
         assert self.mode == "idle"
         self.requestedPayin = requested
@@ -399,17 +346,75 @@ class PaymentDevicesManager(object):
         self.mode = "idle"
         return ret
 
+class PaymentDevicesManagerTest(unittest.TestCase):
+    """ Test PaymentDevicesManager
+    """
+    def test_canPayout_with_one_random_datapoint_on_example_server(self):
+        """
+        test the _canPayout_total() function with 10 random datapoints and the exampleserver (from example config)
+        """
+        # probably hacky, should be improved
+        cfg = ConfigParser()
+        cfg.readfp(codecs.open('./FabLabKasse/config.ini.example', 'r', 'utf8'))
+
+        for i in range(0, 9):
+            history = []
+
+            p = PaymentDevicesManager(cfg=cfg)
+
+            p.poll()
+
+            def randFactor():  # 0 or 1 or something inbetween
+                r = random.random() * 1.2 - 0.1
+                if r < 0:
+                    r = 0
+                if r > 1:
+                    r = 1
+                return r
+
+            def myRandInt(n):  # 0 ... n, with a finite >0 probability for both endpoints
+                return int(randFactor() * n)
+            canPayoutAmounts = []
+            n = random.randint(2, 5)
+            # fill canPayoutAmounts with random foo
+            for _ in range(n):
+                canPayoutAmounts.append([int(randFactor() * randFactor() * 70000), myRandInt(1023)])
+
+            [canMaximumRequest, canRemain] = p._canPayout_total(canPayoutAmounts)
+            requested = myRandInt(canMaximumRequest)
+            paidOut = 0
+            for [maximumRequest, maximumRemaining] in canPayoutAmounts:
+                nowRequested = requested - paidOut
+                nowRequested_limited = nowRequested
+                if nowRequested > maximumRequest:
+                    # requested more than the guaranteed amount
+                    nowRequested_limited = maximumRequest + myRandInt(nowRequested - maximumRequest)
+                nowPaidOut = nowRequested_limited - myRandInt(maximumRemaining)
+                if nowPaidOut < 0:
+                    nowPaidOut = 0
+
+                if nowRequested <= maximumRequest:
+                    # request is in the accepted range, will be satisfied
+                    self.assertTrue(maximumRequest >= nowRequested >= nowPaidOut >= nowRequested - maximumRemaining)
+                else:
+                    # requested more than guaranteed, may not be satisfied
+                    self.assertTrue(nowRequested >= nowPaidOut >= maximumRequest - maximumRemaining)
+                history.append([requested, paidOut, nowPaidOut, nowRequested])
+                paidOut += nowPaidOut
+            msg = "Failed: {} {} {} {} {}\n".format(requested, paidOut, canMaximumRequest, canRemain, history)
+            msg += str(canPayoutAmounts)
+            self.assertTrue(requested - canRemain <= paidOut <= requested, msg=msg)
+            self.assertTrue(paidOut >= 0, msg=msg)
 
 def demo():
     """Simple demonstration using two exampleServer devices"""
+    # TODO this code seems to be broken, maybe adapt code from unittest or discard
     p = PaymentDevicesManager(["exampleServer", "exampleServer"])
 
     def wait():
         p.poll()
         print p.statusText()
         time.sleep(0.3)
-    # while p._canPayout_Unittest():
-    #    pass
     while p.startingUp():
         wait()
     pay = None
