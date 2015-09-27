@@ -26,6 +26,7 @@ from decimal import Decimal, ROUND_HALF_UP
 import itertools
 import locale
 import unittest
+import doctest
 
 # counter for unique id values, use next(_id_counter) to get a new ID
 _id_counter = itertools.count()
@@ -66,12 +67,34 @@ def format_qty(qty):
     s = s.replace(".", locale.localeconv()['decimal_point'])
     return s
 
-
 def format_money(amount):
-    """format float as money string"""
-    # format:
-    # 1.23 -> 1,23 €
-    # 3.741 -> 3,741 €
+    """format float as money string
+
+    You should best use Decimal as input.
+    TODO: make moneysign interchangeable
+
+    :param amount: amount of money
+    :type amount: float|Decimal
+    :return: amount formatted as string with Euro-Sign
+    :rtype: unicode
+
+    >>> format_money(1.23)
+    u'1,23 \u20ac'
+    >>> format_money(3.741)
+    u'3,741 \u20ac'
+    >>> format_money(42.4242)
+    u'42,424 \u20ac'
+    >>> format_money(5.8899)
+    u'5,89 \u20ac'
+    >>> format_money(Decimal('1.23'))
+    u'1,23 \u20ac'
+    >>> format_money(Decimal('3.741'))
+    u'3,741 \u20ac'
+    >>> format_money(Decimal('42.4242'))
+    u'42,424 \u20ac'
+    >>> format_money(Decimal('5.8899'))
+    u'5,89 \u20ac'
+    """
     formatted = u'{:.3f}'.format(amount)
 
     if formatted.endswith("0"):
@@ -468,6 +491,11 @@ def basicUnitTests(shopping_backend):  # for implentations
     shopping_backend.search_product("")
     shopping_backend.search_product(u"öläöäl")
     shopping_backend.search_product(u"       ")
+
+def load_tests(loader, tests, ignore):
+    """loader function to load the doctests in this module into unittest"""
+    tests.addTests(doctest.DocTestSuite('FabLabKasse.shopping.backend.abstract'))
+    return tests
 
 
 class AbstractShoppingBackendTest(unittest.TestCase):
