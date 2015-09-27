@@ -60,6 +60,17 @@ if __name__ == "__main__":
 
     cfg = scriptHelper.getConfig()
 
+def shopping_backend_factory(backendname):
+    """ load a Shopping Backend according to backendname
+    :param backendname: name of backend
+    :return: ShoppingBackend instance
+    :rtype: shopping.backend.abstract.AbstractShoppingBackend
+    """
+    assert backendname in ["dummy", "oerp", "legacy_offline_kassenbuch"]
+    # TODO there are probably nicer forms than the following import hack-magic
+    shopping_backend_module = importlib.import_module("FabLabKasse.shopping.backend." + backendname)
+    return shopping_backend_module.ShoppingBackend
+
 from shopping.backend.abstract import ProductNotFound, PrinterError
 import importlib
 if __name__ == "__main__":
@@ -68,10 +79,7 @@ else:
     print "WARNING: gui.py: fake import for documentation active, instead of conditional import of backend"
     backendname = "dummy"
 
-assert backendname in ["dummy", "oerp", "legacy_offline_kassenbuch"]
-# TODO there are probably nicer forms than the following import hack-magic
-shopping_backend_module = importlib.import_module("FabLabKasse.shopping.backend." + backendname)
-ShoppingBackend = shopping_backend_module.ShoppingBackend
+ShoppingBackend = shopping_backend_factory(backendname)
 
 
 def format_decimal(value):
