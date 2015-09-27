@@ -179,7 +179,7 @@ class CashServer:
                     if self.busy:
                         self.currentMode = "stopping"
                     else:
-                        self.currentMode = self.currentMode + "."
+                        self.currentMode += "."
                 else:
                     self.currentMode = "stopped"
             elif self.currentMode == "dispense":

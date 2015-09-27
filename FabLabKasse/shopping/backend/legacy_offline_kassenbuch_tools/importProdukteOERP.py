@@ -43,7 +43,7 @@ class cache(object):
 def categ_id_to_list_of_names(c_id, oerp, cfg):
     categ = oerp.read('product.category', c_id, ['parent_id', 'name'], context=oerp.context)
 
-    if categ['parent_id'] == False or \
+    if categ['parent_id'] is False or \
             categ['parent_id'][0] == cfg.getint('openerp', 'base_category_id'):
         return [categ['name']]
     else:

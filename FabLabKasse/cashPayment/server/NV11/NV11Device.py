@@ -105,7 +105,7 @@ class ESSPDevice(object):
         @staticmethod
         def UnsignedToBytes(x, n):
             r = []
-            for i in range(n):
+            for _ in range(n):
                 r.append(x & 0xFF)
                 x = x >> 8
             return r
@@ -122,7 +122,8 @@ class ESSPDevice(object):
         def stringToByteArray(string):
             return ([ord(x) for x in string])
 
-    class ByteStreamReader:  # read data values from a list of bytes
+    class ByteStreamReader(object):
+        """  read data values from a list of bytes """
 
         def __init__(self, bytesList):
             self.buffer = copy.deepcopy(bytesList)
@@ -331,7 +332,9 @@ class ESSPDevice(object):
     #
     # High-Level Send/Receive: Command/Response
     #
-    class Response:  # status + data
+    class Response(object):
+        """ status + data
+        """
         statusStrings = {
             -1:   "decoded response contains no data",
                         0xF0: "OK",
@@ -394,21 +397,22 @@ class ESSPDevice(object):
         time.sleep(0.25)
         self.flushRead()
         self.send(data)
-        for retry_count in [0, 1, 2]:  # 3 tries
-            for i in range(20):
+        num_retries = 3
+        for _ in range(num_retries):
+            for __ in range(20):
                 time.sleep(0.01)
                 r = self.read()
-                if r != False:
+                if r is not False:
                     break
             if encrypted:
-                if r != False and r.isEncrypted():
+                if r is not False and r.isEncrypted():
                     r = self.decryptResponse(r)
                 else:
-                    if r == False:
+                    if r is False:
                         self.log("response timeout")
                     else:
                         self.log("unsuccessful response: " + str(r))
-            if r == False:
+            if r is False:
                 self.warn("Timeout or CRC/Crypto error -- resend necessary (not fatal, this may happen rarely)")
                 self.resendLast()
                 continue
@@ -602,8 +606,8 @@ class NV11Device(ESSPDevice):
 
         unitData["numChannels"] = s.readByte()
         assert unitData["numChannels"] in range(1, 17)
-        unmultipliedChannelValue = [s.readByte() for n in range(unitData["numChannels"])]
-        unitData["channel security (obsolete)"] = [s.readByte() for n in range(unitData["numChannels"])]
+        unmultipliedChannelValue = [s.readByte() for _ in range(unitData["numChannels"])]
+        unitData["channel security (obsolete)"] = [s.readByte() for _ in range(unitData["numChannels"])]
         unitData["real value multiplier"] = s.readUnsigned24BigEndian()  # second value multiplier
         assert unitData["internal value multiplier"] != 0
 
@@ -644,7 +648,7 @@ class NV11Device(ESSPDevice):
         """
         s = self.command([0x41]).getDataStream()  # get note positions
         num = s.readByte()
-        values = [s.readUnsigned32() for i in range(num)]
+        values = [s.readUnsigned32() for _ in range(num)]
         s.assertFinished()
         self.debug("payout values:" + str(values))
         return values

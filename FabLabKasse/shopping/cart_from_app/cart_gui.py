@@ -110,7 +110,7 @@ class MobileAppCartGUI(object):
 
         if okay:
             # try payup
-            successful = (self.parent.payup() == True)
+            successful = (self.parent.payup() is True)
         else:
             successful = False
         print "feedback successful = {}".format(successful)

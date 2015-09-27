@@ -91,7 +91,7 @@ class CashState(object):
 
     def __init__(self, dictionary=None):
         # a default value dictionary={} would be a dangerous piece of code, google PyLint W0102 for more infos.
-        if dictionary == None:
+        if dictionary is None:
             dictionary = {}
         for key in dictionary.keys():
             assert type(key) == int
@@ -236,7 +236,7 @@ class CashState(object):
             assert key[-1] in ["c", "E"],  "key must end with c for cents or E for euro. example: 13x10c"
             keyInt = int(key[0:-1])
             if key[-1] == "E":
-                keyInt = keyInt * 100
+                keyInt *= 100
             key = keyInt
             val = int(val)
             assert key not in state.keys(), \
@@ -433,7 +433,7 @@ class CashStorageList(object):
         for (dev, state) in sorted(self.states.iteritems()) + [(".", CashState())]:
             [device, _] = dev.split(".")
             if device != currentDev:
-                if currentDev != None:
+                if currentDev is not None:
                     s += "{}\t{}\n".format(currentDev, perDeviceSum.toVerboseString())
                 currentDev = device
                 perDeviceSum = CashState()

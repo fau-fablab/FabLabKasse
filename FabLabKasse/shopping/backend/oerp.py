@@ -35,8 +35,8 @@ class Client(AbstractClient):
         """ read raw data from oerp record """
         try:
             data = oerp.read('res.partner', client_id, ['name', 'x_pin', 'credit', 'credit_limit'])
-            assert data['customer'] == True
-            assert data['x_pin'] != False
+            assert data['customer'] is True
+            assert data['x_pin'] is not False
             return data
         except:  # TODO catch specific exception
             raise Exception("Client not found")

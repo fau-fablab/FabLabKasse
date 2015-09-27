@@ -61,7 +61,11 @@ class OfflineCategoryTree(object):
 
     """local storage for a tree of categories and products"""
 
-    def __init__(self, root_category_id, categories=[], products=[], generate_root_category=True):
+    def __init__(self, root_category_id, categories=None, products=None, generate_root_category=True):
+        if categories is None:
+            categories = []
+        if products is None:
+            products = []
         self.root_category_id = root_category_id
         self.categories = {}
         self.products = {}

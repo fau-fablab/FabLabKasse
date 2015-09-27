@@ -38,7 +38,7 @@ class MissingResetEventError(Exception):
     pass
 
 
-class MdbCashDevice:
+class MdbCashDevice(object):
     # changer commands - subtracting 8 from the (wrong) values in the specification
     CMD_RESET = 0x08 - 8
     CMD_TUBE_STATUS = 0x0A - 8
@@ -195,10 +195,10 @@ class MdbCashDevice:
         resp = None
         for b in bytes:
             send += "{:02X}".format(b)
-        for i in range(3):
+        for _ in range(3):
             try:
                 self.serialCmd(send)
-                for j in range(30):
+                for _ in range(30):
                     # timeout for interface board: 1sec
                     time.sleep(0.1)
                     resp = self.read()  # possibly raises BusError (will be caught below) or InterfaceHardwareError (will not be caught)
@@ -237,7 +237,7 @@ class MdbCashDevice:
         features (LEDs, hopper, ...). Failure on these commands is not tolerated.
         """
         self.serialCmd("X" + data)
-        for j in range(30):
+        for _ in range(30):
             # timeout for interface board: 1sec
             time.sleep(0.1)
             resp = self.read()  # possibly raises BusError or InterfaceHardwareError (both will not be caught)
@@ -431,7 +431,8 @@ class MdbCashDevice:
         self.log("trying to dispense from hopper")
         response = self.extensionCmd("H")
         assert response == "A", "Did not receive ACK on first dispense request, but {}. Lost reply from a previous command?".format(response)
-        for pollTries__unused_index in range(20):
+        poll_tries = 20
+        for _ in range(poll_tries):
             response = self.extensionCmd("H")
             if response == "B":
                 # received BUSY answer
@@ -579,7 +580,7 @@ class MdbCashDevice:
 
         # first try to dispense from external hopper
         hopperCoinValue = self.extensionConfig.get("hopper", False)
-        if hopperCoinValue != False and 0 < hopperCoinValue <= maximumDispense:
+        if hopperCoinValue is not False and 0 < hopperCoinValue <= maximumDispense:
             if self.tryDispenseCoinFromExternalHopper():
                 return {"count": 1, "denomination": hopperCoinValue, "storage": "hopper"}
 
@@ -631,6 +632,6 @@ class MdbCashDevice:
 
 if __name__ == "__main__":
     print "running unittest,  should take some minutes"
-    for unused_index in xrange(300000):
+    for _ in xrange(300000):
         MdbCashDevice._unittest_getPossiblePayout()
     print "ok"
