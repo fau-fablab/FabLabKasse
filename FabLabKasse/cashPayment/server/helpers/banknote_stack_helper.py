@@ -153,10 +153,6 @@ class BanknoteStackHelper(object):
             # no small notes available
             return self.accepted_rest
 
-        step = int(math.floor(self.accepted_rest / 2 - 1))
-        if step < 1:
-            step = 1
-
         # for every amount, simulate a payout
 
         # why is this necessary?
@@ -165,7 +161,7 @@ class BanknoteStackHelper(object):
         # it is enough for 14,99 and every lower amount, so this should return
         # 1499 (or any lower value).
 
-        requested_value = self.accepted_rest + step
+        requested_value = self.accepted_rest
         last_successful_request = 0
         while True:
             could_payout_sum = self._simulate_simple_payout(payout_stack, requested_value)["payout"]
@@ -173,9 +169,10 @@ class BanknoteStackHelper(object):
             if could_payout_sum >= requested_value - self.accepted_rest:
                 # enough can be paid
                 last_successful_request = requested_value
-                # examine next value (one step higher, e.g. 40€ instead of
-                # 35€).
-                requested_value += step
+                # go to the next value, but skip all that would already be satisfied by the current payout amount
+                # e.g. the current request for 25€ resulted in a payout of 20.
+                # that means, all requests for <= (20€ + accepted_rest) can also be satisfied.
+                requested_value = could_payout_sum + self.accepted_rest + 1
                 continue
             else:
                 # cannot pay enough!
