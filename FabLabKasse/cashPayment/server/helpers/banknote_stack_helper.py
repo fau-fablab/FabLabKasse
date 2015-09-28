@@ -22,6 +22,7 @@ from __future__ import print_function
 import copy
 import random
 import math
+import unittest
 
 
 class BanknoteStackHelper(object):
@@ -182,8 +183,8 @@ class BanknoteStackHelper(object):
 
 
 class BanknoteStackHelperTester(BanknoteStackHelper):
-
     """unittest methods for BanknoteStackHelper"""
+
     @classmethod
     def get_random_payout_parameters(cls, payout_stack=None, requested_payout=None):
         """determine parameters for payout_stack and requested_payout"""
@@ -279,33 +280,33 @@ class RandomLists(object):
             ret.append(random.choice([500, 1000, 2000, 5000]))
         return ret
 
+class BanknoteStackHelperTest(unittest.TestCase):
+    """Tests the banknote stack helper class"""
 
-def run_tests():
-    """run builtin unittests with several random values."""
-    test = BanknoteStackHelperTester(2500)
-    print(test.can_payout([5000, 10000, 10000, 2000]))
+    def test_banknote_stack_helper_with_several_random_values(self):
+        """unittest: calls several integrated functions of banknote stack helper as test with several random numbers"""
+        test = BanknoteStackHelperTester(2500)
+        test.can_payout([5000, 10000, 10000, 2000])
 
-    # edge cases: 10€ banknotes with 9.99 accepted rest -> works
-    # 10€ notes with 9.98 accepted rest -> doesn't work
-    test1 = BanknoteStackHelperTester(999)
-    test2 = BanknoteStackHelperTester(998)
+        # edge cases: 10€ banknotes with 9.99 accepted rest -> works
+        # 10€ notes with 9.98 accepted rest -> doesn't work
+        test1 = BanknoteStackHelperTester(999)
+        test2 = BanknoteStackHelperTester(998)
 
-    for count in range(1, 10):
-        notes = [1000] * count
-        assert test1.can_payout(notes) >= 1000 * count
-        assert test2.can_payout(notes) <= 998
+        for count in range(1, 10):
+            notes = [1000] * count
+            self.assertTrue(test1.can_payout(notes) >= 1000 * count)
+            self.assertTrue(test2.can_payout(notes) <= 998)
 
-    assert test1.can_payout([2000]) <= 999
-    assert test1.can_payout([1001]) <= 999
+        self.assertTrue(test1.can_payout([2000]) <= 999)
+        self.assertTrue(test1.can_payout([1001]) <= 999)
 
-    # test random values and, especially hard, accepted_rest=999
-    for accepted_rest in RandomLists.random_integer_list([4, 123456], 42) + [999] * 10:
-        test = BanknoteStackHelperTester(accepted_rest)
-        for _ in range(1234):
-            test.unittest_payout()
-            test.unittest_payout_forced_stacking()
+        # test random values and, especially hard, accepted_rest=999
+        for accepted_rest in RandomLists.random_integer_list([4, 123456], 42) + [999] * 10:
+            test = BanknoteStackHelperTester(accepted_rest)
+            for _ in range(1234):
+                test.unittest_payout()
+                test.unittest_payout_forced_stacking()
 
 if __name__ == "__main__":
-    print("running tests,  this can take a few minutes")
-    run_tests()
-    print("done")
+    unittest.main()
