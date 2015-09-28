@@ -45,6 +45,11 @@ def float_to_decimal(number, digits):
     :type digits: int
 
     :raise: ValueError
+
+    >>> float_to_decimal(1.424, 3)
+    Decimal('1.424')
+    >>> float_to_decimal(0.7, 1)
+    Decimal('0.7')
     """
 
     # conversion is guaranteed to be accurate at 1e12 for 0 digits
@@ -60,7 +65,15 @@ def float_to_decimal(number, digits):
 
 
 def format_qty(qty):
-    """format quantity (number) as string"""
+    """format quantity (number) as string
+
+    :param qty: quantity in numbers
+    :return: string-representation of qty, decimal sep is dependent on locale
+    :rtype: unicode
+
+    >>> format_qty(5)
+    u'5'
+    """
     s = unicode(float(qty))
     if s.endswith(".0"):
         s = s[:-2]
@@ -104,7 +117,8 @@ def format_money(amount):
 
 
 class Category(object):
-
+    """represents a category of Products"""
+    
     def __init__(self, categ_id, name, parent_id=None):
         self.categ_id = categ_id
         self.name = name
@@ -247,6 +261,11 @@ class AbstractShoppingBackend(object):
         :type value: float | Decimal
         :return: money, rounded to 2 digits
         :rtype: Decimal
+
+        >>> AbstractShoppingBackend.round_money(Decimal('0.005'))
+        Decimal('0.01')
+        >>> AbstractShoppingBackend.round_money(Decimal('0.004'))
+        Decimal('0.00')
         """
         value = Decimal(value).quantize(Decimal('1.00'), rounding=ROUND_HALF_UP)
         return value
