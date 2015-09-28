@@ -183,10 +183,14 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
     """unittest methods for BanknoteStackHelper"""
 
     @classmethod
-    def get_random_payout_parameters(cls, payout_stack=None, requested_payout=None):
-        """determine parameters for payout_stack and requested_payout"""
+    def get_random_payout_parameters(cls, random_generator, payout_stack=None, requested_payout=None):
+        """determine parameters for payout_stack and requested_payout
+
+        :param random.Random random_generator: RNG instance for calculating
+            pseudorandom test parameters"""
         if payout_stack is None:
             payout_stack = RandomLists.random_choice_list(
+                random_generator,
                 possible_elements=[500, 1000, 2000, 5000],
                 number_of_elements=random.randint(1, 8))
         if requested_payout is None:
@@ -194,12 +198,14 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
         assert 0 < requested_payout <= sum(payout_stack)
         return [payout_stack, requested_payout]
 
-    def unittest_payout_forced_stacking(self):
+    def unittest_payout_forced_stacking(self, random_generator):
         """test one random set of parameters for BanknoteStackHelper._forced_stacking_is_helpful()
 
+        :param random.Random random_generator: RNG instance for calculating
+            pseudorandom test parameters
         :rtype: None
         :raise: AssertionError if the test failed"""
-        [payout_stack, requested_payout] = self.get_random_payout_parameters()
+        [payout_stack, requested_payout] = self.get_random_payout_parameters(random_generator)
 
         origpayout_stack = copy.deepcopy(payout_stack)
 
@@ -224,12 +230,14 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
         assert simulated_payout >= payout_without_forced_stacking["payout"]
         assert sum(payout_stack) >= payout_without_forced_stacking["storageRemaining"]
 
-    def unittest_payout(self):
+    def unittest_payout(self, random_generator):
         """test one random set of parameters for BanknoteStackHelper.can_payout(), BanknoteStackHelper.get_next_payout_action()
 
+        :param random.Random random_generator: RNG instance for calculating
+            pseudorandom test parameters
         :rtype: None
         :raise: AssertionError if the test failed"""
-        [payout_stack, requested_payout] = self.get_random_payout_parameters()
+        [payout_stack, requested_payout] = self.get_random_payout_parameters(random_generator)
         payout_stack_original = copy.deepcopy(payout_stack)  # for debugging
         payout_stack_original = payout_stack_original  # suppress unused-warning
 
@@ -244,12 +252,17 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
             current_note = payout_stack.pop()
             if action == "payout":
                 sum_paid_out += current_note
-        if sum_paid_out < requested_payout - self.accepted_rest:
+        if requested_payout < self.accepted_rest:
+            # requests below the accepted rest may be handled in any way
+            # (Except paying out too much, which is checked far below)
+            pass
+        elif sum_paid_out < max(requested_payout - self.accepted_rest, 0):
             # if not enough was paid out, the payout stack must not contain
             # anything useful
-            assert len(payout_stack) == 0 or requested_payout - \
-                sum_paid_out < min(payout_stack)
-            assert requested_payout > can_payout
+            assert len(payout_stack) == 0 or \
+                requested_payout - sum_paid_out < min(payout_stack)
+            if requested_payout <  can_payout:
+                assert False, "the request {} was not greater than canPayout {}, it must be satisfied at the given max. accepted rest of {}, but only {} was paid from stack {}".format(requested_payout, can_payout, self.accepted_rest, sum_paid_out, payout_stack_original)
         assert sum_paid_out <= requested_payout  # did not pay out too much
 
 
@@ -260,28 +273,42 @@ class RandomLists(object):
     .. WARNING:: not cryptographically secure!"""
 
     @staticmethod
-    def random_integer_list(integer_range, number_of_elements):
+    def random_integer_list(random_generator, integer_range, number_of_elements):
         """ return a list of length number_of_elements
         with elements in the range integer_range[0] <= element <= integer_range[1]"""
         my_list = []
         for _ in range(number_of_elements):
-            my_list.append(random.randint(integer_range[0], integer_range[1]))
+            my_list.append(random_generator.randint(integer_range[0], integer_range[1]))
         return my_list
 
     @staticmethod
-    def random_choice_list(possible_elements, number_of_elements):
+    def random_choice_list(random_generator, possible_elements, number_of_elements):
         """return a random list with len(list)==number_of_elements,
         list[i] in possible_elements (duplicates are possible)"""
         ret = []
         for _ in range(number_of_elements):
-            ret.append(random.choice([500, 1000, 2000, 5000]))
+            ret.append(random_generator.choice(possible_elements))
         return ret
 
 class BanknoteStackHelperTest(unittest.TestCase):
     """Tests the banknote stack helper class"""
 
-    def test_banknote_stack_helper_with_several_random_values(self):
+    def test_with_fixed_values(self):
+        # test case (formerly a bug):
+        # stack is 2x5€ 2x50€, accepted rest 34,32€
+        # -> a request 44,32€ < x < 50€ cannot be satisfied,
+        test = BanknoteStackHelper(3432)
+        self.assertLessEqual(test.can_payout([500, 500, 5000, 5000]), 500+500+3432)
+        test = BanknoteStackHelper(2167)
+        self.assertLessEqual(test.can_payout([2000, 5000]), 2000+2167)
+
+
+    def test_with_several_random_values(self):
         """unittest: calls several integrated functions of banknote stack helper as test with several random numbers"""
+        seed = random.random()
+        # for repeating a fixed test, override a seed value here:
+        print("banknote_stack_helper random test using seed=" + repr(seed))
+        random_generator = random.Random((seed,42))
         test = BanknoteStackHelperTester(2500)
         test.can_payout([5000, 10000, 10000, 2000])
 
@@ -299,11 +326,12 @@ class BanknoteStackHelperTest(unittest.TestCase):
         self.assertTrue(test1.can_payout([1001]) <= 999)
 
         # test random values and, especially hard, accepted_rest=999
-        for accepted_rest in RandomLists.random_integer_list([4, 123456], 42) + [999] * 10:
+        for accepted_rest in RandomLists.random_integer_list(random_generator, [1, 123456], 42) + [999] * 10:
             test = BanknoteStackHelperTester(accepted_rest)
-            for _ in range(1234):
-                test.unittest_payout()
-                test.unittest_payout_forced_stacking()
+            for _ in xrange(2345):
+                test.unittest_payout(random_generator)
+                test.unittest_payout_forced_stacking(random_generator)
+
 
 if __name__ == "__main__":
     unittest.main()

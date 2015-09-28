@@ -587,20 +587,24 @@ class MdbCashDeviceTest(unittest.TestCase):
     """test the MdbCashDevice class"""
 
     def test_get_possible_payout(self):
+        seed = random.random()
+        print "MDB random test using seed=" + repr(seed)
+        random_generator = random.Random((seed,42))
         for _ in xrange(300000):
-            self._unittest_getPossiblePayout(self)
+            self._unittest_getPossiblePayout(random_generator)
 
-    @staticmethod
-    def _unittest_getPossiblePayout(inst):
-        def randFactor():  # 0 or 1 or something inbetween
-            r = random.random() * 1.2 - 0.1
+    def _unittest_getPossiblePayout(self, random_generator):
+        def randFactor():
+            """pick a random float 0 ... 1 with a finite >0 probability for both endpoints"""
+            r = random_generator.random() * 1.2 - 0.1
             if r < 0:
                 r = 0
             if r > 1:
                 r = 1
             return r
 
-        def myRandInt(n):  # 0 ... n, with a finite >0 probability for both endpoints
+        def myRandInt(n):
+            """pick an int from 0 ... n, with a finite >0 probability for both endpoints"""
             return int(randFactor() * n)
 
         n = myRandInt(5)
@@ -636,7 +640,7 @@ class MdbCashDeviceTest(unittest.TestCase):
                     break
             if not couldPay:
                 break
-        inst.assertTrue(shouldPay - remainingAllowed <= pay <= shouldPay)
+        self.assertTrue(shouldPay - remainingAllowed <= pay <= shouldPay)
 
 if __name__ == "__main__":
     print "running unittest,  should take some minutes"
