@@ -24,6 +24,7 @@ import time
 import serial
 import logging
 import re
+import unittest
 
 
 class BusError(Exception):
@@ -522,54 +523,6 @@ class MdbCashDevice(object):
 
         return [totalAmount, previousCoinValue]
 
-    @staticmethod
-    def _unittest_getPossiblePayout():
-        def randFactor():  # 0 or 1 or something inbetween
-            r = random.random() * 1.2 - 0.1
-            if r < 0:
-                r = 0
-            if r > 1:
-                r = 1
-            return r
-
-        def myRandInt(n):  # 0 ... n, with a finite >0 probability for both endpoints
-            return int(randFactor() * n)
-
-        n = myRandInt(5)
-        v = []
-        t = []
-        values = [1, 2, 5, 10, 20, 50, 100, 200]
-        for i in range(n):
-            v.append([i, values[myRandInt(len(values) - 1)]])
-            t.append({"count": myRandInt(20) + 1})
-
-        def cmpItem(x, y):
-            return cmp(x[1], y[1])
-        v.sort(cmp=cmpItem, reverse=True)
-
-        [canPay, remainingAllowed] = MdbCashDevice._getPossiblePayout(v, t)
-
-        pay = 0
-        shouldPay = myRandInt(canPay)
-        coinsRemaining = [x["count"] + myRandInt(2) for x in t]
-
-        def hasCoins(c):
-            for x in c:
-                if x > 0:
-                    return True
-            return False
-        while hasCoins(coinsRemaining):
-            couldPay = False
-            for [id, value] in v:
-                if coinsRemaining[id] > 0 and value <= (shouldPay - pay):
-                    coinsRemaining[id] -= 1
-                    pay += value
-                    couldPay = True
-                    break
-            if not couldPay:
-                break
-        assert shouldPay - remainingAllowed <= pay <= shouldPay
-
     # dispense one coin type for the given value - may only be called if poll() returns busy==False
     # returns: dictionary with count, denomination, storage (tubeXX)
     # or: False if nothing could be dispensed
@@ -630,8 +583,64 @@ class MdbCashDevice(object):
             return {"count": number, "denomination": coinValue, "storage": "tube{}".format(coinType)}
         return False
 
+class MdbCashDeviceTest(unittest.TestCase):
+    """test the MdbCashDevice class"""
+
+    def test_get_possible_payout(self):
+        for _ in xrange(300000):
+            self._unittest_getPossiblePayout(self)
+
+    @staticmethod
+    def _unittest_getPossiblePayout(inst):
+        def randFactor():  # 0 or 1 or something inbetween
+            r = random.random() * 1.2 - 0.1
+            if r < 0:
+                r = 0
+            if r > 1:
+                r = 1
+            return r
+
+        def myRandInt(n):  # 0 ... n, with a finite >0 probability for both endpoints
+            return int(randFactor() * n)
+
+        n = myRandInt(5)
+        v = []
+        t = []
+        values = [1, 2, 5, 10, 20, 50, 100, 200]
+        for i in range(n):
+            v.append([i, values[myRandInt(len(values) - 1)]])
+            t.append({"count": myRandInt(20) + 1})
+
+        def cmpItem(x, y):
+            return cmp(x[1], y[1])
+        v.sort(cmp=cmpItem, reverse=True)
+
+        [canPay, remainingAllowed] = MdbCashDevice._getPossiblePayout(v, t)
+
+        pay = 0
+        shouldPay = myRandInt(canPay)
+        coinsRemaining = [x["count"] + myRandInt(2) for x in t]
+
+        def hasCoins(c):
+            for x in c:
+                if x > 0:
+                    return True
+            return False
+        while hasCoins(coinsRemaining):
+            couldPay = False
+            for [id, value] in v:
+                if coinsRemaining[id] > 0 and value <= (shouldPay - pay):
+                    coinsRemaining[id] -= 1
+                    pay += value
+                    couldPay = True
+                    break
+            if not couldPay:
+                break
+        inst.assertTrue(shouldPay - remainingAllowed <= pay <= shouldPay)
+
 if __name__ == "__main__":
     print "running unittest,  should take some minutes"
-    for _ in xrange(300000):
-        MdbCashDevice._unittest_getPossiblePayout()
+    unittest.main()
     print "ok"
+
+
