@@ -27,7 +27,8 @@ Usage:
   cash check <device> <state> [<other options ignored>...]
   cash add <device> <stateDelta> <comment>...
   cash move <fromDevice> <toDevice> <stateDelta> <comment>...
-  cash verify
+  cash verify [<date>...]
+  cash verify-search
   cash help
 
 Options:
@@ -42,7 +43,10 @@ check: compare current state to the one given on the commandline. Show differenc
 add: increment state (after manually inserting a coin)
 move: transfer coins (internally, not to customer) from one storage to another
 verify: check that cash-sum matches kassenbuch
+verify-search: show timeline of verify results
 
+<date>... is ISO format date-time: 2015-12-31 or 2015-12-31 23:59:00
+<date> is ISO format date: 2015-12-31
 device format is: identifier.subindex
 state and stateDelta format is: /13x10c,53x20E/ for 13 * 10 cent and 53 * 20 Euro
 // represents an empty cash state (0 cash).
@@ -278,7 +282,7 @@ class CashStorage(object):
                 raise ValueError("CashState identifier already in use for writing in this process")
             CashStorage.__usedIdentifiers.append(identifier)
 
-    def getState(self, subindex="main", allowEmpty=True):
+    def getState(self, subindex="main", allowEmpty=True, date=None):
         """
         :param str subindex: subdevice name
         :param bool allowEmpty:
@@ -286,12 +290,19 @@ class CashStorage(object):
              - False -> raise NoDataFound()  when device or subindex does not exist.
 
             default is True, because otherwise it would mess up starting with empty DB
+        :param date:
+            get state at given date
+            (use ``None`` to get the current state)
+        :type date: datetime | None
         :return: cash state of given subdevice
         :rtype: CashState
         """
         dev = self.identifier + "." + subindex
         cur = self.db.cursor()
-        cur.execute("SELECT state FROM cash WHERE device = ? ORDER BY id DESC LIMIT 1 ", (dev, ))
+        if not date:
+            cur.execute("SELECT state FROM cash WHERE device = ? ORDER BY id DESC LIMIT 1 ", (dev, ))
+        else:
+            cur.execute("SELECT state FROM cash WHERE device = ? AND date <= ? ORDER BY id DESC LIMIT 1 ", (dev, date))
         row = cur.fetchone()
 
         if row is None:
@@ -401,13 +412,26 @@ class CashStorageList(object):
         :return: cash state by device as dict: ``{deviceName: cashSate, ...}``
         :rtype: dict[str, CashState]
         """
+        return self.states_at_date(None)
+
+    def states_at_date(self, date):
+        """
+        fetch cash states of all devices.
+        :param date:
+            get state at given date
+            (use ``None`` to get the current state)
+        :type date: datetime | None
+        :return: cash state by device as dict: ``{deviceName: cashSate, ...}``
+        :rtype: dict[str, CashState]
+        """
+
         cur = self.db.cursor()
         cur.execute("SELECT device FROM cash GROUP BY device;")
         state = {}
         for row in cur.fetchall():
             dev = row[0]
             [name, subindex] = dev.split(".")
-            state[dev] = CashStorage(self.db, name).getState(subindex)
+            state[dev] = CashStorage(self.db, name).getState(subindex, date=date)
         return state
 
     def statesStr(self):
@@ -447,29 +471,115 @@ class CashStorageList(object):
     def total(self):
         """How much money is inside the whole vending machine?
         :rtype: Decimal"""
-        return sum([state.sum for state in self.states.values()]) * Decimal('0.01')
+        return self.total_at_date(None)
+
+    def total_at_date(self, date):
+        """How much money was inside the whole vending machine at the given date?
+        :param datetime.dateime | None date: given date and time
+        :rtype: Decimal"""
+        return sum([state.sum for state in self.states_at_date(date).values()]) * Decimal('0.01')
+
+    def first_date(self):
+        """
+        Get date and time of first (oldest) entry in the database. If database is empty, returns current datetime.
+        :rtype: datetime
+        """
+        cur = self.db.cursor()
+        cur.execute("SELECT date FROM cash ORDER BY id ASC LIMIT 1;")
+        row = cur.fetchone()
+        if not row:
+            return datetime.today()
+        return dateFromString(row[0])
 
 
-def printVerify(db):
+def verifySum(db, printMessage=False, date=None):
     """
     Check cash state against state in accounting (kassenbuch.py)
-    Print result to console.
 
-    :rtype: None
+    :param db: database connection
+    :param bool printMessage: Print result to console.
+    :param datetime.datetime date: datetime at which the check is done
+    :return: accounting sum == cash state sum
+    :rtype: boolean
     """
     cfg = scriptHelper.getConfig()
     k = Kasse(cfg.get('general', 'db_file'))
     summeKassenbuch = 0
     for buchung in k.get_buchungen():
+        if date and buchung.datum > date:
+            continue
         if buchung.konto != "Automatenkasse":
             continue
         summeKassenbuch += buchung.betrag
-    summeKasse = CashStorageList(db).total
-    if summeKasse == summeKassenbuch:
-        print coloredGood("Abgleich OK") + ": Kasse=Kassenbuch={}".format(summeKasse)
-    else:
-        print coloredError("Achtung, Abweichung:") + " Kasse: {}, Kassenbuch: {}, Zuviel in Kasse: {}".format(summeKasse, summeKassenbuch, summeKasse - summeKassenbuch)
+    summeKasse = CashStorageList(db).total_at_date(date)
 
+    if summeKasse == summeKassenbuch:
+        if printMessage:
+            print coloredGood("Abgleich OK") + ": Kasse=Kassenbuch={}".format(summeKasse)
+        return True
+    else:
+        if printMessage:
+            print coloredError("Achtung, Abweichung:") + " Kasse: {}, Kassenbuch: {}, Zuviel in Kasse: {}".format(summeKasse, summeKassenbuch, summeKasse - summeKassenbuch)
+            print "use 'cash verify-search' to find out when the error started"
+        return False
+
+def verifySearch(db, step):
+    """
+    Print graphical output that shows when verifySum() started failing
+
+    Calls verifySum() for a time raster (e.g. every hour) and prints graphical
+    output to the terminal.
+
+    :param db: database connection
+    :param timedelta step: time interval for going backwards
+    :rtype: None
+    """
+    print "searching backwards in time in steps of {}. ".format(step)
+    print "The wrong entry is usually the one after which the status is bad for a long time, maybe with some short good interruptions."
+    print "False error reports, and also rare false negatives, may occur in the timespan between inserting the first coin and getting the receipt."
+    print "output format:"
+    print "   {} or {} = status is good/bad for one step".format(coloredGood('+'), coloredError('-'))
+    print "   <date> <status> = date of status change"
+    print ""
+    last_date = None
+    date = datetime.today()
+    # round date up to the hour
+    date = datetime(date.year, date.month, date.day, date.hour + 1)
+    last_result = None
+    first_date_in_db = CashStorageList(db).first_date()
+    while date > first_date_in_db:
+        result = verifySum(db, date=date, printMessage=False)
+        if result != last_result:
+            sys.stdout.write("\n")
+            if last_date:
+                print "      from {} (included)".format(last_date)
+                print ""
+            status = "good" if result else "FAIL"
+            print "{} until {} (included) ".format(status, date)
+            last_result = result
+        if result:
+            sys.stdout.write(coloredGood('+'))
+        else:
+            sys.stdout.write(coloredError('-'))
+        last_date = date
+        date -= step # go back 1h
+    print "End of database."
+
+def dateFromString(s, default=None):
+    """
+    parse a date from a string. If the string is empty or None, use the default value.
+
+    :param s: date as a string, or empty string, or ``None``
+    :type s: basestr | None
+    :param default: default value if s is not a valid string. If it is a string, it will be converted to a datetime object.
+    :type default: datetime.datetime | basestr | None
+    """
+    if not s:
+        s = default
+    if s is None:
+        return None
+    else:
+        return dateutil.parser.parse(s)
 
 def printLog(db, date_from=None, date_to=None):
     """print all cash movements in the given time region
@@ -482,10 +592,6 @@ def printLog(db, date_from=None, date_to=None):
     cur = db.cursor()
     cur.execute('SELECT device, date, state, updateType, isManual, comment FROM cash')
 
-    def dateFromString(s, default=None):
-        if not s:
-            s = default
-        return dateutil.parser.parse(s)
     fromDate = dateFromString(date_from, "1900-01-01")
     untilDate = dateFromString(date_to, "3456-01-01") + timedelta(days=1, microseconds=-1)
     if date_from:
@@ -588,7 +694,7 @@ def main():
         print __doc__
     elif arguments['show']:
         print CashStorageList(db).statesStr()
-        printVerify(db)
+        verifySum(db, printMessage=True)
     elif arguments['set'] or arguments['add'] or arguments['check']:
         cash = CashStorage(db, identifier, readonly=arguments['check'])
         if (arguments['set'] or arguments['add']) and not arguments['--force-new']:
@@ -616,7 +722,7 @@ def main():
                 sys.exit(1)
         if not arguments['check']:
             print "new state is now: " + cash.getStateVerbose(subindex)
-            printVerify(db)
+            verifySum(db, printMessage=True)
     elif arguments['log']:
         printLog(db, arguments['<fromDate>'], arguments['<untilDate>'])
     elif arguments['move']:
@@ -632,7 +738,14 @@ def main():
         cash = CashStorage(db, identifierFrom, readonly=False)
         cash.moveToOtherSubindex(subindexFrom, subindexTo, denomination, count, comment, isManual=True)
     elif arguments['verify']:
-        printVerify(db)
+        if arguments['<date>']:
+            date = dateFromString(" ".join(arguments['<date>']), None)
+        else:
+            date = None
+        verifySum(db, date=date)
+    elif arguments['verify-search']:
+        step = timedelta(0, 3600)
+        verifySearch(db, step)
     else:
         print "option not implemented"
         print arguments
