@@ -515,11 +515,11 @@ def verifySum(db, printMessage=False, date=None):
 
     if summeKasse == summeKassenbuch:
         if printMessage:
-            print coloredGood("Abgleich OK") + ": Kasse=Kassenbuch={}".format(summeKasse)
+            print coloredGood("check OK") + ": cash=accounting(Kassenbuch)={}".format(summeKasse)
         return True
     else:
         if printMessage:
-            print coloredError("Achtung, Abweichung:") + " Kasse: {}, Kassenbuch: {}, Zuviel in Kasse: {}".format(summeKasse, summeKassenbuch, summeKasse - summeKassenbuch)
+            print coloredError("Attention, mismatch:") + " cash: {}, accounting (Kassenbuch): {}, too much in cash state: {}".format(summeKasse, summeKassenbuch, summeKasse - summeKassenbuch)
             print "use 'cash verify-search' to find out when the error started"
         return False
 
