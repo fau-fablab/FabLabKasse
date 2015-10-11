@@ -417,6 +417,7 @@ class CashStorageList(object):
     def states_at_date(self, date):
         """
         fetch cash states of all devices.
+
         :param date:
             get state at given date
             (use ``None`` to get the current state)
