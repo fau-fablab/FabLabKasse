@@ -275,6 +275,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.pushButton_load_cart_from_app.setVisible(cfg.has_option("mobile_app", "enabled") and cfg.getboolean("mobile_app", "enabled"))
 
     def restart(self):
+        # Ask if restart is okay
         dialog = QtGui.QMessageBox(self)
         dialog.setWindowModality(QtCore.Qt.WindowModal)
         dialog.setText(u"Ein Neustart löscht den aktuellen Warenkorb! Fortsetzen?")
@@ -282,8 +283,32 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         dialog.addButton(QtGui.QMessageBox.Ok)
         dialog.setDefaultButton(QtGui.QMessageBox.Ok)
         dialog.setEscapeButton(QtGui.QMessageBox.Cancel)
-        if dialog.exec_() == QtGui.QMessageBox.Ok:
-            self.close()
+        if dialog.exec_() != QtGui.QMessageBox.Ok:
+            return
+
+        # Choose restart type
+        dialog = QtGui.QMessageBox(self)
+        dialog.setWindowModality(QtCore.Qt.WindowModal)
+        dialog.setText(u"Was soll passieren?")
+        dialog.addButton("Produkte neu laden", QtGui.QMessageBox.YesRole)
+        rebootButton = dialog.addButton("Automat Neustart", QtGui.QMessageBox.YesRole)
+        shutdownButton = dialog.addButton("Automat Herunterfahren", QtGui.QMessageBox.YesRole)
+        dialog.addButton(QtGui.QMessageBox.Cancel)
+        if dialog.exec_() == QtGui.QMessageBox.Cancel:
+            return
+
+        # trigger reboot ('sudo reboot' will be executed by run.py)
+        result = dialog.clickedButton()
+        if result == rebootButton:
+            f = open("./reboot-now", "w")
+            f.write("42")
+            f.close()
+        elif result == shutdownButton:
+            f = open("./shutdown-now", "w")
+            f.write("42")
+            f.close()
+        logging.info("exiting because of restart request")
+        self.close()
 
     def serviceMode(self):
         """was the service mode enabled recently? check and disable again"""
