@@ -78,6 +78,11 @@ class ESSPDevice(object):
     class Helper(object):
         CRC = Crc(width=16,  poly=0x8005, reflect_in=False, xor_in=0xFFFF, reflect_out=False, xor_out=0x0000)  # specification is slightly unclear, figured out by trial-and-error
 
+        @staticmethod
+        def unitTest():
+            assert ESSPDevice.Helper.crc([0x80, 0x01, 0x01]) == [0x06,  0x02]
+            assert ESSPDevice.Helper.crc([0x80, 0x01, 0xF0]) == [0x23,  0x80]
+
         @classmethod
         def splitBytes(cls,  uint16):
             # uint16 -> [lowByte, highByte]
@@ -123,6 +128,12 @@ class ESSPDevice(object):
 
         def __init__(self, bytesList):
             self.buffer = copy.deepcopy(bytesList)
+
+        @staticmethod
+        def unitTest():
+            test = ESSPDevice.ByteStreamReader([0x00, 0x1C, 0x96, 0x2C])
+            assert test.readUnsigned32BigEndian() == 0x1c962c
+            test.assertFinished()
 
         def readData(self, n):
             assert len(self.buffer) >= n
@@ -849,11 +860,8 @@ class NV11DeviceTest(unittest.TestCase):
 
     def test_ESSPDevice_crc(self):
         """unittest: check crc of ESSPDevice.Helper"""
-        self.assertTrue(ESSPDevice.Helper.crc([0x80, 0x01, 0x01]) == [0x06,  0x02])
-        self.assertTrue(ESSPDevice.Helper.crc([0x80, 0x01, 0xF0]) == [0x23,  0x80])
+        ESSPDevice.Helper.unitTest()
 
-    def test_ESSPDevice_ByteStramReader(self):
+    def test_ESSPDevice_ByteStreamReader(self):
         """unittest: test the ByteStreamReader of ESSSPDevice"""
-        test = ESSPDevice.ByteStreamReader([0x00, 0x1C, 0x96, 0x2C])
-        self.assertTrue(test.readUnsigned32BigEndian() == 0x1c962c)
-        test.assertFinished()
+        ESSPDevice.ByteStreamReader.unitTest()
