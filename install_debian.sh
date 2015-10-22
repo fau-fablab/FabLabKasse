@@ -13,6 +13,7 @@ sudo apt-get -y install python-pip python-qt4-dev python2.7 python-qt4 python-da
 sudo pip install natsort
 sudo pip install monotonic
 sudo pip install oerplib # only for connection to OpenERP/odoo
+sudo pip install portalocker
 sudo apt-get -y install xserver-xorg git nodm ssh x11-apps xterm kde-style-oxygen kde-workspace-bin fonts-crosextra-carlito
 
 # Setup user and 'kiosk mode' desktop manager that autostarts FabLabKasse
