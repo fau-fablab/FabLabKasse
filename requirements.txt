@@ -1,0 +1,14 @@
+python-dateutil
+lxml
+pycrypto
+termcolor
+pyserial
+qrcode
+docopt
+requests
+simplejson
+Sphinx
+natsort
+monotonic
+oerplib
+portalocker
