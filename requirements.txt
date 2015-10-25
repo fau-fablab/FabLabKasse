@@ -12,3 +12,5 @@ natsort
 monotonic
 oerplib
 portalocker
+# dependency of escpos
+Pillow
