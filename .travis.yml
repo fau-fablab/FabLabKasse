@@ -13,7 +13,11 @@ addons:
 # load system_site_packages into virtualenv to make PyQt4 available
 virtualenv:
     system_site_packages: true
+before_install:
+    - pip install codecov
+after_success:
+    - codecov
 # command to run tests
 script:
     - cd FabLabKasse/UI/ && ./compile_all.py
-    - cd ../../ && python -m unittest discover -p '*.py' .
+    - cd ../../ && coverage run run_unittests.py
