@@ -528,7 +528,7 @@ aus App laden</string>
                  </attribute>
                  <layout class="QHBoxLayout" name="horizontalLayout_11">
                   <item>
-                   <widget class="QTableView" name="table_order">
+                   <widget class="CartTableView" name="table_order">
                     <property name="font">
                      <font>
                       <pointsize>13</pointsize>
@@ -2274,6 +2274,11 @@ aus App laden</string>
    <slots>
     <signal>clicked()</signal>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>CartTableView</class>
+   <extends>QTableView</extends>
+   <header>..CartTableView</header>
   </customwidget>
  </customwidgets>
  <tabstops>

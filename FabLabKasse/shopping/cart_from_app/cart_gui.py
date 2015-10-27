@@ -21,6 +21,7 @@
 
 from PyQt4 import Qt, QtGui
 from FabLabKasse.UI.LoadFromMobileAppDialogCode import LoadFromMobileAppDialog
+from FabLabKasse.UI.CheckCartAfterImportDialogCode import CheckCartAfterImportDialog
 from FabLabKasse.shopping.cart_from_app.cart_model import MobileAppCartModel
 from FabLabKasse.shopping.cart_from_app.cart_model import InvalidCartJSONError, MissingAPIKeyError, MaximumNumRetriesException
 from FabLabKasse.shopping.backend.abstract import ProductNotFound
@@ -46,6 +47,7 @@ class MobileAppCartGUI(object):
         if cfg.has_option('mobile_app', 'appstore_url'):
             appstore_url = cfg.get('mobile_app', 'appstore_url')
         self.diag = LoadFromMobileAppDialog(parent, appstore_url)
+        self.checkdiag = CheckCartAfterImportDialog(parent, parent.shoppingBackend)
         self.parent = parent
 
         self.cart = MobileAppCartModel(cfg)
@@ -90,17 +92,9 @@ class MobileAppCartGUI(object):
                 self.parent.shoppingBackend.add_order_line(prod_id=product, qty=quantity)
 
             # check total sum
-            # TODO this is ugly and doesn't show everything when there are too many articles
-            # make a nice GUI out of it
-            infotext = u"Stimmt der Warenkorb? \n"
-            order_lines = self.parent.shoppingBackend.get_order_lines()
-            for line in order_lines[0:10]:
-                infotext += unicode(line) + "\n"
-            if len(order_lines) > 10:
-                infotext += "... und {} weitere Posten ...\n".format(len(order_lines) - 10)
-            infotext += u"Gesamt: {}\n".format(self.parent.shoppingBackend.format_money(self.parent.shoppingBackend.get_current_total()))
-            okay = QtGui.QMessageBox.information(self.parent, "Warenkorb", infotext, QtGui.QMessageBox.Cancel | QtGui.QMessageBox.Yes)
-            okay = okay == QtGui.QMessageBox.Yes
+            self.checkdiag.update()
+            okay = self.checkdiag.exec_()
+            okay = okay == 1
         except ProductNotFound:
             logging.warning(u"error importing cart from app: product not found"
                             u"Might be caused by outdated cache in the app, "

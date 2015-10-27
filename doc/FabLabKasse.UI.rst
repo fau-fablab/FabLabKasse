@@ -19,6 +19,23 @@ FabLabKasse.UI.ClientDialogCode module
     :undoc-members:
     :show-inheritance:
 
+FabLabKasse.UI.CheckCartAfterImportDialogCode module
+----------------------------------------------------
+
+..automodule:: FabLabKasse.UI.CheckCartAfterImportDialogCode
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+FabLabKasse.UI.GUIHelper module
+-------------------------------
+
+.. automodule:: FabLabKasse.UI.GUIHelper
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
 FabLabKasse.UI.KeyboardDialogCode module
 ----------------------------------------
 
@@ -39,6 +56,14 @@ FabLabKasse.UI.MyQLineEdit module
 ---------------------------------
 
 .. automodule:: FabLabKasse.UI.MyQLineEdit
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+FabLabKasse.UI.CartTableView module
+-----------------------------------
+
+.. automodule:: FabLabKasse.UI.CartTableView
     :members:
     :undoc-members:
     :show-inheritance:
