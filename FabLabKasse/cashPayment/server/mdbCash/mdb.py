@@ -25,6 +25,7 @@ import serial
 import logging
 import re
 import unittest
+from FabLabKasse.cashPayment.server.DebugBase import DebugBase
 
 
 class BusError(Exception):
@@ -39,7 +40,7 @@ class MissingResetEventError(Exception):
     pass
 
 
-class MdbCashDevice(object):
+class MdbCashDevice(DebugBase):
     # changer commands - subtracting 8 from the (wrong) values in the specification
     CMD_RESET = 0x08 - 8
     CMD_TUBE_STATUS = 0x0A - 8
@@ -97,19 +98,6 @@ class MdbCashDevice(object):
     # =======================
     def __repr__(self):
         return "<MDB>"
-
-    def printDebug(self, s, debugLevel):
-        logLevels = {-1: logging.ERROR,  0: logging.WARNING,  1: logging.INFO, 2: logging.DEBUG,  3: logging.DEBUG - 1}
-        logging.getLogger(self.__repr__()).log(logLevels[debugLevel], s)
-
-    def error(self, s):
-        self.printDebug(s, -1)
-
-    def log(self, s):
-        self.printDebug(s, 1)
-
-    def warn(self, s):
-        self.printDebug(s, 0)
 
     # =======================
     # Low-Level Send/Receive

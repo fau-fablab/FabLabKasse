@@ -26,12 +26,12 @@ import traceback
 from crc_algorithms import Crc
 import Crypto.Cipher.AES
 import Crypto.Random.random
-import logging
 from ..hex import hex
 import unittest
+from FabLabKasse.cashPayment.server.DebugBase import DebugBase
 
 
-class ESSPDevice(object):
+class ESSPDevice(DebugBase):
 
     """low layer eSSP protocol - implements the network layer and all communication-related commands"""
 
@@ -55,25 +55,6 @@ class ESSPDevice(object):
     # debug functions
     def __repr__(self):
         return "<ESSP>"
-
-    def printDebug(self, s, debugLevel):
-        logLevels = {-1: logging.ERROR,  0: logging.WARNING,  1: logging.INFO, 2: logging.DEBUG,  3: logging.DEBUG - 1}
-        logging.getLogger(self.__repr__()).log(logLevels[debugLevel], s)
-
-    def error(self, s):
-        self.printDebug(s, -1)
-
-    def log(self, s):
-        self.printDebug(s, 1)
-
-    def warn(self, s):
-        self.printDebug(s, 0)
-
-    def debug(self, s):
-        self.printDebug(s, 2)
-
-    def debug2(self, s):
-        self.printDebug(s, 3)
 
     class Helper(object):
         CRC = Crc(width=16,  poly=0x8005, reflect_in=False, xor_in=0xFFFF, reflect_out=False, xor_out=0x0000)  # specification is slightly unclear, figured out by trial-and-error
