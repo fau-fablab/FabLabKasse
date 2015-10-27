@@ -120,7 +120,7 @@ class NV11CashServer(CashServer):
             self.stackingFromPayoutActive = False
         if val['smartEmptyFinished']:
             assert self.emptyingActive
-            assert self.currentMode == "empty"
+            assert self.currentMode == "empty" or self.currentMode.startswith("stopping")
             self.emptyingActive = False
 
         payInOutBusy = (not val['finished']) or self.payoutActive or self.stackingFromPayoutActive or val['received'] != [] or val['dispensed'] != []

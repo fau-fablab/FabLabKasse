@@ -93,6 +93,17 @@ class CashServer:
         self.initializeDevice()
 
         while True:
+            # TODO this statemachine is too complicated.
+            # rewrite it using two separate variables:
+            #   mode = accept / dispense / empty / idle
+            #  status = running / stopping / stopped / idle
+            # (stopCountdown = 0 ... N      if a minimum number of idle iterations is required e.g. for accept)
+            #  mode transitions: idle -> accept/dispense/empty (on ACCEPT/DISPENSE/EMPTY command)
+            #                     accept/dispense/empty  -> idle (on successful STOP command)
+            # status transitions: idle -> running (on ACCEPT/DISPENSE/EMPTY command)
+            #                   running -> stopping (if STOP command received)
+            #                   stopping -> stopped (if not busy)
+            #                   stopped -> idle (successful STOP command)
             command = self.readlineStdinNonblocking()
             if command is not None:
                 command = command.strip()
