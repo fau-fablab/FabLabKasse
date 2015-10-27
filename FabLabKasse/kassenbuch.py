@@ -571,7 +571,7 @@ class Kunde(object):
         return s.__repr__()  # workaround: python2.7 has trouble with __repr__ returning unicode strings - http://bugs.python.org/issue5876
 
 
-class Kundenbuchung(object):
+class Kundenbuchung(Buchung):
 
     def __init__(self, kunde, betrag, rechnung=None, kommentar=None, id=None, datum=None):
         self.id = id
@@ -617,19 +617,6 @@ class Kundenbuchung(object):
                                                    unicode(self.betrag), self.kommentar, self.id))
 
         return self.id
-
-    @property
-    def beschreibung(self):
-        s = u''
-        if self.rechnung:
-            s += 'Rechnung: ' + unicode(self.rechnung)
-            if self.kommentar:
-                s += '(' + self.kommentar + ')'
-        elif self.kommentar:
-            s += self.kommentar
-        else:
-            s = u'KEINE BESCHREIBUNG'
-        return s
 
     def to_string(self):
         formatstr = ''
