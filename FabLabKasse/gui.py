@@ -40,9 +40,11 @@ import datetime
 import os
 from decimal import Decimal, DecimalException
 from PyQt4 import QtGui, QtCore, Qt
+import functools
+
 from libs.flickcharm import FlickCharm
 from libs.pxss import pxss
-import functools
+from FabLabKasse.UI.GUIHelper import resize_table_columns
 
 # import UI
 from UI.uic_generated.Kassenterminal import Ui_Kassenterminal
@@ -541,15 +543,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.table_products.setModel(prod_model)
         # Change column width to useful values
         # needs to be delayed so that resize events for the scrollbar happens first, otherwise it reports a scrollbar width of 100px at the very first call
-        QtCore.QTimer.singleShot(0, functools.partial(self._resize_table_columns, self.table_products, [5, 2.5, 2, 1]))
-
-    def _resize_table_columns(self, table, widths):
-        """resize Qt table columns by the weight factors specified in widths,
-        using the whole width (excluding scrollbar width)
-        """
-        w = table.width() - table.verticalScrollBar().width() - 5
-        for i, width in enumerate(widths):
-            table.setColumnWidth(i, int(width * w / sum(widths)))
+        QtCore.QTimer.singleShot(0, functools.partial(resize_table_columns, self.table_products, [5, 2.5, 2, 1]))
 
     def addOrderLine(self, prod_id, qty=0):
         logging.debug("addOrderLine " + str(prod_id) + " " + str(self.shoppingBackend.get_current_order()))
@@ -792,43 +786,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         old_selected_row = self.table_order.currentIndex().row()
         old_row_count = self.table_order.model().rowCount()
 
-        order_lines = self.shoppingBackend.get_order_lines()
-
-        # Initialize basic model for table
-        order_model = QtGui.QStandardItemModel(len(order_lines), 4)
-        order_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("Anzahl"))
-        order_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Einheit"))
-        order_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Artikel"))
-        order_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Einzelpreis"))
-        order_model.setHorizontalHeaderItem(4, QtGui.QStandardItem("Gesamtpreis"))
-
-        # Update Order lines
-
-        for i, line in enumerate(order_lines):
-            qty = QtGui.QStandardItem(self.shoppingBackend.format_qty(line.qty))
-            qty.setData(line.order_line_id)
-            order_model.setItem(i, 0, qty)
-
-            uos = QtGui.QStandardItem(line.unit)
-            order_model.setItem(i, 1, uos)
-
-            name = QtGui.QStandardItem(line.name)
-            order_model.setItem(i, 2, name)
-
-            price_unit = QtGui.QStandardItem(self.shoppingBackend.format_money(line.price_per_unit))
-            order_model.setItem(i, 3, price_unit)
-
-            subtotal = QtGui.QStandardItem(self.shoppingBackend.format_money(line.price_subtotal))
-            order_model.setItem(i, 4, subtotal)
-
-        # Set Model
-        self.table_order.setModel(order_model)
-        # Change column width to useful values
-        # needs to be delayed so that resize events for the scrollbar happens first, otherwise it reports a scrollbar width of 100px at the very first call
-        QtCore.QTimer.singleShot(0, functools.partial(self._resize_table_columns, self.table_order, [4, 6, 20, 5, 5]))
-        # TODO the 100ms delay is a workaround that is necessary because the first call often comes too early.
-        # this workaround looks not so good, a nicer solution would be good
-        QtCore.QTimer.singleShot(100, functools.partial(self._resize_table_columns, self.table_order, [4, 6, 20, 5, 5]))
+        self.table_order.update_cart(self.shoppingBackend)
 
         if selectLastItem:
             # select last line - used when a new line was just added
