@@ -866,8 +866,111 @@ if __name__ == '__main__':
         print("Gespeichert. Kundennummer lautet: " + str(kunde.id))
 
     elif arguments['client'] and arguments['edit']:
-        print("Work-in-progress...")
-        print("IMPLEMENT ME!")
+        try:
+            kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
+        except NoDataFound:
+            print(u"Konnte keinen Kunde unter '%s' finden." % arguments['<name>'])
+            sys.exit(2)
+
+        # Name
+        while True:
+            name = raw_input('Name (ohne Leer- und Sonderzeichen!) [%s]: ' % kunde.name)
+
+            if name == "":
+                break  # keep old PIN
+            elif k.cur.execute('SELECT id FROM kunde WHERE name=?', (name,)).fetchone() is not None:
+                print("Name ist bereits in Verwendung.")
+                continue
+            elif re.match(ur'^[a-zA-Z0-9äÄöÖüÜß]{1,}$', name):
+                kunde.name = name
+                break  # update name
+            else:
+                print("Eingabe enthält ungültige Zeichen")
+                continue
+
+        # PIN
+        while True:
+            print("zufällige PIN-Vorschläge: {:04} {:04} {:04}".format(random.randint(1, 9999), random.randint(1, 9999),
+                                                                       random.randint(1, 9999)))
+            pin = raw_input(u'PIN (vier Ziffern, 0000 bedeutet deaktiviert) [alte PIN beibehalten]: ')
+
+            if pin == "":
+                break  # keep old PIN
+            elif re.match(r'^[0-9]{4}$', pin):
+                kunde.pin = pin
+                break  # update pin
+            else:
+                print("Nur vier Ziffern sind erlaubt.")
+                continue
+
+        # Schuldengrenze
+        while True:
+            schuldengrenze = raw_input('Schuldengrenze (>=0 beschraenkt, -1 unbeschraenkt) [%d]: ' % kunde.schuldengrenze)
+
+            if schuldengrenze == "":
+                break  # keep old schuldengrenze
+            try:
+                schuldengrenze = Decimal(schuldengrenze)
+            except:
+                print("Formatierung ungueltig. Korrekt waere z.B. '100.23' oder '-1'.")
+                continue
+            if schuldengrenze >= Decimal('0') or schuldengrenze == Decimal('-1'):
+                kunde.schuldengrenze = schuldengrenze
+                break  # update schuldengrenze
+            else:
+                print("Schuldengrenze muss >= 0 oder = -1 sein")
+                continue
+
+        # Email
+        while True:
+            email = raw_input('Email [%s]: ' % kunde.email)
+
+            if email == "":
+                break  # keep old email
+            elif re.match(r'^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$', email):
+                kunde.email = email  # update email
+                break
+            else:
+                print("Ungueltige Mailadresse.")
+                continue
+
+        # Telefon
+        while True:
+            telefon = raw_input('Telefonnummer [%s]: ' % kunde.telefon)
+
+            if telefon == "":
+                break  # keep old telefon
+            elif re.match(r'[0-9 \+\-#\*\(\)/]+', telefon):
+                kunde.telefon = telefon  # update telefon
+                break
+            else:
+                print("Nur Ziffern, Leer, Raute, ... sind erlaubt.")
+                continue
+
+        # Adresse
+        while True:
+            adresse = unicode(raw_input('Adresse (nur eine Zeile) [%s]: ' % kunde.adresse), sys.stdin.encoding)
+
+            if adresse:
+                kunde.adresse = adresse  # update adresse
+            break
+
+        # Kommentar
+        while True:
+            kommentar = unicode(raw_input('Kommentar (nur eine Zeile) [%s]: ' % kunde.kommentar), sys.stdin.encoding)
+
+            if kommentar:
+                kunde.kommentar = kommentar  # update kommentar
+            break
+
+        try:
+            kunde.store(k.cur)
+        except sqlite3.IntegrityError as e:
+            print("Name ist bereits in Verwendung.")
+            sys.exit(2)
+
+        k.con.commit()
+        print("Gespeichert. Kundennummer lautet: " + str(kunde.id))
 
     elif arguments['client'] and arguments['show']:
         try:
