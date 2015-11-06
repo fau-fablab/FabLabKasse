@@ -61,7 +61,7 @@ def moneyfmt(value, places=2, curr='', sep='.', dp=',',
              pos='', neg='-', trailneg=''):
     """Convert Decimal to a money formatted string.
     ::
-    
+
         :param places:  required number of places after the decimal point
         :param curr:    optional currency symbol before the sign (may be blank)
         :param sep:     optional grouping separator (comma, period, space, or blank)
@@ -82,7 +82,7 @@ def moneyfmt(value, places=2, curr='', sep='.', dp=',',
         '123 456 789,00'
         >>> moneyfmt(Decimal('-0.02'), neg='<', trailneg='>')
         '<0,02>'
-        
+
         Based on https://docs.python.org/2/library/decimal.html
     """
     q = Decimal(10) ** -places  # 2 places --> '0.01'
@@ -780,14 +780,17 @@ if __name__ == '__main__':
     elif arguments['client'] and arguments['create']:
         # Name
         while True:
-            name = raw_input('Name (ohne Leer- und Sonderzeichen!): ')
+            name = unicode(raw_input('Name (ohne Leer- und Sonderzeichen!): '), sys.stdin.encoding)
 
             if k.cur.execute('SELECT id FROM kunde WHERE name=?', (name,)).fetchone() is not None:
                 print("Name ist bereits in Verwendung.")
                 continue
-
-            kunde = Kunde(name)
-            break
+            elif re.match(ur'^[a-zA-Z0-9äÄöÖüÜß]{1,}$', name):
+                kunde = Kunde(name)
+                break
+            else:
+                print("Eingabe enthält ungültige Zeichen")
+                continue
 
         # PIN
         while True:
@@ -795,16 +798,16 @@ if __name__ == '__main__':
                                                                        random.randint(1, 9999)))
             pin = raw_input(u'PIN (vier Ziffern, 0000 bedeutet deaktiviert): ')
 
-            if re.match(r'[0-9]{4}', pin):
+            if re.match(r'^[0-9]{4}$', pin):
                 kunde.pin = pin
                 break
             else:
                 print("Nur vier Ziffern sind erlaubt.")
+                continue
 
         # Schuldengrenze
         while True:
             schuldengrenze = raw_input('Schuldengrenze (>=0 beschraenkt, -1 unbeschraenkt): ')
-
             try:
                 schuldengrenze = Decimal(schuldengrenze)
             except:
@@ -814,6 +817,9 @@ if __name__ == '__main__':
             if schuldengrenze >= Decimal('0') or schuldengrenze == Decimal('-1'):
                 kunde.schuldengrenze = schuldengrenze
                 break
+            else:
+                print("Schuldengrenze muss >= 0 oder = -1 sein")
+                continue
 
         # Email
         while True:
@@ -824,6 +830,7 @@ if __name__ == '__main__':
                 break
             else:
                 print("Ungueltige Mailadresse.")
+                continue
 
         # Telefon
         while True:
@@ -837,14 +844,14 @@ if __name__ == '__main__':
 
         # Adresse
         while True:
-            adresse = raw_input('Adresse (nur eine Zeile): ')
+            adresse = unicode(raw_input('Adresse (nur eine Zeile): '), sys.stdin.encoding)
             if adresse:
                 kunde.adresse = adresse
             break
 
         # Kommentar
         while True:
-            kommentar = raw_input('Kommentar (nur eine Zeile): ')
+            kommentar = unicode(raw_input('Kommentar (nur eine Zeile): '), sys.stdin.encoding)
             if kommentar:
                 kunde.kommentar = kommentar
             break
