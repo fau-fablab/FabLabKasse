@@ -49,6 +49,7 @@ import cStringIO
 import codecs
 import re
 import sys
+import os
 import random
 import scriptHelper
 
@@ -681,6 +682,9 @@ class UnicodeWriter(object):
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='Kassenbuch 1.0')
+
+    # go to script dir (configs are relative path names)
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
     # Decode all arguments with proper utf-8 decoding:
     arguments.update(
