@@ -383,7 +383,7 @@ class Client(AbstractClient):
         AbstractClient.__init__(self, client_id, name)
         if debt is not None:
             self._debt = debt
-        self._pin = pin
+        self._pin = str(pin)
         if debt_limit is not None:
             self._debt_limit = debt_limit
 
