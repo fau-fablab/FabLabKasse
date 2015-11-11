@@ -51,6 +51,5 @@ if __name__ == "__main__":
     data["pushId"] = "000"
     data["sendToServer"] = int(time.time())
 
-    f = open(str(id), "w")
-    f.write(json.dumps(data))
-    f.close()
+    with open(str(id), "w") as f:
+        f.write(json.dumps(data))

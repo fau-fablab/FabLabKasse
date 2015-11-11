@@ -302,13 +302,11 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # trigger reboot ('sudo reboot' will be executed by run.py)
         result = dialog.clickedButton()
         if result == rebootButton:
-            f = open("./reboot-now", "w")
-            f.write("42")
-            f.close()
+            with open("./reboot-now", "w") as f:
+                f.write("42")
         elif result == shutdownButton:
-            f = open("./shutdown-now", "w")
-            f.write("42")
-            f.close()
+            with open("./shutdown-now", "w") as f:
+                f.write("42")
         logging.info("exiting because of restart request")
         self.close()
 
