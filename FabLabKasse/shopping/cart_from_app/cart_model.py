@@ -275,7 +275,7 @@ class MobileAppCartModel(QObject):
             raise InvalidCartJSONError("a required key is missing in JSON")
         except ValueError:
             raise InvalidCartJSONError("invalid field value in JSON (probably amount or productId)")
-        if len(cart) == 0:
+        if not cart:
             raise InvalidCartJSONError("empty cart imported")
         return cart
 

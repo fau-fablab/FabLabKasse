@@ -181,7 +181,7 @@ class PaymentDevicesManager(object):
         :return: [totalMaximumRequest, totalRemaining]
         """
 
-        if len(canPayoutAmounts) == 0:
+        if not canPayoutAmounts:
             return [0, 0]
         [totalMaximumRequest, totalRemaining] = canPayoutAmounts[0]
         for [maximumRequest, remainingAmount] in canPayoutAmounts[1:]:

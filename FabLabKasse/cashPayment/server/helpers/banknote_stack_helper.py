@@ -57,7 +57,7 @@ class BanknoteStackHelper(object):
             True if it might be helpful. The driver should do further checks if it is really necessary.
         :rtype: bool
         """
-        if len(payout_stack) == 0:
+        if not payout_stack:
             # no notes to payout
             return False
         if requested_payout < min(payout_stack):
@@ -82,7 +82,7 @@ class BanknoteStackHelper(object):
         """
         simulated_payout = 0
         payout_stack = copy.copy(payout_stack)
-        while len(payout_stack) > 0:
+        while payout_stack:
             if simulated_payout + payout_stack[-1] <= requested_payout:
                 # would pay out note, if it is not too large
                 simulated_payout += payout_stack[-1]
@@ -130,7 +130,7 @@ class BanknoteStackHelper(object):
         """which action should be taken next?
         (see the documentation for BanknoteStackHelper for more context information)
         """
-        if len(payout_stack) == 0:
+        if not payout_stack:
             return "stop"
         if self._forced_stacking_is_helpful(payout_stack, requested_payout) and self._would_stack_from_payout(payout_stack, requested_payout):
             return "stack"
@@ -145,7 +145,7 @@ class BanknoteStackHelper(object):
 
     def can_payout(self, payout_stack):
         """ implementation for CashServer.getCanPayout()"""
-        if len(payout_stack) == 0:
+        if not payout_stack:
             # no notes available at all
             return self.accepted_rest
 
@@ -210,7 +210,7 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
         origpayout_stack = copy.deepcopy(payout_stack)
 
         simulated_payout = 0
-        while len(payout_stack) > 0:
+        while payout_stack:
             if self._forced_stacking_is_helpful(payout_stack, requested_payout):
                 pass
                 # print("extra stack away useful")

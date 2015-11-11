@@ -76,12 +76,12 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
     def backspaceLineEdit(self):
         if self.lineEdit_pin.hasFocus():
             oldtext = self.lineEdit_pin.text()
-            if len(oldtext) > 0:
+            if oldtext:
                 self.lineEdit_pin.setText(oldtext[:-1])
                 self.lineEditPINUpdate()
         else:
             oldtext = self.lineEdit_client.text()
-            if len(oldtext) > 0:
+            if oldtext:
                 self.lineEdit_client.setText(oldtext[:-1])
                 self.lineEditClientUpdate()
 

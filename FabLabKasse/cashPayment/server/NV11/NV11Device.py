@@ -233,10 +233,10 @@ class ESSPDevice(object):
         while self.ser.inWaiting() > 0:
             self.warn("flushing serial read buffer")
             self.ser.read(self.ser.inWaiting())
-        if len(self.rawBuffer) > 0:
+        if self.rawBuffer:
             self.warn("flushing raw input buffer")
             self.rawBuffer = []
-        if len(self.buffer) > 0:
+        if self.buffer:
             self.warn("flushing input buffer")
             self.buffer = []
 
@@ -254,7 +254,7 @@ class ESSPDevice(object):
 
         # read bytes for de-stuffing
 
-        while len(self.rawBuffer) > 0:
+        while self.rawBuffer:
             if self.rawBuffer[0] == 0x7F:
                 # the STX byte needs special care (byte-stuffing needs to be reversed)
                 if len(self.rawBuffer) == 1:
@@ -283,7 +283,7 @@ class ESSPDevice(object):
 
         # attention, python subranging is a bit strange: array[a:b] returns array[a] ... array[b-1]   (not including b!)
 
-        while len(self.buffer) > 0:
+        while self.buffer:
             self.debug2("buffer: " + hex(self.buffer))
 
             # check validity of packet
@@ -350,7 +350,7 @@ class ESSPDevice(object):
         }
 
         def __init__(self, data):
-            if len(data) == 0:
+            if not data:
                 # empty response AFTER decoding
                 self.status = -1
                 self.data = []

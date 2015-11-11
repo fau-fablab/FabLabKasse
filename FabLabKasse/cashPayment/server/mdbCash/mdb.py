@@ -120,7 +120,7 @@ class MdbCashDevice(object):
         while self.ser.inWaiting() > 0:
             self.warn("flushing serial read buffer")
             self.ser.read(self.ser.inWaiting())
-        if len(self.buffer) > 0:
+        if self.buffer:
             self.warn("flushing input buffer")
             self.buffer = ""
 
@@ -144,7 +144,7 @@ class MdbCashDevice(object):
         else:
             pass
             # logging.debug("not read:" + self.ser.read())
-        if len(self.buffer) > 0:
+        if self.buffer:
             logging.debug("buffer: {}".format(self.buffer.__repr__()))
         if not ("\n" in self.buffer):
             # we have not yet received a full response
@@ -313,7 +313,7 @@ class MdbCashDevice(object):
         status = {"manuallyDispensed": [], "accepted": [], "busy": False}
         if data == [MdbCashDevice.ACK]:
             return status
-        while len(data) > 0:
+        while data:
             # parse status response
             if data[0] & 1 << 7:
                 # coin dispensed because of MANUAL! REQUEST (by pressing the button at the changer device itself)

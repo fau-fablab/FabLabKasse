@@ -65,7 +65,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
 
     def backspaceLineEdit(self):
         oldtext = self.lineEdit.text()
-        if len(oldtext) > 0:
+        if oldtext:
             self.lineEdit.setText(oldtext[:-3])
             self.lineEditUpdated()
 
