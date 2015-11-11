@@ -19,7 +19,7 @@
 #  The text of the license conditions can be read at
 #  <http://www.gnu.org/licenses/>.
 
-from .cashServer import *
+from .cashServer import CashServer
 import random
 
 
