@@ -187,7 +187,7 @@ class MdbCashDevice(object):
     # raises BusError or InterfaceHardwareError, see send()
     # returns valid data
     def cmd(self, command, data=None):
-        if data == None:
+        if data is None:
             data = []
         assert 0 <= command < 8
         bytes = [self.addr << 3 | command] + data
@@ -203,11 +203,11 @@ class MdbCashDevice(object):
                     # timeout for interface board: 1sec
                     time.sleep(0.1)
                     resp = self.read()  # possibly raises BusError (will be caught below) or InterfaceHardwareError (will not be caught)
-                    if resp != None:
+                    if resp is not None:
                         resp = resp.strip()
                         logging.debug("resp: " + resp.__repr__())
                         break
-                if resp == None:
+                if resp is None:
                     raise InterfaceHardwareError("interface timeout")
                 else:
                     break
@@ -216,7 +216,7 @@ class MdbCashDevice(object):
                 logging.debug("bus error,  resending")
                 time.sleep(1)
                 continue
-        if resp == None:
+        if resp is None:
             raise BusError("no successful response after 3 retries")
         responseData = []
         # convert response (hex-string) to a byte array
@@ -242,7 +242,7 @@ class MdbCashDevice(object):
             # timeout for interface board: 1sec
             time.sleep(0.1)
             resp = self.read()  # possibly raises BusError or InterfaceHardwareError (both will not be caught)
-            if resp != None:
+            if resp is not None:
                 resp = resp.strip()
                 logging.debug("resp: " + resp.__repr__())
                 return resp
@@ -510,15 +510,15 @@ class MdbCashDevice(object):
         # go through the coins from large to small
         for [index, value] in v:
             n = t[index]["count"]
-            if previousCoinValue != None and n * value < previousCoinValue:
+            if previousCoinValue is not None and n * value < previousCoinValue:
                 # we dont have enough of this coin to "split" one previous coin
                 continue
-            if previousCoinValue == None:
+            if previousCoinValue is None:
                 previousCoinValue = 0
             totalAmount += n * value - previousCoinValue
             previousCoinValue = value
 
-        if previousCoinValue == None:
+        if previousCoinValue is None:
             return [0, 0]
 
         return [totalAmount, previousCoinValue]

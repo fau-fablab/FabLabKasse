@@ -130,7 +130,7 @@ class PaymentDeviceClient(object):
                 cmd = None
             else:
                 raise Exception("unknown status")
-            if cmd == None:
+            if cmd is None:
                 return
             print "SEND CMD: " + cmd  # +"\n"
             self.process.write(cmd + "\n")
@@ -139,10 +139,10 @@ class PaymentDeviceClient(object):
             self.lastResponseTime = monotonic_time.monotonic()  # get monotonic time. until python 3.3 we have to use this extra module because time.monotonic() is not available in older versions.
 
         response = self.process.readline()
-        if response == None and self.waitingForResponse \
+        if response is None and self.waitingForResponse \
                 and monotonic_time.monotonic() - self.lastResponseTime > 50:
             raise Exception("device {} server timeout (>50sec)".format(self))
-        if response != None:
+        if response is not None:
             print "got response: '" + response + "'"
             assert self.waitingForResponse
             self.waitingForResponse = False

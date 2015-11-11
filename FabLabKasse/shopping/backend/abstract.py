@@ -198,7 +198,7 @@ class OrderLine(object):
     def __init__(self, order_line_id, qty, unit, name, price_per_unit, price_subtotal, delete_if_zero_qty=True):
 
         self.order_line_id = order_line_id
-        if order_line_id == None:
+        if order_line_id is None:
             self.order_line_id = next(_id_counter)  # may cause problems after ca. 2**30 calls because QVariant in gui somewhere converts values to int32. but who cares...
         self.qty = qty
         self.unit = unit

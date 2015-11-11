@@ -182,7 +182,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
                 self.state = "initCanPayout"
         elif self.state == "initCanPayout":
             pay = p.canPayout()
-            if pay != None:
+            if pay is not None:
                 [self.payoutMaximumAmount, self.payoutRemainingAmount] = pay
 
                 # all amounts under 50€ may be paid with <= n+50€

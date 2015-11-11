@@ -298,7 +298,7 @@ class PaymentDevicesManager(object):
             requested = self.requestedPayin
         elif self.mode.startswith("payout"):
             requested = self.requestedPayout
-        if requested != None:
+        if requested is not None:
             text += u":\n{} von {} ".format(formatCent(totalSum), formatCent(requested))
         if self.mode.startswith("payin"):
             text += "bezahlt (maximal " + formatCent(self.maximumPayin) + ")"
@@ -418,7 +418,7 @@ def demo():
     while p.startingUp():
         wait()
     pay = None
-    while pay == None:
+    while pay is None:
         wait()
         pay = p.canPayout()
     print pay
@@ -426,7 +426,7 @@ def demo():
     shouldPay = 4213
     p.payin(shouldPay, shouldPay + pay[0])
     received = None
-    while received == None:
+    while received is None:
         received = p.getFinalAmount()
         wait()
     print "Geld erhalten: {}".format(received)
@@ -434,7 +434,7 @@ def demo():
     if received > shouldPay:
         p.payout(received - shouldPay)
     paidOut = None
-    while paidOut == None:
+    while paidOut is None:
         paidOut = p.getFinalAmount()
         wait()
     paidOut = -paidOut

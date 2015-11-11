@@ -99,7 +99,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
 
         # Check if client number existst and switch to client in comboBox_client
         client = self.getClient()
-        if client == None:
+        if client is None:
             self.comboBox_client.setCurrentIndex(0)
             return
 
