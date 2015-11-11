@@ -16,6 +16,8 @@
 #  The text of the license conditions can be read at
 #  <http://www.gnu.org/licenses/>.
 
+""" Runs all unittests, automatically searches all mails in the project """
+
 import sys
 import unittest
 
