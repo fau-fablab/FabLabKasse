@@ -1,8 +1,8 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
-
+#
 # (C) 2015 Patrick Kanzler <patrick.kanzler@fablab.fau.de>
-
+#
 # This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +15,8 @@
 #
 #  The text of the license conditions can be read at
 #  <http://www.gnu.org/licenses/>.
-
-""" Runs all unittests, automatically searches all mails in the project """
+#
+""" Runs all unittests, automatically searches all tests in the project """
 
 import sys
 import unittest
