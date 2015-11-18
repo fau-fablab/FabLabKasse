@@ -544,7 +544,7 @@ class MdbCashDevice(object):
         # get number of avail. coins by value
         coinsAvailable = {}
         for [coinType, coinValue] in sortedCoinValues:
-            if not coinsAvailable.has_key(coinValue):
+            if coinValue not in coinsAvailable:
                 coinsAvailable[coinValue] = 0
             coinsAvailable[coinValue] += tubeStatus[coinType]["count"]
 
@@ -553,7 +553,7 @@ class MdbCashDevice(object):
             so that the coin storage does not run short of often paid out coins (like 1€)
             this will only happen if more than enough of the smaller coins (like 50c) are present
             """
-            if not coinsAvailable.has_key(coinValue / 2):
+            if (coinValue / 2) not in coinsAvailable:
                 # there is no "half" coin of the currently used value
                 # TODO implement something for splitting 50c -> 20c+10c
                 return False

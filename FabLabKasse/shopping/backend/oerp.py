@@ -128,7 +128,7 @@ class ShoppingBackend(AbstractShoppingBackend):
         partner_id = self.cfg.getint('openerp', 'anonymous_partner_id')
         order_data = self.oerp.execute('sale.order', 'onchange_partner_id', [], partner_id)
         print order_data
-        assert not order_data.has_key('warning'), u"failed getting default values for sale.order: {}".format(order_data['warning'])
+        assert 'warning' not in order_data, u"failed getting default values for sale.order: {}".format(order_data['warning'])
         order_data = order_data['value']
         order_data.update({'partner_id': partner_id,
                            'order_policy': 'manual',
