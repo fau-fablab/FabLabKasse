@@ -195,7 +195,7 @@ class Order(object):
     def add_order_line(self, product, qty, comment=None):
         """ add a Product() object with specified quantity to the cart"""
         assert not self._finished, "finished orders may not be modified"
-        assert comment == None or isinstance(comment, basestring)
+        assert comment is None or isinstance(comment, basestring)
         self._lines.append(ProductBasedOrderLine(product, qty, comment))
         # call update_quantity so that qty_rounding is checked
         self.update_quantity(self._lines[-1].order_line_id, qty)

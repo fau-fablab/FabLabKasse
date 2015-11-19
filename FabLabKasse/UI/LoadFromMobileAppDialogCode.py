@@ -57,7 +57,7 @@ class LoadFromMobileAppDialog(QtGui.QDialog, Ui_LoadFromMobileAppDialog):
         QtCore.QTimer.singleShot(0, lambda: self.setWindowState(QtCore.Qt.WindowMaximized))
         set_layout_items_visible(self.verticalLayout_app_download, False)
         self.pushButton_app.clicked.connect(self._show_app_download)
-        if app_url == None:
+        if app_url is None:
             self.pushButton_app.setVisible(False)
         else:
             LoadFromMobileAppDialog.set_qr_label(self.label_qr_app, app_url)

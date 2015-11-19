@@ -302,13 +302,11 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # trigger reboot ('sudo reboot' will be executed by run.py)
         result = dialog.clickedButton()
         if result == rebootButton:
-            f = open("./reboot-now", "w")
-            f.write("42")
-            f.close()
+            with open("./reboot-now", "w") as f:
+                f.write("42")
         elif result == shutdownButton:
-            f = open("./shutdown-now", "w")
-            f.write("42")
-            f.close()
+            with open("./shutdown-now", "w") as f:
+                f.write("42")
         logging.info("exiting because of restart request")
         self.close()
 
@@ -511,7 +509,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             for c in category_path[:-1]:
                 self._add_to_category_path(c.name, c.categ_id, bold=False)
             # make last button with bold text
-            if len(category_path) > 0:
+            if category_path:
                 self._add_to_category_path(category_path[-1].name, category_path[-1].categ_id, bold=True)
 
         # set "all products" button to bold if the root category is selected
@@ -678,7 +676,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
     def backspaceLineEdit(self):
         oldtext = self.lineEdit.text()
-        if len(oldtext) > 0:
+        if oldtext:
             self.lineEdit.setText(oldtext[:-1])
             self.on_lineEdit_changed()
 
@@ -816,7 +814,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
     def backspaceLineEdit_Suche(self):
         oldtext = self.lineEdit_Suche.text()
-        if len(oldtext) > 0:
+        if oldtext:
             self.lineEdit_Suche.setText(oldtext[:-1])
         self.lineEdit_Suche.setFocus()
         self.searchItems(preview=True)

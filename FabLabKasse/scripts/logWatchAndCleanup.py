@@ -74,7 +74,7 @@ def main():
             if isOldUnzippedLog:
                 assert subprocess.call(["gzip", f]) == 0,  "calling gzip failed"
 
-    if len(errorLines) == 0:
+    if not errorLines:
         sys.exit(0)
 
     print("Hi, this is FabLabKasse/scripts/logWatch.sh.\nThere were warnings or errors in the recent logfile.\nPrinting the recent {} ones per file:\n".format(MAX_ERRORS_PER_LOG))

@@ -90,21 +90,19 @@ def saveToDir(data, outputdir):
         filename = g.replace("/", "__") + ".txt"
         files_written.append(filename)
         print filename
-        f = open(outputdir + filename, 'w')
+        with open(outputdir + filename, 'w') as f:
+            # In Datei schreiben
+            def formatiereOutput(d):
+                s = '%04d;%s;%s;%s;%s;%s\n' % (d[0],  d[1],  d[2],  d[3], d[4], d[5])
+                if d[6]:
+                    # weitere Verkaufseinheiten
+                    for einheit in d[6]:
+                        s += '\t%s;%s;%s;%s\n' % einheit
+                return s
 
-        # In Datei schreiben
-        def formatiereOutput(d):
-            s = '%04d;%s;%s;%s;%s;%s\n' % (d[0],  d[1],  d[2],  d[3], d[4], d[5])
-            if d[6]:
-                # weitere Verkaufseinheiten
-                for einheit in d[6]:
-                    s += '\t%s;%s;%s;%s\n' % einheit
-            return s
+            for l in map(lambda d: formatiereOutput(d), data[g]):
+                f.write(l.encode('utf-8'))
 
-        for l in map(lambda d: formatiereOutput(d), data[g]):
-            f.write(l.encode('utf-8'))
-
-        f.close()
     for f in os.listdir(outputdir):
         if f.endswith(".txt") and f not in files_written:
             print "removing stale file {}".format(f)
