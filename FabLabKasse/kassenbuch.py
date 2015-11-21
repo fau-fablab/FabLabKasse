@@ -41,7 +41,7 @@ Options:
 
 import sqlite3
 from datetime import datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import dateutil.parser
 from docopt import docopt
 import csv
@@ -49,6 +49,7 @@ import cStringIO
 import codecs
 import re
 import sys
+import os
 import random
 import scriptHelper
 
@@ -61,7 +62,7 @@ def moneyfmt(value, places=2, curr='', sep='.', dp=',',
              pos='', neg='-', trailneg=''):
     """Convert Decimal to a money formatted string.
     ::
-    
+
         :param places:  required number of places after the decimal point
         :param curr:    optional currency symbol before the sign (may be blank)
         :param sep:     optional grouping separator (comma, period, space, or blank)
@@ -82,7 +83,7 @@ def moneyfmt(value, places=2, curr='', sep='.', dp=',',
         '123 456 789,00'
         >>> moneyfmt(Decimal('-0.02'), neg='<', trailneg='>')
         '<0,02>'
-        
+
         Based on https://docs.python.org/2/library/decimal.html
     """
     q = Decimal(10) ** -places  # 2 places --> '0.01'
@@ -682,6 +683,9 @@ class UnicodeWriter(object):
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='Kassenbuch 1.0')
 
+    # go to script dir (configs are relative path names)
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
     # Decode all arguments with proper utf-8 decoding:
     arguments.update(
         dict(map(lambda t: (t[0], t[1].decode('utf-8')),
@@ -780,40 +784,46 @@ if __name__ == '__main__':
     elif arguments['client'] and arguments['create']:
         # Name
         while True:
-            name = raw_input('Name (ohne Leer- und Sonderzeichen!): ')
+            name = unicode(raw_input('Name (ohne Leer- und Sonderzeichen!): '), sys.stdin.encoding)
 
             if k.cur.execute('SELECT id FROM kunde WHERE name=?', (name,)).fetchone() is not None:
                 print("Name ist bereits in Verwendung.")
                 continue
-
-            kunde = Kunde(name)
-            break
+            elif re.match(ur'^[a-zA-Z0-9äÄöÖüÜß]{1,}$', name):
+                kunde = Kunde(name)
+                break
+            else:
+                print("Eingabe enthält ungültige Zeichen")
+                continue
 
         # PIN
         while True:
-            print("zufällige PIN-Vorschläge: {:04} {:04} {:04}".format(random.randint(1, 9999), random.randint(1, 9999),
-                                                                       random.randint(1, 9999)))
+            print("zufällige PIN-Vorschläge: {:04} {:04} {:04}".format(
+                random.randint(1, 9999), random.randint(1, 9999), random.randint(1, 9999)))
             pin = raw_input(u'PIN (vier Ziffern, 0000 bedeutet deaktiviert): ')
 
-            if re.match(r'[0-9]{4}', pin):
+            if re.match(r'^[0-9]{4}$', pin):
                 kunde.pin = pin
                 break
             else:
                 print("Nur vier Ziffern sind erlaubt.")
+                continue
 
         # Schuldengrenze
         while True:
             schuldengrenze = raw_input('Schuldengrenze (>=0 beschraenkt, -1 unbeschraenkt): ')
-
             try:
                 schuldengrenze = Decimal(schuldengrenze)
-            except:
+            except InvalidOperation:
                 print("Formatierung ungueltig. Korrekt waere z.B. '100.23' oder '-1'.")
                 continue
 
             if schuldengrenze >= Decimal('0') or schuldengrenze == Decimal('-1'):
                 kunde.schuldengrenze = schuldengrenze
                 break
+            else:
+                print("Schuldengrenze muss >= 0 oder = -1 sein")
+                continue
 
         # Email
         while True:
@@ -824,6 +834,7 @@ if __name__ == '__main__':
                 break
             else:
                 print("Ungueltige Mailadresse.")
+                continue
 
         # Telefon
         while True:
@@ -837,14 +848,14 @@ if __name__ == '__main__':
 
         # Adresse
         while True:
-            adresse = raw_input('Adresse (nur eine Zeile): ')
+            adresse = unicode(raw_input('Adresse (nur eine Zeile): '), sys.stdin.encoding)
             if adresse:
                 kunde.adresse = adresse
             break
 
         # Kommentar
         while True:
-            kommentar = raw_input('Kommentar (nur eine Zeile): ')
+            kommentar = unicode(raw_input('Kommentar (nur eine Zeile): '), sys.stdin.encoding)
             if kommentar:
                 kunde.kommentar = kommentar
             break
@@ -859,8 +870,115 @@ if __name__ == '__main__':
         print("Gespeichert. Kundennummer lautet: " + str(kunde.id))
 
     elif arguments['client'] and arguments['edit']:
-        print("Work-in-progress...")
-        print("IMPLEMENT ME!")
+        try:
+            kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
+        except NoDataFound:
+            print(u"Konnte keinen Kunde unter '{}' finden.".format(arguments['<name>']))
+            sys.exit(2)
+
+        # Name
+        while True:
+            name = unicode(raw_input('Name (ohne Leer- und Sonderzeichen!) [{}]: '.format(
+                kunde.name.encode(sys.stdout.encoding))), sys.stdin.encoding)
+
+            if name == "":
+                break  # keep old PIN
+            elif k.cur.execute('SELECT id FROM kunde WHERE name=?', (name,)).fetchone() is not None:
+                print("Name ist bereits in Verwendung.")
+                continue
+            elif re.match(ur'^[a-zA-Z0-9äÄöÖüÜß]{1,}$', name):
+                kunde.name = name
+                break  # update name
+            else:
+                print("Eingabe enthält ungültige Zeichen")
+                continue
+
+        # PIN
+        while True:
+            print("zufällige PIN-Vorschläge: {:04} {:04} {:04}".format(
+                random.randint(1, 9999), random.randint(1, 9999), random.randint(1, 9999)))
+            pin = raw_input(u'PIN (vier Ziffern, 0000 bedeutet deaktiviert) [alte PIN beibehalten]: ')
+
+            if pin == "":
+                break  # keep old PIN
+            elif re.match(r'^[0-9]{4}$', pin):
+                kunde.pin = pin
+                break  # update pin
+            else:
+                print("Nur vier Ziffern sind erlaubt.")
+                continue
+
+        # Schuldengrenze
+        while True:
+            schuldengrenze = raw_input('Schuldengrenze (>=0 beschraenkt, -1 unbeschraenkt) [{}]: '.format(
+                kunde.schuldengrenze))
+
+            if schuldengrenze == "":
+                break  # keep old schuldengrenze
+            try:
+                schuldengrenze = Decimal(schuldengrenze)
+            except InvalidOperation:
+                print("Formatierung ungueltig. Korrekt waere z.B. '100.23' oder '-1'.")
+                continue
+            if schuldengrenze >= Decimal('0') or schuldengrenze == Decimal('-1'):
+                kunde.schuldengrenze = schuldengrenze
+                break  # update schuldengrenze
+            else:
+                print("Schuldengrenze muss >= 0 oder = -1 sein")
+                continue
+
+        # Email
+        while True:
+            email = raw_input('Email [{}]: '.format(kunde.email))
+
+            if email == "":
+                break  # keep old email
+            elif re.match(r'^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$', email):
+                kunde.email = email  # update email
+                break
+            else:
+                print("Ungueltige Mailadresse.")
+                continue
+
+        # Telefon
+        while True:
+            telefon = raw_input('Telefonnummer [{}]: '.format(kunde.telefon))
+
+            if telefon == "":
+                break  # keep old telefon
+            elif re.match(r'[0-9 \+\-#\*\(\)/]+', telefon):
+                kunde.telefon = telefon  # update telefon
+                break
+            else:
+                print("Nur Ziffern, Leer, Raute, ... sind erlaubt.")
+                continue
+
+        # Adresse
+        while True:
+            adresse = unicode(raw_input('Adresse (nur eine Zeile) [{}]: '.format(
+                kunde.adresse.encode(sys.stdout.encoding))), sys.stdin.encoding)
+
+            if adresse:
+                kunde.adresse = adresse  # update adresse
+            break
+
+        # Kommentar
+        while True:
+            kommentar = unicode(raw_input('Kommentar (nur eine Zeile) [{}]: '.format(
+                kunde.kommentar.encode(sys.stdout.encoding))), sys.stdin.encoding)
+
+            if kommentar:
+                kunde.kommentar = kommentar  # update kommentar
+            break
+
+        try:
+            kunde.store(k.cur)
+        except sqlite3.IntegrityError as e:
+            print("Name ist bereits in Verwendung.")
+            sys.exit(2)
+
+        k.con.commit()
+        print("Gespeichert. Kundennummer lautet: " + str(kunde.id))
 
     elif arguments['client'] and arguments['show']:
         try:
@@ -925,7 +1043,7 @@ if __name__ == '__main__':
             else:
                 letzte_zahlung = letzte_zahlung[0].strftime('%Y-%m-%d')
 
-            print(u'{:>5}|{:>25}|{:>8} EUR|{:>8}| {:>14}'.format(
+            print(u'{:>4}|{:>25}|{:>8} EUR|{:>8}| {:>14}'.format(
                 k.id, k.name, moneyfmt(k.summe), moneyfmt(k.schuldengrenze), letzte_zahlung))
 
     elif arguments['receipt']:
