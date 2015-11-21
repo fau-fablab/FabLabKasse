@@ -41,7 +41,7 @@ Options:
 
 import sqlite3
 from datetime import datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import dateutil.parser
 from docopt import docopt
 import csv
@@ -49,6 +49,7 @@ import cStringIO
 import codecs
 import re
 import sys
+import os
 import random
 import scriptHelper
 
@@ -61,7 +62,7 @@ def moneyfmt(value, places=2, curr='', sep='.', dp=',',
              pos='', neg='-', trailneg=''):
     """Convert Decimal to a money formatted string.
     ::
-    
+
         :param places:  required number of places after the decimal point
         :param curr:    optional currency symbol before the sign (may be blank)
         :param sep:     optional grouping separator (comma, period, space, or blank)
@@ -82,7 +83,7 @@ def moneyfmt(value, places=2, curr='', sep='.', dp=',',
         '123 456 789,00'
         >>> moneyfmt(Decimal('-0.02'), neg='<', trailneg='>')
         '<0,02>'
-        
+
         Based on https://docs.python.org/2/library/decimal.html
     """
     q = Decimal(10) ** -places  # 2 places --> '0.01'
@@ -682,6 +683,9 @@ class UnicodeWriter(object):
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='Kassenbuch 1.0')
 
+    # go to script dir (configs are relative path names)
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
     # Decode all arguments with proper utf-8 decoding:
     arguments.update(
         dict(map(lambda t: (t[0], t[1].decode('utf-8')),
@@ -782,38 +786,44 @@ if __name__ == '__main__':
         while True:
             name = raw_input('Name (ohne Leer- und Sonderzeichen!): ')
 
-            if k.cur.execute('SELECT id FROM kunde WHERE name=?', (name,)).fetchone() is not None:
+            if not re.match(ur'^[a-zA-Z0-9]{1,}$', name):
+                print("Eingabe enthält ungültige Zeichen")
+                continue
+            elif k.cur.execute('SELECT id FROM kunde WHERE name=?', (name,)).fetchone() is not None:
                 print("Name ist bereits in Verwendung.")
                 continue
-
-            kunde = Kunde(name)
-            break
+            else:
+                kunde = Kunde(name)
+                break
 
         # PIN
         while True:
-            print("zufällige PIN-Vorschläge: {:04} {:04} {:04}".format(random.randint(1, 9999), random.randint(1, 9999),
-                                                                       random.randint(1, 9999)))
+            print("zufällige PIN-Vorschläge: {:04} {:04} {:04}".format(
+                random.randint(1, 9999), random.randint(1, 9999), random.randint(1, 9999)))
             pin = raw_input(u'PIN (vier Ziffern, 0000 bedeutet deaktiviert): ')
 
-            if re.match(r'[0-9]{4}', pin):
+            if re.match(r'^[0-9]{4}$', pin):
                 kunde.pin = pin
                 break
             else:
                 print("Nur vier Ziffern sind erlaubt.")
+                continue
 
         # Schuldengrenze
         while True:
             schuldengrenze = raw_input('Schuldengrenze (>=0 beschraenkt, -1 unbeschraenkt): ')
-
             try:
                 schuldengrenze = Decimal(schuldengrenze)
-            except:
+            except InvalidOperation:
                 print("Formatierung ungueltig. Korrekt waere z.B. '100.23' oder '-1'.")
                 continue
 
             if schuldengrenze >= Decimal('0') or schuldengrenze == Decimal('-1'):
                 kunde.schuldengrenze = schuldengrenze
                 break
+            else:
+                print("Schuldengrenze muss >= 0 oder = -1 sein")
+                continue
 
         # Email
         while True:
@@ -824,6 +834,7 @@ if __name__ == '__main__':
                 break
             else:
                 print("Ungueltige Mailadresse.")
+                continue
 
         # Telefon
         while True:
@@ -925,7 +936,7 @@ if __name__ == '__main__':
             else:
                 letzte_zahlung = letzte_zahlung[0].strftime('%Y-%m-%d')
 
-            print(u'{:>5}|{:>25}|{:>8} EUR|{:>8}| {:>14}'.format(
+            print(u'{:>4}|{:>25}|{:>8} EUR|{:>8}| {:>14}'.format(
                 k.id, k.name, moneyfmt(k.summe), moneyfmt(k.schuldengrenze), letzte_zahlung))
 
     elif arguments['receipt']:
