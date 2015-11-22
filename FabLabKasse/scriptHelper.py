@@ -22,6 +22,7 @@
 import signal
 import logging
 import logging.handlers
+import os
 import sys
 import portalocker
 import sqlite3
@@ -92,9 +93,17 @@ def setupGraphicalExceptHook():
 def getConfig(path="./"):
     cfg = ConfigParser()
     try:
-        cfg.readfp(codecs.open(path + 'config.ini', 'r', 'utf8'))
+        cfg.readfp(codecs.open(path + 'config.defaults.ini', 'r', 'utf8'))  # read default configs
     except IOError:
-        raise Exception("Cannot open configuration file. If you want to try the program and do not have a config, start ./run.py --example or just copy config.ini.example to config.ini")
+        raise Exception("Cannot open config.defaults.ini.")
+    if os.path.isfile(path + 'config.ini'):
+        try:
+            cfg.readfp(codecs.open(path + 'config.ini', 'r', 'utf8'))
+        except IOError:
+            raise Exception("Cannot open config.ini.")
+    else:
+        print("[!] 'config.ini' not found. Using 'config.defaults.ini'"
+              "    copy 'config.defaults.ini' to 'config.ini' to adapt the deafault config!")
     return cfg
 
 

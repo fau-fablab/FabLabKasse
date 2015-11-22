@@ -72,7 +72,7 @@ Modem-Manager interferes with the serial port. It is highly recommended to remov
 -----------------
 
     cd FabLabKasse/
-    cp config.ini.example config.ini
+    cp config.defaults.ini config.ini
     # now edit config.ini file
 
 Please use database name "production" for the real terminal, and something else for tests and development!

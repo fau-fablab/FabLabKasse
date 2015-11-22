@@ -4,7 +4,7 @@ TODO
 Needed testing for FAU FabLab
 -----------------------------
 
-    cp config.ini.example config.ini
+    cp config.defaults.ini config.ini
 
 edit config.ini:
  - set [backend] backend=legacy_offline_kassenbuch

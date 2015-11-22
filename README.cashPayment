@@ -122,7 +122,7 @@ Dies damit `./cash move muenz.manual muenz.tubeN /123x50c/` zurückgefüllt
 Configuration 
 -------------
 
-see config.ini.example
+see config.defaults.ini
 
 order of devices is important! Payout is in ascending order of the device number. Payin is in parallel.
 Sort the devices from large to small denominations. (banknote payout first)

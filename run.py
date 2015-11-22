@@ -49,6 +49,8 @@ def main():
     currentDir = os.getcwd() + "/"
     os.chdir(currentDir + "/FabLabKasse/")
 
+    # TODO restructure this: simply provide a --config-file parameter but
+    # always load config.defaults.ini first and the the users config
     if "--example" in sys.argv:
         # load example config
         # test that there is no config.ini yet
@@ -59,11 +61,10 @@ def main():
                 time.sleep(2)
         else:
             print("loading example configuration file. edit FabLabKasse/config.ini to change. You do not need the --example parameter later.")
-            shutil.copyfile("config.ini.example", "config.ini")
+            shutil.copyfile("config.defaults.ini", "config.ini")
     if "--only-load-config" in sys.argv:
-         # the Vagrant VM provisioning script uses this to copy a default config before the first start.
-         sys.exit(0)
-
+        # the Vagrant VM provisioning script uses this to copy a default config before the first start.
+        sys.exit(0)
 
     os.chdir(currentDir + "/FabLabKasse/UI/")
     subprocess.call("./compile_all.py")

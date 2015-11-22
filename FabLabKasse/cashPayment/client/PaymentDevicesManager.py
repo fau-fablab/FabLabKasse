@@ -29,6 +29,7 @@ from ConfigParser import NoOptionError
 from ConfigParser import ConfigParser
 import codecs
 
+
 class PaymentDevicesManager(object):
 
     def __init__(self, cfg):
@@ -157,7 +158,7 @@ class PaymentDevicesManager(object):
             return None
         if self.mode == "canPayout":
             # commands already sent
-            if not None in self.canPayoutAmounts:
+            if None not in self.canPayoutAmounts:
                 # all devices sent replies
                 canPayoutAmounts = self.canPayoutAmounts
                 self.canPayoutAmounts = None  # invalidate cache
@@ -232,7 +233,7 @@ class PaymentDevicesManager(object):
         """
         for d in self.devices:
             maximum = self.maximumPayin - self.getCurrentAmount()
-            if d.getCurrentAmount() != None:
+            if d.getCurrentAmount() is not None:
                 maximum += d.getCurrentAmount()
             d.updateAcceptValue(maximum)
 
@@ -242,7 +243,7 @@ class PaymentDevicesManager(object):
         """
         totalSum = self.finishedAmount
         for d in self.devices:
-            if d.getCurrentAmount() != None:
+            if d.getCurrentAmount() is not None:
                 totalSum += d.getCurrentAmount()
         return totalSum
 
@@ -346,6 +347,7 @@ class PaymentDevicesManager(object):
         self.mode = "idle"
         return ret
 
+
 class PaymentDevicesManagerTest(unittest.TestCase):
     """ Test PaymentDevicesManager
     """
@@ -355,7 +357,7 @@ class PaymentDevicesManagerTest(unittest.TestCase):
         """
         # probably hacky, should be improved
         cfg = ConfigParser()
-        cfg.readfp(codecs.open('./FabLabKasse/config.ini.example', 'r', 'utf8'))
+        cfg.readfp(codecs.open('./FabLabKasse/config.defaults.ini', 'r', 'utf8'))
 
         for _ in range(0, 9):
             history = []
@@ -405,6 +407,7 @@ class PaymentDevicesManagerTest(unittest.TestCase):
             msg += str(canPayoutAmounts)
             self.assertTrue(requested - canRemain <= paidOut <= requested, msg=msg)
             self.assertTrue(paidOut >= 0, msg=msg)
+
 
 def demo():
     """Simple demonstration using two exampleServer devices"""
