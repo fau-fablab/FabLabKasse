@@ -23,7 +23,16 @@ import re
 
 class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
 
+    """ GUI code for the dialog for selecting clients """
+
     def __init__(self, parent, shopping_backend):
+        """ constructor for the ClientDialog
+        
+        :param parent: parent GUI dialog
+        :type parent: QtGui.QDialog
+        :param shopping_backend: current instance of ShoppingBackend
+        :type shopping_backend: shopping.backend.abstract.AbstractShoppingBackend
+        """
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
 
@@ -69,12 +78,12 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
     def backspaceLineEdit(self):
         if self.lineEdit_pin.hasFocus():
             oldtext = self.lineEdit_pin.text()
-            if len(oldtext) > 0:
+            if oldtext:
                 self.lineEdit_pin.setText(oldtext[:-1])
                 self.lineEditPINUpdate()
         else:
             oldtext = self.lineEdit_client.text()
-            if len(oldtext) > 0:
+            if oldtext:
                 self.lineEdit_client.setText(oldtext[:-1])
                 self.lineEditClientUpdate()
 
@@ -92,7 +101,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
 
         # Check if client number existst and switch to client in comboBox_client
         client = self.getClient()
-        if client == None:
+        if client is None:
             self.comboBox_client.setCurrentIndex(0)
             return
 

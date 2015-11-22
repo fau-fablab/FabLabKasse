@@ -85,7 +85,7 @@ def printFiltered(consumption,  search=None, regexp=None, scaleFactor=1, ignoreC
        """
     sumFiltered = 0
 
-    if search == None:
+    if search is None:
         # filter by regexp
         search = ""
         filterStr = regexp

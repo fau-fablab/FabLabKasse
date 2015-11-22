@@ -126,7 +126,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
                 pass
                 # .disconnect() returns TypeError if currently nothing is connected to the signal
                 # http://stackoverflow.com/questions/21586643/pyqt-widget-connect-and-disconnect/21587045#21587045
-            if len(suggestedDonations) > 0:
+            if suggestedDonations:
                 donationValue = suggestedDonations.pop()
                 # functools.partial is used here instead of lambda because "donationValue" needs to be evaluated here.
                 #   when using a lambda, it would be wrongly used by-reference and get the value of the last iteration of this loop
@@ -182,7 +182,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
                 self.state = "initCanPayout"
         elif self.state == "initCanPayout":
             pay = p.canPayout()
-            if pay != None:
+            if pay is not None:
                 [self.payoutMaximumAmount, self.payoutRemainingAmount] = pay
 
                 # all amounts under 50€ may be paid with <= n+50€

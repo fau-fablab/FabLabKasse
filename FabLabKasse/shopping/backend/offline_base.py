@@ -77,21 +77,21 @@ class OfflineCategoryTree(object):
         for i in products:
             self.add_product(i)
 
-        assert self.categories.has_key(self.root_category_id), "missing root category"
+        assert self.root_category_id in self.categories, "missing root category"
         cfg = scriptHelper.getConfig()
-        assert self.products.has_key(
-            cfg.getint('payup_methods', 'overpayment_product_id')), "missing product for overpayment"
-        assert self.products.has_key(
-            cfg.getint('payup_methods', 'payout_impossible_product_id')), "missing product for payout_impossible"
+        assert cfg.getint('payup_methods', 'overpayment_product_id') in self.products, "missing product for overpayment"
+        assert cfg.getint('payup_methods', 'payout_impossible_product_id') in self.products,\
+            "missing product for payout_impossible"
 
     def add_category(self, category):
         categ_id = category.categ_id
-        assert not self.categories.has_key(categ_id), "Category {} {} already exists: {}".format(categ_id, repr(category.name), repr(self.categories[categ_id].name))
+        assert categ_id not in self.categories, "Category {} {} already exists: {}".format(
+            categ_id, repr(category.name), repr(self.categories[categ_id].name))
         self.categories[categ_id] = category
 
     def add_product(self, product):
         prod_id = product.prod_id
-        assert not self.products.has_key(prod_id), "Product already exists"
+        assert prod_id not in self.products, "Product already exists"
         self.products[prod_id] = product
 
     def get_root_category(self):
@@ -152,7 +152,7 @@ class OfflineCategoryTree(object):
 
     def get_category_path(self, categ_id):
         path = []
-        assert self.categories.has_key(categ_id), "invalid category id {}".format(categ_id)
+        assert categ_id in self.categories, "invalid category id {}".format(categ_id)
         while categ_id not in [None, self.root_category_id]:
             try:
                 path.insert(0, self.categories[categ_id])
@@ -195,7 +195,7 @@ class Order(object):
     def add_order_line(self, product, qty, comment=None):
         """ add a Product() object with specified quantity to the cart"""
         assert not self._finished, "finished orders may not be modified"
-        assert comment == None or isinstance(comment, basestring)
+        assert comment is None or isinstance(comment, basestring)
         self._lines.append(ProductBasedOrderLine(product, qty, comment))
         # call update_quantity so that qty_rounding is checked
         self.update_quantity(self._lines[-1].order_line_id, qty)
@@ -383,7 +383,7 @@ class Client(AbstractClient):
         AbstractClient.__init__(self, client_id, name)
         if debt is not None:
             self._debt = debt
-        self._pin = pin
+        self._pin = str(pin)
         if debt_limit is not None:
             self._debt_limit = debt_limit
 

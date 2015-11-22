@@ -615,7 +615,7 @@ def printLog(db, date_from=None, date_to=None):
         dev = row[0]
         # state: compute delta, because the DB only stores the total
         currentState = CashState.fromJSON(row[2])
-        if previousStates.has_key(dev):
+        if dev in previousStates:
             delta = currentState - previousStates[dev]
             delta = delta.toVerboseString()
         else:
