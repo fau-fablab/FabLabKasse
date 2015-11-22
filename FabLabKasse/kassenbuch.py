@@ -781,97 +781,147 @@ if __name__ == '__main__':
 
         print("done")
 
-    elif arguments['client'] and arguments['create']:
-        # Name
-        while True:
-            name = raw_input('Name (ohne Leer- und Sonderzeichen!): ')
+    elif arguments['client'] and (arguments['create'] or arguments['edit']):
 
-            if not re.match(ur'^[a-zA-Z0-9]{1,}$', name):
-                print("Eingabe enthält ungültige Zeichen")
-                continue
-            elif k.cur.execute('SELECT id FROM kunde WHERE name=?', (name,)).fetchone() is not None:
-                print("Name ist bereits in Verwendung.")
-                continue
-            else:
-                kunde = Kunde(name)
-                break
+        def fetch_input(explanation, default_input=None, allowed_regexp=None, extra_checks=None):
+            """
+            Fetches an input from stdin or uses the default
+            if no input was given and checks it
+            :param explanation: the explanation text of this input
+            :param default_input: the default value for this input or None
+            :param allowed_regexp: a regexp to check if the input is allowed
+            :param extra_checks: a function or lambda expression that
+                    requires the input as str as argument and returns True or False
+            :type default_input: basestr | None
+            :type explanation: basestr
+            :type allowed_regexp: basestr | None
+            :type extra_checks: function | None
+            """
+            default_str = " [{}]".format(unicode(default_input)) if default_input is not None else ""
+            allowed_regexp = allowed_regexp if allowed_regexp is not None else ur".*"
+            extra_checks = extra_checks if extra_checks else lambda x: True
+
+            while True:
+                input_str = raw_input(u"{e}{d}: ".format(
+                    e=explanation, d=default_str))
+
+                if input_str == '' and default_input is not None:
+                    input_str = unicode(default_input)
+
+                if not re.match(allowed_regexp, input_str):
+                    print('[!] Eingabe ungültig!')
+                    continue  # retry
+                elif extra_checks(input_str):
+                    return input_str  # success
+                else:
+                    continue  # retry
+
+        if arguments['edit']:
+            try:
+                kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
+            except NoDataFound:
+                print(u"[!] Konnte keinen Kunde unter '{}' finden.".format(arguments['<name>']))
+                sys.exit(2)
+        else:
+            kunde = Kunde('')  # will be filled in later
+
+        # Name
+        def check_name_unique(name):
+            """
+            Check function for fetch_input
+            checks if the given client name is unique (or unchanged)
+            :param name: the name to check if it is unique
+            :type name: basestr
+            :rtype : bool
+            """
+            if arguments['edit'] and kunde and name == kunde.name:
+                return True  # kunde keeps old name -> that's allowed
+            if k.cur.execute('SELECT id FROM kunde WHERE name=?', (name,)).fetchone() is not None:
+                print("[!] Name ist bereits in Verwendung.")
+                return False
+            return True
+
+        default = None if not arguments['edit'] else kunde.name
+        kunde.name = fetch_input(explanation=u'Name (ohne Leer- und Sonderzeichen!)',
+                                 default_input=default,
+                                 allowed_regexp=ur'^[a-zA-Z0-9]{1,}$',
+                                 extra_checks=check_name_unique)
 
         # PIN
-        while True:
-            print("zufällige PIN-Vorschläge: {:04} {:04} {:04}".format(
-                random.randint(1, 9999), random.randint(1, 9999), random.randint(1, 9999)))
-            pin = raw_input(u'PIN (vier Ziffern, 0000 bedeutet deaktiviert): ')
+        print("[i] zufällige PIN-Vorschläge: {:04} {:04} {:04}".format(
+            random.randint(1, 9999), random.randint(1, 9999), random.randint(1, 9999)))
 
-            if re.match(r'^[0-9]{4}$', pin):
-                kunde.pin = pin
-                break
-            else:
-                print("Nur vier Ziffern sind erlaubt.")
-                continue
+        default = None if not arguments['edit'] else kunde.pin
+        kunde.pin = fetch_input(explanation=u'PIN (4 Ziffern, 0000: deaktiviert)',
+                                default_input=default,
+                                allowed_regexp=ur'^[0-9]{4}$')
 
         # Schuldengrenze
-        while True:
-            schuldengrenze = raw_input('Schuldengrenze (>=0 beschraenkt, -1 unbeschraenkt): ')
+        def check_number_decimal(n):
+            """
+            Check function for fetch_input; checks if n is a Decimal
+            :param n: the number to check
+            :type n: unicode, str
+            :rtype : bool
+            """
             try:
-                schuldengrenze = Decimal(schuldengrenze)
+                Decimal(n)
+                return True
             except InvalidOperation:
-                print("Formatierung ungueltig. Korrekt waere z.B. '100.23' oder '-1'.")
-                continue
+                print(u"[!] Formatierung ungültig.\n \
+                            Korrekt wäre z.B. '100.23' oder '-1'.")
+                return False
 
-            if schuldengrenze >= Decimal('0') or schuldengrenze == Decimal('-1'):
-                kunde.schuldengrenze = schuldengrenze
-                break
+        def check_number_greater_zero_or_minus_one(n):
+            """
+            Check function for fetch_input; checks if n >= 0 or == -1
+            :param n: the number to check
+            :type n: unicode, str
+            :rtype : bool
+            """
+            if Decimal(n) >= Decimal('0') or Decimal(n) == Decimal('-1'):
+                return True
             else:
-                print("Schuldengrenze muss >= 0 oder = -1 sein")
-                continue
+                print("[!] Schuldengrenze muss >= 0 oder = -1 sein")
+                return False
+
+        default = None if not arguments['edit'] else kunde.schuldengrenze
+        kunde.schuldengrenze = Decimal(
+            fetch_input(explanation=u'Schuldengrenze (>=0: beschraenkt oder -1: unbeschraenkt)',
+                        default_input=default,
+                        allowed_regexp=ur'^[0-9-+,.]+$',
+                        extra_checks=lambda n: check_number_decimal(n) and check_number_greater_zero_or_minus_one(n)))
 
         # Email
-        while True:
-            email = raw_input('Email: ')
-
-            if re.match(r'^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$', email):
-                kunde.email = email
-                break
-            else:
-                print("Ungueltige Mailadresse.")
-                continue
+        default = None if not arguments['edit'] else kunde.email
+        kunde.email = fetch_input(explanation=u'Email',
+                                  default_input=default,
+                                  allowed_regexp=ur'^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$')
 
         # Telefon
-        while True:
-            telefon = raw_input('Telefonnummer: ')
-
-            if re.match(r'[0-9 \+\-#\*\(\)/]+', telefon):
-                kunde.telefon = telefon
-                break
-            else:
-                print("Nur Ziffern, Leer, Raute, ... sind erlaubt.")
+        default = None if not arguments['edit'] else kunde.telefon
+        kunde.telefon = fetch_input(explanation=u'Telefonnummer (optional; Ziffern, Leer, Raute, ... )',
+                                    default_input=default,
+                                    allowed_regexp=ur'^[0-9 \+\-#\*\(\)/]*$')
 
         # Adresse
-        while True:
-            adresse = raw_input('Adresse (nur eine Zeile): ')
-            if adresse:
-                kunde.adresse = adresse
-            break
+        default = None if not arguments['edit'] else kunde.adresse
+        kunde.adresse = fetch_input(explanation=u'Adresse (optional; nur eine Zeile)',
+                                    default_input=default)
 
         # Kommentar
-        while True:
-            kommentar = raw_input('Kommentar (nur eine Zeile): ')
-            if kommentar:
-                kunde.kommentar = kommentar
-            break
+        default = None if not arguments['edit'] else kunde.kommentar
+        kunde.kommentar = fetch_input(explanation=u'Kommentar (optional; nur eine Zeile)',
+                                      default_input=default)
 
         try:
             kunde.store(k.cur)
         except sqlite3.IntegrityError as e:
-            print("Name ist bereits in Verwendung.")
+            print("[!] Name ist bereits in Verwendung.")
             sys.exit(2)
 
         k.con.commit()
-        print("Gespeichert. Kundennummer lautet: " + str(kunde.id))
-
-    elif arguments['client'] and arguments['edit']:
-        print("Work-in-progress...")
-        print("IMPLEMENT ME!")
+        print("[i] Gespeichert. Kundennummer lautet: {}".format(kunde.id))
 
     elif arguments['client'] and arguments['show']:
         try:
