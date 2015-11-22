@@ -62,6 +62,7 @@ if __name__ == "__main__":
 
     cfg = scriptHelper.getConfig()
 
+
 def shopping_backend_factory(backendname):
     """ load a Shopping Backend according to backendname
     :param backendname: name of backend
@@ -805,7 +806,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
     # keyboard search interaction
     def on_lineEdit_search_clicked(self):
-        self.stackedWidget.setCurrentIndex(2)
+        self.stackedWidget.setCurrentIndex(1)
 
     def insertIntoLineEdit_Suche(self, char):
         self.lineEdit_Suche.setFocus()
@@ -830,9 +831,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
     def leaveSearch(self, keepResultsVisible=False):
         self.lineEdit_Suche.clear()
-        if self.stackedWidget.currentIndex() != 1:
+        if self.stackedWidget.currentIndex() != 0:
             # after search set view from keyboard to basket
-            self.stackedWidget.setCurrentIndex(1)
+            self.stackedWidget.setCurrentIndex(0)
             if not keepResultsVisible:
                 self.updateProductsAndCategories()
         # Give focus to lineEdit
