@@ -118,7 +118,7 @@ def format_money(amount):
 
 class Category(object):
     """represents a category of Products"""
-    
+
     def __init__(self, categ_id, name, parent_id=None):
         self.categ_id = categ_id
         self.name = name
@@ -131,11 +131,11 @@ class Category(object):
 class Product(object):
 
     """simple representation for a product
-    
+
     :param prod_id: numeric unique product ID
     :type prod_id: int
     :param categ_id: category ID of product, or None if the product is not directly visible
-    
+
                      TODO hide these products from search, or a more explicit solution
     :type categ_id: int | None
     :param name: Name of product
@@ -158,7 +158,7 @@ class Product(object):
     """
 
     def __init__(self, prod_id, name, price, unit, location, categ_id=None, qty_rounding=0, text_entry_required=False):
-        
+
         self.prod_id = prod_id
         self.name = name
         assert isinstance(price, (Decimal, int))
@@ -190,11 +190,11 @@ class OrderLine(object):
     :param Decimal price_subtotal: price for ``qty`` * ``unit``  of this product
 
     :param boolean delete_if_zero_qty: if the qty is zero and the user starts adding something else, then remove this line
-    
-    
+
+
        [ usually True, set to False for products that also may as comment limes costing nothing ]
     """
-    
+
     def __init__(self, order_line_id, qty, unit, name, price_per_unit, price_subtotal, delete_if_zero_qty=True):
 
         self.order_line_id = order_line_id
@@ -241,7 +241,7 @@ class AbstractShoppingBackend(object):
     __metaclass__ = ABCMeta
 
     def __init__(self, cfg):
-        """cfg: config from ScriptHelper.getConfig()"""
+        """:param cfg: config from ScriptHelper.getConfig()"""
         self.cfg = cfg
 
     def format_money(self, amount):
@@ -447,12 +447,13 @@ class AbstractShoppingBackend(object):
         new_debt = debt + self.get_current_total()
         debt_limit = client.get_debt_limit()
         if new_debt > debt_limit:
+            email = self.cfg.get('general', 'support_mail')
             raise DebtLimitExceeded(
-                u"Der Kontostand wäre mit dieser Buchung über seinem Limit.\n" +
+                u"Der Kontostand wäre mit dieser Buchung über seinem Limit.\n"
                 u"Aktuelles Guthaben: {:.2f}\n"
                 u"Schuldengrenze für dieses Konto: {:.2f}\n\n"
-                u"Bie Fragen bitte an kasse@fablab.fau.de wenden."
-                .format(-debt, debt_limit))
+                u"Bie Fragen bitte an {} wenden."
+                .format(-debt, debt_limit, email))
 
         self._pay_order_on_client_unchecked(client)
 

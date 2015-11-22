@@ -632,9 +632,10 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                     # TOOD show amount returned on receipt (needs some rework, because it is not yet stored in the order and so we cannot re-print receipts)
                     self.shoppingBackend.print_receipt(paymentmethod.receipt_order_id)
                 except PrinterError,  e:
-                    QtGui.QMessageBox.warning(self, "Quittung", "Drucker scheint offline zu sein." +
-                                              "\nFalls du wirklich eine Quittung brauchst, melde dich bei " +
-                                              "kasse@fablab.fau.de mit Datum, Uhrzeit und Betrag.")
+                    email = cfg.get('general', 'support_mail')
+                    QtGui.QMessageBox.warning(self, "Quittung", u"Drucker scheint offline zu sein.\n"
+                                              u"Falls du wirklich eine Quittung brauchst, melde dich bei "
+                                              u"{} mit Datum, Uhrzeit und Betrag.".format(email))
                     logging.warning("printing receipt failed: {0}".format(repr(e)))
         if paymentmethod.successful:
             paymentmethod.show_thankyou()

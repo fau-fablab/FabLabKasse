@@ -25,8 +25,11 @@ from decimal import Decimal
 
 class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
 
-    def __init__(self, parent, amount_total):
-        """payment method dialog for automatic cash payin and payout"""
+    def __init__(self, parent, amount_total, cfg):
+        """
+        payment method dialog for automatic cash payin and payout
+        :param cfg: config from ScriptHelper.getConfig()
+        """
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
         # maximize window - WORKAROUND because showMaximized() doesn't work
@@ -51,6 +54,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
         self.centsReceived = None
         self.centsPaidOut = None
         self.returnDonated = False
+        self.cfg = cfg
         # The finish button doesn't print a receipt, only the "print receipt and finish" one.
         # Sometimes the later logic still forces receipt printing  (e.g. payment aborted, not everything paid back)
         self.receipt_wanted = False
@@ -271,7 +275,10 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
                 text = text + u" <p>Ein Rest von {0} konnte leider nicht zurückgezahlt werden.</p>".format(PayupCashDialog.formatCent(self.centsToPayOut - self.centsPaidOut))
             if self.centsToPay > 0:  # payment not aborted
                 text += u"<p>Bitte das Aufräumen nicht vergessen!</p>"
-            text = text + u'<p style="font-size:14px"> Sollte etwas nicht stimmen, benachrichtige bitte sofort einen Betreuer und melde dich bei kasse@fablab.fau.de.</p></html>'
+            email = self.cfg.get('general', 'support_mail')
+            text += u'<p style="font-size:14px"> Sollte etwas nicht stimmen, ' + \
+                u'benachrichtige bitte sofort einen Betreuer und melde dich ' + \
+                u'bei {}.</p></html>'.format(email)
             self.label_status.setText(text)
             self.pushButton_finish.setVisible(True)
             # only ask for receipt if something was paid
