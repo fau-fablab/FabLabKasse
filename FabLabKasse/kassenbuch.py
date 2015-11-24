@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
-# Copyright (C) 2014  Julian Hammer <julian.hammer@fablab.fau.de>
+# Copyright (C) 2015  Julian Hammer <julian.hammer@fablab.fau.de>
 #                     Maximilian Gaukler <max@fablab.fau.de>
 #                     Patrick Kanzler <patrick.kanzler@fablab.fau.de>
 #                     Timo Voigt <timo@fablab.fau.de>
@@ -21,9 +21,9 @@
 """Kassenbuch Backend mit doppelter Buchführung.
 
 Usage:
-  kassenbuch.py show [<from> [<until>]]
+  kassenbuch.py show [--hide-receipts] [<from> [<until>]]
   kassenbuch.py export (book|invoices) <outfile> [<from> [<until>]] [--format=<fileformat>]
-  kassenbuch.py summary [<from> [<until>]]
+  kassenbuch.py summary [<until>]
   kassenbuch.py transfer <source> <destination> <amount> <comment>...
   kassenbuch.py client (create|list)
   kassenbuch.py client (edit|show|summary) <name>
@@ -36,7 +36,10 @@ Options:
   -h --help     Show this screen.
   --version     Show version.
   --format=<fileformat>  Export Dateityp [default: csv].
+  --hide-receipts    Don't show receipts in summary output, just the account balances
 
+Date format:
+  <from>/<until> is ISO formatted datetime, like 2016-12-31 or "2016-12-31 13:37:42"
 """
 
 import sqlite3
@@ -350,7 +353,15 @@ class Kasse(object):
     def buchungen(self):
         return self.get_buchungen()
 
-    def get_buchungen(self, von=None, bis=None):
+    def get_buchungen(self, from_date=None, until_date=None):
+        """
+        get accounting records between the given dates. If a date is ``None``, no filter will be applied.
+
+        :param from_date: start datetime (included)
+        :param until_date: end datetime (not included)
+        :type from_date: datetime.datetime | None
+        :type until_date: datetime.datetime | None
+        """
         buchungen = []
 
         self.cur.execute("SELECT id FROM buchung")
@@ -358,15 +369,10 @@ class Kasse(object):
             buchungen.append(Buchung.load_from_id(row[0], self.cur))
 
         # TODO move filters to SQL query
-        if von:
-            if isinstance(von, basestring):
-                von = dateutil.parser.parse(von)
-                print(von)
-            buchungen = filter(lambda b: b.datum >= von, buchungen)
-        if bis:
-            if isinstance(bis, basestring):
-                bis = dateutil.parser.parse(bis)
-            buchungen = filter(lambda b: b.datum < bis, buchungen)
+        if from_date:
+            buchungen = filter(lambda b: b.datum >= from_date, buchungen)
+        if until_date:
+            buchungen = filter(lambda b: b.datum < until_date, buchungen)
 
         return buchungen
 
@@ -382,12 +388,8 @@ class Kasse(object):
             rechnungen.append(Rechnung.load_from_id(row[0], self.cur))
 
         if von:
-            if isinstance(von, basestring):
-                von = dateutil.parser.parse(von)
             rechnungen = filter(lambda b: b.datum >= von, rechnungen)
         if bis:
-            if isinstance(bis, basestring):
-                bis = dateutil.parser.parse(bis)
             rechnungen = filter(lambda b: b.datum < bis, rechnungen)
 
         return rechnungen
@@ -421,18 +423,39 @@ class Kasse(object):
             b._store(self.cur)
         self.con.commit()
 
-    def to_string(self, von=None, bis=None):
+    def to_string(self, from_date=None, until_date=None, snapshot_time=None, show_receipts=True):
         # TODO saldo vorher und nachher mit ausgeben
-        s = u'Buchungen:\n'
+        """
+        get detailled accounting information as text
+
+        :param from_date: see :meth:`get_buchungen`
+        :param until_date: see :meth:`get_buchungen`
+        :param snapshot_time: to guard against race-conditions, fetch ``datetime.datetime.now()`` at the startup of your script and pass it to :meth:`to_string` and :meth:`summary_to_string`. It will be used if `until_date` is not set.
+        :type snapshot_time: datetime.datetime | None
+        :param boolean show_receipts: output receipts
+        """
+
+        s = ''
+        if not snapshot_time:
+            snapshot_time = datetime.now()
+        filter_until_date = until_date or snapshot_time
+        if until_date and until_date > snapshot_time:
+            # the guard against race conditions doesn't work here -- exit.
+            raise Exception("The requested end date is in the future. If you called kassenbuch.py, please omit the parameter <until>. If you want to, you can also specify an exact time shortly in the past like '2015-12-31 12:49:00', if you use quotes for the shell argument.")
+
+        if from_date:
+            s += self.summary_to_string(from_date) + '\n\n\n'
+        s += u'Buchungen:\n'
         s += Buchung.header
-        buchungen = self.get_buchungen(von, bis)
+        buchungen = self.get_buchungen(from_date, filter_until_date)
         for b in buchungen:
             s += b.to_string() + '\n'
 
-        rechnungen = self.get_rechnungen(von, bis)
-        s += '\n\nRechnungen:\n'
-        for r in rechnungen:
-            s += r.to_string() + '\n'
+        if show_receipts:
+            rechnungen = self.get_rechnungen(from_date, filter_until_date)
+            s += '\n\nRechnungen:\n'
+            for r in rechnungen:
+                s += r.to_string() + '\n'
 
         konto_saldi = {}
         for b in buchungen:
@@ -440,15 +463,57 @@ class Kasse(object):
 
         s += '\nKonten:\n'
         s += 'KONTO               '
-        if von or bis:
+        if from_date or until_date:
             s += 'SALDOAENDERUNG\n'
         else:
             s += 'SALDO\n'
 
         for konto, saldo in konto_saldi.items():
             s += '{:<16} {:>8.2f} EUR\n'.format(konto, saldo)
+        
+        s += '\n\n\n' + self.summary_to_string(filter_until_date)
 
         return s
+
+    def summary_to_string(self, date=None, snapshot_time=None):
+        """
+        Output account totals at given date.
+
+        :type date: datetime.datetime | None
+        :type snapshot_time: datetime.datetime | None
+        :rtype: unicode
+        """
+        string = ""
+        date = date or snapshot_time or datetime.now()
+
+        buchungen = self.get_buchungen(from_date=None, until_date=date)
+
+        string += "Kassenstand am {}:\n".format(date)
+        if not buchungen:
+            string += "(noch keine Buchungen an diesem Datum -- 0 EUR)\n"
+            return string
+        else:
+            string += u"(letzte darin enthaltene Buchung ist '{title}' vom {end})\n".format(title=buchungen[-1].beschreibung, end=buchungen[-1].datum)
+
+        konto_haben = {}
+        konto_soll = {}
+        konto_saldi = {}
+        for b in buchungen:
+            if b.betrag > 0:
+                konto_haben[b.konto] = konto_haben.get(b.konto, Decimal(0)) + b.betrag
+            else:
+                konto_soll[b.konto] = konto_soll.get(b.konto, Decimal(0)) - b.betrag
+
+            konto_saldi[b.konto] = konto_saldi.get(b.konto, Decimal(0)) + b.betrag
+
+        string += u'{:<16} {:>10} {:>10} {:>10}\n'.format("KONTO", "HABEN", "SOLL", "SALDO").encode('utf-8')
+        for konto, saldo in konto_saldi.items():
+            string += u'{:<16} {:>10.2f} {:>10.2f} {:>10.2f} EUR\n'.format(
+                konto,
+                konto_haben.get(konto, Decimal(0)),
+                konto_soll.get(konto, Decimal(0)),
+                saldo)
+        return string
 
 
 class Kunde(object):
@@ -680,6 +745,20 @@ class UnicodeWriter(object):
             self.writerow(row)
 
 
+def parse_date(date):
+    """
+    parse date from string or None
+
+    :type date: basestr | None
+    :rtype: datetime.datetime | None
+    """
+    if isinstance(date, basestring) and date != '':
+        return dateutil.parser.parse(date)
+    if date is None:
+        return None
+    else:
+        raise ValueError('cannot parse date value')
+
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='Kassenbuch 1.0')
 
@@ -690,6 +769,12 @@ if __name__ == '__main__':
     arguments.update(
         dict(map(lambda t: (t[0], t[1].decode('utf-8')),
                  filter(lambda t: isinstance(t[1], str), arguments.items()))))
+
+    # decode date arguments
+    for arg_name in ['<until>', '<from>']:
+        # TODO also parse rechnung ID here (convert to date=max(rechnung.datum, rechnung.buchungen.datum) ?)
+        arguments[arg_name] = parse_date(arguments[arg_name])
+
 
     cfg = scriptHelper.getConfig()
     k = Kasse(cfg.get('general', 'db_file'))
@@ -704,8 +789,12 @@ if __name__ == '__main__':
     # b3 = Buchung(u"Gutschein_10", Decimal(-2.00), rechnung=r.id, datum=b1.datum)
     # k.buchen([b1,b2,b3])
 
+    # set current date to guard against race conditions
+    startup_time = datetime.now()
+    # TODO does not help if until argument is given that is greater than the current date
+    # (and doesn't work at timezone jumps etc.)
     if arguments['show'] and not arguments['client']:
-        print(k.to_string(von=arguments['<from>'], bis=arguments['<until>']).encode('utf-8'))
+        print(k.to_string(from_date=arguments['<from>'], until_date=arguments['<until>'], snapshot_time=startup_time, show_receipts=not arguments['--hide-receipts']).encode('utf-8'))
 
     elif arguments['export'] and arguments['book']:
         assert arguments['--format'] == 'csv', "Format not supported."
@@ -737,34 +826,7 @@ if __name__ == '__main__':
                 writer.writerow([])
 
     elif arguments['summary'] and not arguments['client']:
-        buchungen = k.get_buchungen(arguments['<from>'], arguments['<until>'])
-
-        if not buchungen:
-            print("Keine Buchungen gefunden")
-            print(arguments['<from>'] + " " + arguments['<until>'])
-            exit()
-
-        print("Kassenbuch Kurzfassung:")
-        print("Von " + buchungen[0].datum.strftime('%Y-%m-%d') + " bis " + buchungen[-1].datum.strftime('%Y-%m-%d'))
-
-        konto_haben = {}
-        konto_soll = {}
-        konto_saldi = {}
-        for b in buchungen:
-            if b.betrag > 0:
-                konto_haben[b.konto] = konto_haben.get(b.konto, Decimal(0)) + b.betrag
-            else:
-                konto_soll[b.konto] = konto_soll.get(b.konto, Decimal(0)) - b.betrag
-
-            konto_saldi[b.konto] = konto_saldi.get(b.konto, Decimal(0)) + b.betrag
-
-        print(u'{:<16} {:>8} {:>8} {:>8}'.format("KONTO", "HABEN", "SOLL", "SALDO").encode('utf-8'))
-        for konto, saldo in konto_saldi.items():
-            print(u'{:<16} {:>8.2f} {:>8.2f} {:>8.2f} EUR'.format(
-                konto,
-                konto_haben.get(konto, Decimal(0)),
-                konto_soll.get(konto, Decimal(0)),
-                saldo).encode('utf-8'))
+        print(k.summary_to_string(date=arguments['<until>'], snapshot_time=startup_time).encode('utf-8'))
 
     elif arguments['transfer']:
         try:
