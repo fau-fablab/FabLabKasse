@@ -470,7 +470,7 @@ class Kasse(object):
 
         for konto, saldo in konto_saldi.items():
             s += '{:<16} {:>8.2f} EUR\n'.format(konto, saldo)
-        
+
         s += '\n\n\n' + self.summary_to_string(filter_until_date)
 
         return s
@@ -906,7 +906,7 @@ if __name__ == '__main__':
         default = None if not arguments['edit'] else kunde.name
         kunde.name = fetch_input(explanation=u'Name (ohne Leer- und Sonderzeichen!)',
                                  default_input=default,
-                                 allowed_regexp=ur'^[a-zA-Z0-9]{1,}$',
+                                 allowed_regexp=ur'^[a-zA-Z0-9\/_-]{1,}$',
                                  extra_checks=check_name_unique)
 
         # PIN
