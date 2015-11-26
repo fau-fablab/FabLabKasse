@@ -17,6 +17,8 @@
 """unittests for kassenbuch.py"""
 import unittest
 from FabLabKasse.kassenbuch import Kasse, Kunde, NoDataFound
+from hypothesis import given
+from hypothesis.strategies import text
 
 
 class KassenbuchTestCase(unittest.TestCase):
@@ -30,16 +32,17 @@ class KassenbuchTestCase(unittest.TestCase):
         self.assertFalse(kasse.rechnungen)
         self.assertFalse(kasse.buchungen)
 
-    def test_accounting_database_client_creation(self):
+    @given(clientname=text())
+    def test_accounting_database_client_creation(self, clientname):
         """very basically test the creation of a new client"""
         kasse = Kasse(sqlite_file=':memory:')
         self.assertFalse(kasse.kunden)
         # TODO thouroughly test client creation, this seems to be fishy somewhere
-        bob = Kunde("bob", schuldengrenze=0)
+        bob = Kunde(clientname, schuldengrenze=0)
         bob.store(cur=kasse.cur)
         kasse.con.commit()
         try:
-            Kunde.load_from_name("bob", kasse.cur)
+            Kunde.load_from_name(clientname, kasse.cur)
         except NoDataFound:
             self.fail("client entry in database has not been created")
         # TODO test integrity checking (no double creation of same ID)

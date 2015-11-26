@@ -98,6 +98,12 @@ if __name__ == "__main__":
 - Develop features in a separate branch, rebasing into logically divided commits is encouraged
 - Please no fast-forward-merging (use `git merge --no-ff`, standard behaviour of Github pull requests)
 - [This article](http://nvie.com/posts/a-successful-git-branching-model/) propagates a similar model
+- You should add the following to your `.git/config` in order to support merging of the hypothesis-database:
+```
+[merge "hypothesisdb"]
+  name = Hypothesis database files
+  driver = python -m hypothesis.tools.mergedbs %O %A %B
+```
 
 # Commit messages
 
