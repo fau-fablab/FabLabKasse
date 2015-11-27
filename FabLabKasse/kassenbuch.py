@@ -581,6 +581,14 @@ class Kunde(object):
         return self.id
 
     def _load_buchungen(self, cur):
+        """loads all transactions of a client (by id) and discards current transactions
+
+        This function loads all transactions of a client. The id of the client is specified in
+        :py:attr:`FabLabKasse.kassenbuch.Kunde.id`. It discards the content of
+        :py:attr:`FabLabKasse.kassenbuch.Kunde.buchungen`.
+        :param cur: sqlite cursor to database
+        :type cur: sqlite3.Cursor
+        """
         if self.id is None:
             self.buchungen = []
             return
