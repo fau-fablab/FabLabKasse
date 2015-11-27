@@ -10,3 +10,5 @@
 
 # compiled files
 *.pyc
+
+.hypothesis/eval_source
