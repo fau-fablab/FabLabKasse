@@ -21,6 +21,7 @@ from .uic_generated.PayupCashDialog import Ui_PayupCashDialog
 import functools
 import logging
 from decimal import Decimal
+from ConfigParser import Error as ConfigParserError
 
 
 class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
@@ -275,10 +276,13 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
                 text = text + u" <p>Ein Rest von {0} konnte leider nicht zurückgezahlt werden.</p>".format(PayupCashDialog.formatCent(self.centsToPayOut - self.centsPaidOut))
             if self.centsToPay > 0:  # payment not aborted
                 text += u"<p>Bitte das Aufräumen nicht vergessen!</p>"
-            email = self.cfg.get('general', 'support_mail')
             text += u'<p style="font-size:14px"> Sollte etwas nicht stimmen, ' + \
-                u'benachrichtige bitte sofort einen Betreuer und melde dich ' + \
-                u'bei {}.</p></html>'.format(email)
+                u'benachrichtige bitte sofort einen Betreuer'
+            try:
+                email = self.cfg.get('general', 'support_mail')
+                text += u' und melde dich bei {}.</p></html>'.format(email)
+            except ConfigParserError:
+                text += '.</p></html>'
             self.label_status.setText(text)
             self.pushButton_finish.setVisible(True)
             # only ask for receipt if something was paid

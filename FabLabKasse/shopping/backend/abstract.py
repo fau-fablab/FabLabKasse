@@ -27,6 +27,7 @@ import itertools
 import locale
 import unittest
 import doctest
+from ConfigParser import Error as ConfigParserError
 
 # counter for unique id values, use next(_id_counter) to get a new ID
 _id_counter = itertools.count()
@@ -79,6 +80,7 @@ def format_qty(qty):
         s = s[:-2]
     s = s.replace(".", locale.localeconv()['decimal_point'])
     return s
+
 
 def format_money(amount):
     """format float as money string
@@ -447,12 +449,15 @@ class AbstractShoppingBackend(object):
         new_debt = debt + self.get_current_total()
         debt_limit = client.get_debt_limit()
         if new_debt > debt_limit:
-            email = self.cfg.get('general', 'support_mail')
+            try:
+                email = self.cfg.get('general', 'support_mail')
+            except ConfigParserError:
+                email = u"einen zuständigen Betreuer"
             raise DebtLimitExceeded(
                 u"Der Kontostand wäre mit dieser Buchung über seinem Limit.\n"
                 u"Aktuelles Guthaben: {:.2f}\n"
                 u"Schuldengrenze für dieses Konto: {:.2f}\n\n"
-                u"Bie Fragen bitte an {} wenden."
+                u"Bie Fragen wende dich bitte an {}."
                 .format(-debt, debt_limit, email))
 
         self._pay_order_on_client_unchecked(client)
