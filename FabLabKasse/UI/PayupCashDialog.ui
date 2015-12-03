@@ -481,7 +481,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Rechnung ausdrucken</string>
+          <string>Quittung ausdrucken</string>
          </property>
          <property name="icon">
           <iconset theme="document-print"/>
