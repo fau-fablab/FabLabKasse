@@ -61,6 +61,7 @@ from ..kassenbuch import Kasse
 from decimal import Decimal
 import copy
 import sys
+import operator as op
 
 from termcolor import colored
 
@@ -137,7 +138,7 @@ class CashState(object):
     def __sub__(self, other):
         assert type(other) == type(self)
         # basic check: negating twice should be identity
-        assert -(-other) == other  # pylint: disable=E0107
+        assert op.neg(op.neg(other)) == other
         return self + (-other)
 
     def __neg__(self):
