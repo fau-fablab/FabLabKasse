@@ -599,15 +599,18 @@ def printLog(db, date_from=None, date_to=None):
     if date_from:
         print "showing from {}".format(fromDate)
     columnTitles = ["device.sub", "date", "manual?", "type", "comment", "delta", "delta", "dev.total", "dev.total"]
-    columnWidths = [15, 26, 7, 4, 40, 8, 20, 8, 20]
+    # column width -1 is infinite width, but without padding
+    # -- may only be used for the last column
+    columnWidths = [15, 26, 7, 4, 40, 8, 20, 8, -1]
 
     def printFormatted(output):
         for i in range(len(output)):
             output[i] = unicode(output[i])
             l = len(output[i])
-            output[i] = output[i].ljust(columnWidths[i])
-            if l > columnWidths[i]:
-                output[i] = output[i][0:columnWidths[i] - 3] + "..."
+            if columnWidths[i] > 0:
+                output[i] = output[i].ljust(columnWidths[i])
+                if l > columnWidths[i]:
+                    output[i] = output[i][0:columnWidths[i] - 3] + "..."
         print u"|".join(output)
     printFormatted(columnTitles)
     previousStates = {}
