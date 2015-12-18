@@ -185,16 +185,8 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
             if pay is not None:
                 [self.payoutMaximumAmount, self.payoutRemainingAmount] = pay
 
-                # all amounts under 50€ may be paid with <= n+50€
+                # the user may always pay up to 50€ too much
                 self.allowedOverpay = 50 * 100
-                if self.centsToPay < 50 * 100:
-                    # above 50€ may pay n+100€
-                    if self.payoutMaximumAmount > 50 * 100:
-                        self.allowedOverpay = min(self.payoutMaximumAmount, 100 * 100)
-
-                if self.allowedOverpay > self.payoutMaximumAmount:
-                    # cannot pay out all overpayment
-                    pass  # do not limit payin, just warn the user, it's his problem
 
                 self.state = "askLowPayout"
                 logging.info("canPayout: {} with max. rest {} / to pay: {} / allowed overpay: {}".format(self.payoutMaximumAmount, self.payoutRemainingAmount, self.centsToPay, self.allowedOverpay))
