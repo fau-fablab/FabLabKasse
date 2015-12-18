@@ -102,14 +102,14 @@ def main():
 
     def runShutdown(program):
         """run sudo <program> and wait forever until the system reboots / shuts down"""
-        print("calling {}".format(program))
+        print("calling {0}".format(program))
         time.sleep(1)
         if subprocess.call(["sudo", program]) != 0:
-            print("cannot sudo {}".format(program))
+            print("cannot sudo {0}".format(program))
             time.sleep(5)
         else:
             while True:
-                print("Waiting for system {}".format(program))
+                print("Waiting for system {0}".format(program))
                 sys.stdout.flush()
                 time.sleep(1)
 

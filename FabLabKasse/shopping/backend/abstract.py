@@ -60,7 +60,7 @@ def float_to_decimal(number, digits):
     if not abs(number) < 10 ** (10 + digits):
         raise ValueError("cannot precisely convert such a large float to Decimal")
     if not abs(float(result) - float(number)) < (10 ** -(digits + 3)):
-        raise ValueError("attempted inaccurate conversion from {} to {}".format(repr(number), repr(result)))
+        raise ValueError("attempted inaccurate conversion from {0} to {1}".format(repr(number), repr(result)))
     return result
 
 
@@ -108,7 +108,7 @@ def format_money(amount):
     >>> format_money(Decimal('5.8899'))
     u'5,89 \u20ac'
     """
-    formatted = u'{:.3f}'.format(amount)
+    formatted = u'{0:.3f}'.format(amount)
 
     if formatted.endswith("0"):
         formatted = formatted[:-1]
@@ -125,7 +125,7 @@ class Category(object):
         self.parent_id = parent_id
 
     def __repr__(self):
-        return "Category({}, {}, {})".format(self.categ_id, repr(self.name), self.parent_id)
+        return "Category({0}, {1}, {2})".format(self.categ_id, repr(self.name), self.parent_id)
 
 
 class Product(object):
@@ -210,10 +210,10 @@ class OrderLine(object):
         self.delete_if_zero_qty = delete_if_zero_qty
 
     def __unicode__(self):
-        return u"{} {} {} = {}".format(format_qty(self.qty), self.unit, self.name, format_money(self.price_subtotal))
+        return u"{0} {1} {2} = {3}".format(format_qty(self.qty), self.unit, self.name, format_money(self.price_subtotal))
 
     def __repr__(self):
-        return "<{}(id={}, qty={}, unit={}, name={}, price_per_unit={}, price_subtotal={})>".format(self.__class__.__name__, repr(self.order_line_id), repr(self.qty), repr(self.unit), repr(self.name), repr(self.price_per_unit), repr(self.price_subtotal))
+        return "<{0}(id={1}, qty={2}, unit={3}, name={4}, price_per_unit={5}, price_subtotal={6})>".format(self.__class__.__name__, repr(self.order_line_id), repr(self.qty), repr(self.unit), repr(self.name), repr(self.price_per_unit), repr(self.price_subtotal))
 
 
 class DebtLimitExceeded(Exception):

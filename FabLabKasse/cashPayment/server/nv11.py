@@ -140,7 +140,7 @@ class NV11CashServer(CashServer):
                 self.dev.stackFromPayout()
                 self.stackingFromPayoutActive = True
             elif action == "stop":
-                logging.info("cannot payout any more. paid out: {}, requested: {}\n".format(self.moneyDispensedTotal, self.moneyDispenseAllowed))
+                logging.info("cannot payout any more. paid out: {0}, requested: {1}\n".format(self.moneyDispensedTotal, self.moneyDispenseAllowed))
                 self.currentMode = "stopping"
             else:
                 raise AssertionError("impossible return value")

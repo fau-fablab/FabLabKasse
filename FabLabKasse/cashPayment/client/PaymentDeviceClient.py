@@ -92,7 +92,7 @@ class PaymentDeviceClient(object):
                 following calls will be undefined
         """
         if not self.process.isAlive():
-            raise Exception("device {} server crashed -- check cash-{}.log. If it crashed before writing the logfile, try launching the server yourself with the commandline from gui.log ".format(self, self.options["name"]))
+            raise Exception("device {0} server crashed -- check cash-{1}.log. If it crashed before writing the logfile, try launching the server yourself with the commandline from gui.log ".format(self, self.options["name"]))
         if not self.waitingForResponse:
             if self.status == "stop":
                 if self.stopped:
@@ -101,14 +101,14 @@ class PaymentDeviceClient(object):
                 else:
                     cmd = "STOP"
             elif self.status == "dispense":
-                cmd = "DISPENSE {}".format(self.requestedDispense)
+                cmd = "DISPENSE {0}".format(self.requestedDispense)
             elif self.status == "accept":
-                cmd = "ACCEPT {}".format(self.requestedAccept)
+                cmd = "ACCEPT {0}".format(self.requestedAccept)
                 self.lastSentAccept = self.requestedAccept
             elif self.status == "acceptWait":
                 # alternate between polling and (if necessary) updating the maximum accepted value
                 if self.lastSentAccept != self.requestedAccept and self.lastCommand.startswith("POLL"):
-                    cmd = "UPDATE-ACCEPT {}".format(self.requestedAccept)
+                    cmd = "UPDATE-ACCEPT {0}".format(self.requestedAccept)
                     self.lastSentAccept = self.requestedAccept
                 else:
                     cmd = "POLL"
@@ -141,7 +141,7 @@ class PaymentDeviceClient(object):
         response = self.process.readline()
         if response is None and self.waitingForResponse \
                 and monotonic_time.monotonic() - self.lastResponseTime > 50:
-            raise Exception("device {} server timeout (>50sec)".format(self))
+            raise Exception("device {0} server timeout (>50sec)".format(self))
         if response is not None:
             print "got response: '" + response + "'"
             assert self.waitingForResponse

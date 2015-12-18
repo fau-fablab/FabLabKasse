@@ -68,8 +68,8 @@ def setupGraphicalExceptHook():
             txt = u"Entschuldigung, das Programm wird wegen eines Fehlers beendet."
             infotxt = u"Wenn dir Rückgeld entgangen ist, melde dich bei kasse@fablab.fau.de und gebe " + \
                 u"neben einer Fehlerbeschreibung folgende Uhrzeit an: "
-            infotxt += u"\n{}.".format(str(datetime.datetime.today()))
-            detailtxt = u"{}\n{}".format(str(datetime.datetime.today()), "".join(
+            infotxt += u"\n{0}.".format(str(datetime.datetime.today()))
+            detailtxt = u"{0}\n{1}".format(str(datetime.datetime.today()), "".join(
                 traceback.format_exception(exctype, value, tb, limit=10)))
             logging.fatal(txt)
             logging.fatal(u"Full exception details (stack limit 50):\n" + u"".join(

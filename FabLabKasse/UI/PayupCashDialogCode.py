@@ -115,7 +115,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
 
     def showSuggestedDonations(self):
         """update text of donate[123] buttons"""
-        self.pushButton_donate.setText(u"{} (gesamtes Rückgeld) spenden ".format(PayupCashDialog.formatCent(self.centsReceived - self.centsToPay)))
+        self.pushButton_donate.setText(u"{0} (gesamtes Rückgeld) spenden ".format(PayupCashDialog.formatCent(self.centsReceived - self.centsToPay)))
         suggestedDonations = PayupCashDialog.getSuggestedDonations(toPay=self.centsToPay, payout=self.centsReceived - self.centsToPay)
         suggestedDonations.reverse()
         for i in [1, 2, 3]:
@@ -189,7 +189,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
                 self.allowedOverpay = 50 * 100
 
                 self.state = "askLowPayout"
-                logging.info("canPayout: {} with max. rest {} / to pay: {} / allowed overpay: {}".format(self.payoutMaximumAmount, self.payoutRemainingAmount, self.centsToPay, self.allowedOverpay))
+                logging.info("canPayout: {0} with max. rest {1} / to pay: {2} / allowed overpay: {3}".format(self.payoutMaximumAmount, self.payoutRemainingAmount, self.centsToPay, self.allowedOverpay))
         elif self.state == "askLowPayout":
             warningText = u""
             if self.payoutMaximumAmount < self.allowedOverpay or self.payoutRemainingAmount > 10 * 100:
@@ -232,7 +232,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
             if self.centsToPay == 0:  # payment was aborted, payout return
                 self.payoutReturn(self.centsReceived)
             else:
-                self.label_status.setText(u'<html><p style="margin-bottom:20px;">Du würdest {} Rückgeld bekommen.<br>Möchtest du etwas davon spenden?</br><p style="font-size:14px;">Alle Spenden und Einnahmen werden ausschließlich für das FabLab verwendet.</p></html>'.format(PayupCashDialog.formatCent(self.centsReceived - self.centsToPay)))
+                self.label_status.setText(u'<html><p style="margin-bottom:20px;">Du würdest {0} Rückgeld bekommen.<br>Möchtest du etwas davon spenden?</br><p style="font-size:14px;">Alle Spenden und Einnahmen werden ausschließlich für das FabLab verwendet.</p></html>'.format(PayupCashDialog.formatCent(self.centsReceived - self.centsToPay)))
                 self.pushButton_return.setVisible(True)
                 self.pushButton_donate.setVisible(True)
                 self.showSuggestedDonations()
@@ -268,7 +268,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
             rest = self.centsReceived - self.centsPaidOut - self.centsToPay
             assert rest >= 0
             if self.centsPaidOut < self.centsToPayOut:
-                text = text + u" <p>Ein Rest von {} konnte leider nicht zurückgezahlt werden.</p>".format(PayupCashDialog.formatCent(self.centsToPayOut - self.centsPaidOut))
+                text = text + u" <p>Ein Rest von {0} konnte leider nicht zurückgezahlt werden.</p>".format(PayupCashDialog.formatCent(self.centsToPayOut - self.centsPaidOut))
             if self.centsToPay > 0:  # payment not aborted
                 text += u"<p>Bitte das Aufräumen nicht vergessen!</p>"
             text = text + u'<p style="font-size:14px"> Sollte etwas nicht stimmen, benachrichtige bitte sofort einen Betreuer und melde dich bei kasse@fablab.fau.de.</p></html>'

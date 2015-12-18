@@ -53,7 +53,7 @@ def categ_id_to_list_of_names(c_id, oerp, cfg):
 def importProdukteOERP(data, oerp, cfg):
     print "OERP Import"
     prod_ids = oerp.search('product.product', [('default_code', '!=', False)])
-    print "reading {} products from OERP, this may take some minutes...".format(len(prod_ids))
+    print "reading {0} products from OERP, this may take some minutes...".format(len(prod_ids))
     prods = oerp.read('product.product', prod_ids, ['code', 'name', 'uom_id', 'lst_price', 'categ_id', 'active', 'sale_ok'],
                       context=oerp.context)
 
@@ -105,7 +105,7 @@ def saveToDir(data, outputdir):
 
     for f in os.listdir(outputdir):
         if f.endswith(".txt") and f not in files_written:
-            print "removing stale file {}".format(f)
+            print "removing stale file {0}".format(f)
             os.unlink(outputdir + f)
 
 

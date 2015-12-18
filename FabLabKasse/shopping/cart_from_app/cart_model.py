@@ -49,7 +49,7 @@ class InvalidCartJSONError(Exception):
             text = u""
         text = u"Invalid Cart: " + text
         if property_name:
-            text += u"Property {} has unexpected value: {}".format(property_name, repr(value))
+            text += u"Property {0} has unexpected value: {1}".format(property_name, repr(value))
         Exception.__init__(self, text)
 
 
@@ -224,13 +224,13 @@ class MobileAppCartModel(QObject):
             req = requests.get(self.server_url + self.cart_id, timeout=self.timeout, verify=self._ssl_cert)
             req.raise_for_status()
         except requests.exceptions.HTTPError as exc:
-            logging.debug(u"app-checkout: app server responded with HTTP error {}".format(exc))
+            logging.debug(u"app-checkout: app server responded with HTTP error {0}".format(exc))
             self._tick_error_counter()
             return False
         except requests.exceptions.RequestException as exc:
             # WORKAROUND: SSLError is somehow broken, sometimes its __str__()  method does not return a string
             # therefore we use repr()
-            logging.debug(u"app-checkout: general error in HTTP request: {}".format(repr(exc)))
+            logging.debug(u"app-checkout: general error in HTTP request: {0}".format(repr(exc)))
             self._tick_error_counter()
             return False
         if req.text == "":
@@ -243,7 +243,7 @@ class MobileAppCartModel(QObject):
             self._reset_error_counter()
             return cart
         except InvalidCartJSONError, exception:
-            logging.warning("Cannot decode Cart JSON: {}".format(exception))
+            logging.warning("Cannot decode Cart JSON: {0}".format(exception))
             raise
 
     def _decode_json_cart(self, json):
@@ -257,7 +257,7 @@ class MobileAppCartModel(QObject):
             data = simplejson.loads(json)
         except simplejson.JSONDecodeError:
             raise InvalidCartJSONError("app-checkout: JSONDecodeError")
-        logging.debug(u"received cart: {}".format(repr(data)))
+        logging.debug(u"received cart: {0}".format(repr(data)))
         try:
             if data["status"] != "PENDING":
                 raise InvalidCartJSONError(property_name="status", value=data["status"])
@@ -294,7 +294,7 @@ class MobileAppCartModel(QObject):
             status = "cancelled"
         try:
             req = requests.post(self.server_url + status + "/" + self.cart_id, timeout=self.timeout, verify=self._ssl_cert)  # , HTTPAdapter(max_retries=5))
-            logging.debug("response: {}".format(repr(req.text)))
+            logging.debug("response: {0}".format(repr(req.text)))
             req.raise_for_status()
         except IOError:
             logging.warn("sending cart feedback failed")

@@ -53,7 +53,7 @@ def aggregate_consumption(rechnungen):
             if plu is not None:
                 plu = int(plu)
                 if plu in name.keys() and name[plu] != p['artikel']:
-                    name[plu] = u"{} (ID {}, verschiedene Bezeichnungen) ".format(p['artikel'],  plu)
+                    name[plu] = u"{0} (ID {1}, verschiedene Bezeichnungen) ".format(p['artikel'],  plu)
                 else:
                     name[plu] = p['artikel']
                 preis = p['anzahl'] * p['einzelpreis'] * discountFactor
@@ -109,20 +109,20 @@ def printFiltered(consumption,  search=None, regexp=None, scaleFactor=1, ignoreC
         # format unitsDict={"unit":123,"otherUnit":345} to printable text
         result = ""
         for (unit, num) in unitsDict.items():
-            result += u"{}:\t{}\t".format(unit, round(float(num) * scaleFactor, 2))
+            result += u"{0}:\t{1}\t".format(unit, round(float(num) * scaleFactor, 2))
         return result
 
     sumUnitsFiltered = {}
     for item in consumption:
         sumFiltered += item['money']
-        print u"{} \t {:.2f} € \t {}\t{}".format(item['plu'],  item['money'], item['description'], formatUnits(item['units']))
+        print u"{0} \t {1:.2f} € \t {2}\t{3}".format(item['plu'],  item['money'], item['description'], formatUnits(item['units']))
         for (unit, number) in item['units'].items():
             if unit not in sumUnitsFiltered:
                 sumUnitsFiltered[unit] = 0
             sumUnitsFiltered[unit] += number
-    print "name *" + filterStr + "*:\t{} €\tGesamt\tSumme über Einheiten:\t{}\t{}".format(sumFiltered, round(sum(sumUnitsFiltered.values()), 2), formatUnits(sumUnitsFiltered))
+    print "name *" + filterStr + "*:\t{0} €\tGesamt\tSumme über Einheiten:\t{1}\t{2}".format(sumFiltered, round(sum(sumUnitsFiltered.values()), 2), formatUnits(sumUnitsFiltered))
     if scaleFactor != 1:
-        print "name *" + filterStr + "*:\t{} €\tGesamt *{} hochgerechnet\tSumme über Einheiten:\t{}\t{}".format(round(float(sumFiltered) * scaleFactor, 2), scaleFactor,
+        print "name *" + filterStr + "*:\t{0} €\tGesamt *{1} hochgerechnet\tSumme über Einheiten:\t{2}\t{3}".format(round(float(sumFiltered) * scaleFactor, 2), scaleFactor,
                                                                                                                 round(float(sum(sumUnitsFiltered.values())) * scaleFactor, 2), formatUnits(sumUnitsFiltered, scaleFactor))
     print ""
 
@@ -142,14 +142,14 @@ if __name__ == '__main__':
     if len(sys.argv) == 3:
         dateFrom = datetime.datetime.strptime(sys.argv[1], "%Y-%m-%d")
         dateTo = datetime.datetime.strptime(sys.argv[2], "%Y-%m-%d")
-        print "filtering from {} to {}".format(dateFrom, dateTo)
+        print "filtering from {0} to {1}".format(dateFrom, dateTo)
         rechnungen = filter(lambda r: dateFrom < r.datum < dateTo, rechnungen)
 
     dauer = rechnungen[-1].datum - rechnungen[0].datum
     hochrechnenFaktor = round(365. / dauer.days, 2)
-    print "Auswertung von {} bis {}, {} Tage, Faktor für 1 Jahr: *{}".format(rechnungen[0].datum, rechnungen[-1].datum, dauer.days, hochrechnenFaktor)
+    print "Auswertung von {0} bis {1}, {2} Tage, Faktor für 1 Jahr: *{3}".format(rechnungen[0].datum, rechnungen[-1].datum, dauer.days, hochrechnenFaktor)
     tageSeitLetzterRechnung = (datetime.datetime.now() - rechnungen[-1].datum).days
-    print "{} Tage seit letzter Rechnung".format(tageSeitLetzterRechnung)
+    print "{0} Tage seit letzter Rechnung".format(tageSeitLetzterRechnung)
     if tageSeitLetzterRechnung > 5:
         print "ACHTUNG: Datenbank ist alt! Bitte neuen Snapshot erstellen (letzte Rechnung aelter als 5 Tage)."
 
@@ -187,7 +187,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 3:
         dateFrom = datetime.datetime.strptime(sys.argv[1], "%Y-%m-%d")
         dateTo = datetime.datetime.strptime(sys.argv[2], "%Y-%m-%d")
-        print "filtering from {} to {}".format(dateFrom, dateTo)
+        print "filtering from {0} to {1}".format(dateFrom, dateTo)
         rechnungen = filter(lambda r: dateFrom < r.datum < dateTo, rechnungen)
 
     summeBuchungen = 0
@@ -216,7 +216,7 @@ if __name__ == '__main__':
                 # print r.datum, b.datum
                 # print rechnungssumme,  b.betrag
                 break
-        assert foundRechnung,  "cannot find rechnung {}".format(b.rechnung)
+        assert foundRechnung,  "cannot find rechnung {0}".format(b.rechnung)
     rechnungsIds = set(map(lambda r: r.id, rechnungen))
     assert buchungsRechnungen.difference(rechnungsIds) == set()
     print "Buchungen:", summeBuchungen
@@ -270,7 +270,7 @@ if __name__ == '__main__':
     printFiltered(consumption, u'DIN',  scaleFactor=hochrechnenFaktor)
 
     fraesenstart = datetime.datetime(2014, 05, 10, 12, 00)
-    print "Achtung anderer Faktor für Fräse, weil erst etwa ab {} in Betrieb:".format(fraesenstart)
+    print "Achtung anderer Faktor für Fräse, weil erst etwa ab {0} in Betrieb:".format(fraesenstart)
     printFiltered(consumption, u'Fräs', scaleFactor=365. / (rechnungen[-1].datum - fraesenstart).days)
     printFiltered(consumption, u'Dreh',  scaleFactor=hochrechnenFaktor)
     printFiltered(consumption, u'Alu',  scaleFactor=hochrechnenFaktor)
@@ -291,7 +291,7 @@ if __name__ == '__main__':
                         break
                 if foundWord:
                     summe += float(p['anzahl'] * p['einzelpreis'])
-        print "{}:  {} , hochgerechnet {} ".format(searchwords, summe,  summe * 365. / (rechnungen[-1].datum - rechnungen[0].datum).days)
+        print "{0}:  {1} , hochgerechnet {2} ".format(searchwords, summe,  summe * 365. / (rechnungen[-1].datum - rechnungen[0].datum).days)
     printFilteredFreiePreiseingabe(rechnungen, ["flat"])
     printFilteredFreiePreiseingabe(rechnungen, ["reichelt", "bestell", "PO",  "MEW",  "MW"])
 

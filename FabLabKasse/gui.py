@@ -416,7 +416,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             text = u"Servicemodus manuell eingefüllt: {} - Die Einzahlungen werden nicht im Kassenbuch verbucht, aber im Bargeldbestand."
         text = text.format(formatCent(a))
         logging.info(text)
-        QtGui.QMessageBox.warning(self, "Service mode {}".format(self.serviceModeAction),
+        QtGui.QMessageBox.warning(self, "Service mode {0}".format(self.serviceModeAction),
                                   text + u" \nBitte Bargeld- und Kassenstand per CLI prüfen.")
 
     def pollCashDevices(self):
@@ -590,7 +590,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         assert total >= 0
         assert total % Decimal("0.01") == 0, "current order total is not rounded to cents"
 
-        logging.info(u"starting payment for cart: {}".format(self.shoppingBackend.get_order_lines()))
+        logging.info(u"starting payment for cart: {0}".format(self.shoppingBackend.get_order_lines()))
 
         if total > 250:
             # cash-accept is unlimited, but dispense is locked to maximum 200€ hardcoded. Limit to
@@ -610,9 +610,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             return
 
         paymentmethod = pm_diag.getSelectedMethodInstance(self, self.shoppingBackend, total)
-        logging.info(u"started payment of {} with {}".format(self.shoppingBackend.format_money(total), str(type(paymentmethod))))
+        logging.info(u"started payment of {0} with {1}".format(self.shoppingBackend.format_money(total), str(type(paymentmethod))))
         paymentmethod.execute_and_store()
-        logging.info(u"payment ended. result: {}".format(paymentmethod))
+        logging.info(u"payment ended. result: {0}".format(paymentmethod))
         assert paymentmethod.amount_paid >= 0
 
         def askUser():
@@ -635,7 +635,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                     QtGui.QMessageBox.warning(self, "Quittung", "Drucker scheint offline zu sein." +
                                               "\nFalls du wirklich eine Quittung brauchst, melde dich bei " +
                                               "kasse@fablab.fau.de mit Datum, Uhrzeit und Betrag.")
-                    logging.warning("printing receipt failed: {}".format(repr(e)))
+                    logging.warning("printing receipt failed: {0}".format(repr(e)))
         if paymentmethod.successful:
             paymentmethod.show_thankyou()
             self.shoppingBackend.set_current_order(None)
@@ -715,7 +715,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             order_line = self.shoppingBackend.get_order_line(selected_order_line_id)
             if order_line.qty != qty:
                 # quantity was rounded up, notify user
-                Qt.QToolTip.showText(self.label_unit.mapToGlobal(Qt.QPoint(0, -30)), u'Eingabe wird auf {} {} aufgerundet!'.format(format_decimal(order_line.qty), order_line.unit))
+                Qt.QToolTip.showText(self.label_unit.mapToGlobal(Qt.QPoint(0, -30)), u'Eingabe wird auf {0} {1} aufgerundet!'.format(format_decimal(order_line.qty), order_line.unit))
             else:
                 Qt.QToolTip.hideText()
             self.updateOrder()
@@ -923,8 +923,8 @@ def main():
     app.setStyle("oxygen")
     app.setFont(QtGui.QFont("Carlito"))
     QtGui.QIcon.setThemeName("oxygen")
-    logging.debug("icon theme: {}".format(QtGui.QIcon.themeName()))
-    logging.debug("icon paths: {}".format([str(x) for x in QtGui.QIcon.themeSearchPaths()]))
+    logging.debug("icon theme: {0}".format(QtGui.QIcon.themeName()))
+    logging.debug("icon paths: {0}".format([str(x) for x in QtGui.QIcon.themeSearchPaths()]))
 
     kt = Kassenterminal()
     kt.show()

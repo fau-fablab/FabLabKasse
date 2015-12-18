@@ -107,7 +107,7 @@ class MobileAppCartGUI(object):
             successful = (self.parent.payup() is True)
         else:
             successful = False
-        print "feedback successful = {}".format(successful)
+        print "feedback successful = {0}".format(successful)
         self.cart.send_status_feedback(successful)
         if not successful:
             self.parent.shoppingBackend.delete_current_order()
@@ -119,7 +119,7 @@ class MobileAppCartGUI(object):
         if not self.diag.isVisible():
             # this should not happen, maybe a race-condition
             return
-        logging.debug(u"polling for cart {}".format(self.cart.cart_id))
+        logging.debug(u"polling for cart {0}".format(self.cart.cart_id))
         try:
             response = self.cart.load()
         except InvalidCartJSONError:
@@ -138,7 +138,7 @@ class MobileAppCartGUI(object):
         if not response:
             self.poll_timer.start()
             return
-        logging.debug("received cart: {}".format(response))
+        logging.debug("received cart: {0}".format(response))
         self.diag.setEnabled(False)
         self.pay_cart(response)
         self.diag.reject()

@@ -162,7 +162,7 @@ class CashState(object):
 
         :rtype: str
         """
-        return "{:.2f}".format(self.sum / 100.)
+        return "{0:.2f}".format(self.sum / 100.)
 
     def toDict(self):
         """
@@ -205,9 +205,9 @@ class CashState(object):
         s = "/"
         for (key, val) in sorted(self._d.iteritems()):
             if key >= 100 and key % 100 == 0:
-                s += "{}x{}E,".format(val, key / 100)
+                s += "{0}x{1}E,".format(val, key / 100)
             else:
-                s += "{}x{}c,".format(val, key)
+                s += "{0}x{1}c,".format(val, key)
         # remove trailing comma, add  slash
         if s[-1] == ",":
             s = s[:-1]
@@ -220,7 +220,7 @@ class CashState(object):
         """ output state and sum in the format ``/13x10c,7x2E/ \t 15,30€`` for two-column printing
 
         :rtype: str"""
-        return "{}\t{}".format(self.sumStr(), self.toHumanString())
+        return "{0}\t{1}".format(self.sumStr(), self.toHumanString())
 
     @classmethod
     def fromHumanString(cls, s):
@@ -449,7 +449,7 @@ class CashStorageList(object):
                 # skip empty "log" subindex used for logging
                 assert state == CashState()
                 continue
-            s += "{}\t{}\n".format(dev, state.toVerboseString())
+            s += "{0}\t{1}\n".format(dev, state.toVerboseString())
             totalState += state
 
         s += "\n===========\nsum per device:\n"
@@ -460,12 +460,12 @@ class CashStorageList(object):
             [device, _] = dev.split(".")
             if device != currentDev:
                 if currentDev is not None:
-                    s += "{}\t{}\n".format(currentDev, perDeviceSum.toVerboseString())
+                    s += "{0}\t{1}\n".format(currentDev, perDeviceSum.toVerboseString())
                 currentDev = device
                 perDeviceSum = CashState()
             perDeviceSum += state
         s += "\n===========\n"
-        s += coloredBold("TOTAL") + ":\t{}".format(totalState.toVerboseString())
+        s += coloredBold("TOTAL") + ":\t{0}".format(totalState.toVerboseString())
         return s
 
 
@@ -517,11 +517,11 @@ def verifySum(db, printMessage=False, date=None):
 
     if summeKasse == summeKassenbuch:
         if printMessage:
-            print coloredGood("check OK") + ": cash=accounting(Kassenbuch)={}".format(summeKasse)
+            print coloredGood("check OK") + ": cash=accounting(Kassenbuch)={0}".format(summeKasse)
         return True
     else:
         if printMessage:
-            print coloredError("Attention, mismatch:") + " cash: {}, accounting (Kassenbuch): {}, too much in cash state: {}".format(summeKasse, summeKassenbuch, summeKasse - summeKassenbuch)
+            print coloredError("Attention, mismatch:") + " cash: {0}, accounting (Kassenbuch): {1}, too much in cash state: {2}".format(summeKasse, summeKassenbuch, summeKasse - summeKassenbuch)
             print "use 'cash verify-search' to find out when the error started"
         return False
 
@@ -536,11 +536,11 @@ def verifySearch(db, step):
     :param timedelta step: time interval for going backwards
     :rtype: None
     """
-    print "searching backwards in time in steps of {}. ".format(step)
+    print "searching backwards in time in steps of {0}. ".format(step)
     print "The wrong entry is usually the one after which the status is bad for a long time, maybe with some short good interruptions."
     print "False error reports, and also rare false negatives, may occur in the timespan between inserting the first coin and getting the receipt."
     print "output format:"
-    print "   {} or {} = status is good/bad for one step".format(coloredGood('+'), coloredError('-'))
+    print "   {0} or {1} = status is good/bad for one step".format(coloredGood('+'), coloredError('-'))
     print "   <date> <status> = date of status change"
     print ""
     last_date = None
@@ -554,10 +554,10 @@ def verifySearch(db, step):
         if result != last_result:
             sys.stdout.write("\n")
             if last_date:
-                print "      from {} (included)".format(last_date)
+                print "      from {0} (included)".format(last_date)
                 print ""
             status = "good" if result else "FAIL"
-            print "{} until {} (included) ".format(status, date)
+            print "{0} until {1} (included) ".format(status, date)
             last_result = result
         if result:
             sys.stdout.write(coloredGood('+'))
@@ -597,7 +597,7 @@ def printLog(db, date_from=None, date_to=None):
     fromDate = dateFromString(date_from, "1900-01-01")
     untilDate = dateFromString(date_to, "3456-01-01") + timedelta(days=1, microseconds=-1)
     if date_from:
-        print "showing from {}".format(fromDate)
+        print "showing from {0}".format(fromDate)
     columnTitles = ["device.sub", "date", "manual?", "type", "comment", "delta", "delta", "dev.total", "dev.total"]
     # column width -1 is infinite width, but without padding
     # -- may only be used for the last column
@@ -641,7 +641,7 @@ def printLog(db, date_from=None, date_to=None):
 
         printFormatted(output)
     if date_to:
-        print "showing until {}".format(untilDate)
+        print "showing until {0}".format(untilDate)
 
 
 def checkIfDeviceExists(db, identifier, subindex):
@@ -651,7 +651,7 @@ def checkIfDeviceExists(db, identifier, subindex):
         cash = CashStorage(db, identifier, readonly=True)
         cash.getState(subindex, allowEmpty=False)
     except NoDataFound:
-        print "Error: Given device or subindex  '{}.{}' does not exist in database.".format(identifier, subindex)
+        print "Error: Given device or subindex  '{0}.{1}' does not exist in database.".format(identifier, subindex)
         print "If this is not a typo and the device was never used yet, please use --force-new"
         sys.exit(1)
 

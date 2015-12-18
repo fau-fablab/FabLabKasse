@@ -116,7 +116,7 @@ class CashServer:
                     self.currentMode = "accept"
                     self.moneyReceiveAllowed = int(acceptCommandMatch.groups()[0])
                     self.reply("OK")
-                    self.cash.log("started accepting, max. {}".format(self.moneyReceiveAllowed))
+                    self.cash.log("started accepting, max. {0}".format(self.moneyReceiveAllowed))
                 elif updateAcceptCommandMatch:
                     newMoneyReceiveAllowed = int(updateAcceptCommandMatch.groups()[0])
                     if self.moneyReceiveAllowed > newMoneyReceiveAllowed:
@@ -129,13 +129,13 @@ class CashServer:
                     assert self.moneyDispenseAllowed <= self.MAXIMUM_DISPENSE
                     assert self.moneyDispenseAllowed >= 0
                     self.reply("OK")
-                    self.cash.log("started dispensing, requested {}".format(self.moneyDispenseAllowed))
+                    self.cash.log("started dispensing, requested {0}".format(self.moneyDispenseAllowed))
                 elif command == "POLL":
-                    self.reply("{} {} (not the final value!)".format(self.moneyReceivedTotal - self.moneyDispensedTotal,
+                    self.reply("{0} {1} (not the final value!)".format(self.moneyReceivedTotal - self.moneyDispensedTotal,
                                                                      self.currentMode))
                 elif command == "CANPAYOUT":
                     p = self.getCanPayout()
-                    self.reply("{} {}".format(p[0], p[1]))
+                    self.reply("{0} {1}".format(p[0], p[1]))
                 elif command == "CANACCEPT":
                     self.reply(str(self.getCanAccept()))
                 elif command == "EMPTY":
@@ -148,7 +148,7 @@ class CashServer:
                     assert self.currentMode != "idle"  # cannot stop twice
                     if self.currentMode == "stopped":
                         self.reply(self.moneyReceivedTotal - self.moneyDispensedTotal)
-                        self.cash.log("stopped. received {}".format(self.moneyReceivedTotal - self.moneyDispensedTotal))
+                        self.cash.log("stopped. received {0}".format(self.moneyReceivedTotal - self.moneyDispensedTotal))
                         self.__moneyReceivedTotal = 0
                         self.__moneyDispensedTotal = 0
                         self.currentMode = "idle"
@@ -166,7 +166,7 @@ class CashServer:
                     logging.info("Exiting (stdin closed)")
                     sys.exit(0)
                 else:
-                    raise Exception("unknown network command {}".format(repr(command)))
+                    raise Exception("unknown network command {0}".format(repr(command)))
 
             assert not (self.moneyDispenseAllowed > 0 and self.moneyReceiveAllowed > 0)
 
@@ -212,7 +212,7 @@ class CashServer:
             time.sleep(self.getSleepTime())
 
     def event_receivedMoney(self, count, denomination, storage="main", comment="accept"):
-        logging.info("event_receivedMoney {}*{}".format(count, denomination))
+        logging.info("event_receivedMoney {0}*{1}".format(count, denomination))
         assert count > 0
         assert denomination > 0
         self.cash.addToState(storage, CashState({denomination: count}), comment=comment)
@@ -224,7 +224,7 @@ class CashServer:
         self.__moneyReceivedTotal += count * denomination
 
     def event_dispensedMoney(self, count, denomination, storage="main", comment="dispense"):
-        logging.info("event_dispensedMoney {}*{}".format(count, denomination))
+        logging.info("event_dispensedMoney {0}*{1}".format(count, denomination))
         assert count > 0
         assert denomination > 0
         self.cash.addToState(storage, CashState({denomination: -count}), comment=comment)

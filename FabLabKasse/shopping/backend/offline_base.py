@@ -85,7 +85,7 @@ class OfflineCategoryTree(object):
 
     def add_category(self, category):
         categ_id = category.categ_id
-        assert categ_id not in self.categories, "Category {} {} already exists: {}".format(
+        assert categ_id not in self.categories, "Category {0} {1} already exists: {2}".format(
             categ_id, repr(category.name), repr(self.categories[categ_id].name))
         self.categories[categ_id] = category
 
@@ -152,12 +152,12 @@ class OfflineCategoryTree(object):
 
     def get_category_path(self, categ_id):
         path = []
-        assert categ_id in self.categories, "invalid category id {}".format(categ_id)
+        assert categ_id in self.categories, "invalid category id {0}".format(categ_id)
         while categ_id not in [None, self.root_category_id]:
             try:
                 path.insert(0, self.categories[categ_id])
             except KeyError:
-                raise Exception("category references non-existing parent category {}".format(categ_id))
+                raise Exception("category references non-existing parent category {0}".format(categ_id))
             categ_id = self.categories[categ_id].parent_id
         return path
 

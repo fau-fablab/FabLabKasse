@@ -262,7 +262,7 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
             assert len(payout_stack) == 0 or \
                 requested_payout - sum_paid_out < min(payout_stack)
             if requested_payout <  can_payout:
-                assert False, "the request {} was not greater than canPayout {}, it must be satisfied at the given max. accepted rest of {}, but only {} was paid from stack {}".format(requested_payout, can_payout, self.accepted_rest, sum_paid_out, payout_stack_original)
+                assert False, "the request {0} was not greater than canPayout {1}, it must be satisfied at the given max. accepted rest of {2}, but only {3} was paid from stack {4}".format(requested_payout, can_payout, self.accepted_rest, sum_paid_out, payout_stack_original)
         assert sum_paid_out <= requested_payout  # did not pay out too much
 
 

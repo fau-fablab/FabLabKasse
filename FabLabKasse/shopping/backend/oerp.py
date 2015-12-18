@@ -128,7 +128,7 @@ class ShoppingBackend(AbstractShoppingBackend):
         partner_id = self.cfg.getint('openerp', 'anonymous_partner_id')
         order_data = self.oerp.execute('sale.order', 'onchange_partner_id', [], partner_id)
         print order_data
-        assert 'warning' not in order_data, u"failed getting default values for sale.order: {}".format(order_data['warning'])
+        assert 'warning' not in order_data, u"failed getting default values for sale.order: {0}".format(order_data['warning'])
         order_data = order_data['value']
         order_data.update({'partner_id': partner_id,
                            'order_policy': 'manual',
@@ -216,7 +216,7 @@ class ShoppingBackend(AbstractShoppingBackend):
             oerp.browse('product.product', prod_id)
         except:
             # TODO this exception is not caught at the callers!!!
-            raise ProductNotFound("product disapeared: {}".format(prod_id))  # most likely
+            raise ProductNotFound("product disapeared: {0}".format(prod_id))  # most likely
 
         # Calculate price
         order_line_data = oerp.execute(

@@ -77,9 +77,9 @@ def main():
     if not errorLines:
         sys.exit(0)
 
-    print("Hi, this is FabLabKasse/scripts/logWatch.sh.\nThere were warnings or errors in the recent logfile.\nPrinting the recent {} ones per file:\n".format(MAX_ERRORS_PER_LOG))
+    print("Hi, this is FabLabKasse/scripts/logWatch.sh.\nThere were warnings or errors in the recent logfile.\nPrinting the recent {0} ones per file:\n".format(MAX_ERRORS_PER_LOG))
     for file in sorted(errorLines.keys()):
-        print("\n\n========\n{}\n========".format(file))
+        print("\n\n========\n{0}\n========".format(file))
         for line in errorLines[file]:
             print(line.strip())
         if len(errorLines[file]) >= MAX_ERRORS_PER_LOG:

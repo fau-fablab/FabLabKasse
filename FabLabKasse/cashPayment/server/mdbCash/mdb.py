@@ -125,7 +125,7 @@ class MdbCashDevice(object):
             self.buffer = ""
 
     def serialCmd(self, text):
-        logging.debug("serial send: '{}'".format(text))
+        logging.debug("serial send: '{0}'".format(text))
         self.ser.write(text + "\n")
 
     # get data from serial port
@@ -145,7 +145,7 @@ class MdbCashDevice(object):
             pass
             # logging.debug("not read:" + self.ser.read())
         if self.buffer:
-            logging.debug("buffer: {}".format(self.buffer.__repr__()))
+            logging.debug("buffer: {0}".format(self.buffer.__repr__()))
         if not ("\n" in self.buffer):
             # we have not yet received a full response
             return None
@@ -195,7 +195,7 @@ class MdbCashDevice(object):
         send = ""
         resp = None
         for b in bytes:
-            send += "{:02X}".format(b)
+            send += "{0:02X}".format(b)
         for _ in range(3):
             try:
                 self.serialCmd(send)
@@ -288,7 +288,7 @@ class MdbCashDevice(object):
             else:
                 value = byte * coinScalingFactor
             self.coinValues.append(value)
-        logging.debug("coin values: {}".format(self.coinValues))
+        logging.debug("coin values: {0}".format(self.coinValues))
 
     def getValue(self, type):
         return self.coinValues[type]
@@ -320,7 +320,7 @@ class MdbCashDevice(object):
                 assert len(data) >= 2
                 dispensedType = getBits(data[0], 0, 3)
                 dispensedNumber = getBits(data[0], 4, 6)
-                status["manuallyDispensed"] += [{"count": dispensedNumber,  "denomination": self.getValue(dispensedType), "storage": "tube{}".format(dispensedType)}]
+                status["manuallyDispensed"] += [{"count": dispensedNumber,  "denomination": self.getValue(dispensedType), "storage": "tube{0}".format(dispensedType)}]
                 del data[0:2]
                 # remaining in tube: data[1]
             else:
@@ -335,7 +335,7 @@ class MdbCashDevice(object):
                         if acceptedRouting == 0:
                             storage = "cashbox"
                         else:
-                            storage = "tube{}".format(acceptedType)
+                            storage = "tube{0}".format(acceptedType)
                         status["accepted"] += [{"count": 1,  "denomination": self.getValue(acceptedType), "storage": storage}]
                     del data[0:2]
                 else:
@@ -360,7 +360,7 @@ class MdbCashDevice(object):
                             status["busy"] = True
                             # BUG: if the payout-stack is removed and reattached, the device may send BUSY even while we are not doing payout/payin.
                             # by design, we shouldn't just ignore it because this would remove protections against accidental state mismatches between device and this code
-                            logging.debug("received event: {}. If this happens shortly before an error, read the following explanation: If at this moment a service operator was doing something with the device (the payout unit was removed or the device menu was used), then it is a known bug which can be ignored. Otherwise it probably has happened because of a state mismatch between this driver and the device, then it is a severe problem. To be safe, CashServer will halt with an exception.".format(description))
+                            logging.debug("received event: {0}. If this happens shortly before an error, read the following explanation: If at this moment a service operator was doing something with the device (the payout unit was removed or the device menu was used), then it is a known bug which can be ignored. Otherwise it probably has happened because of a state mismatch between this driver and the device, then it is a severe problem. To be safe, CashServer will halt with an exception.".format(description))
                         elif severity == MdbCashDevice.IGNORE:
                             pass
                         else:
@@ -395,7 +395,7 @@ class MdbCashDevice(object):
                 status[i]["count"] = 0
             status[i]["okay"] = not (status[i]["count"] == 0 and status[i]["full"])  # count 0 and full means "defective"
             if not status[i]["okay"]:
-                self.warn("tube {} defective".format(i))
+                self.warn("tube {0} defective".format(i))
         return status
 
     # dispense coin - may only be called if poll() returns busy==False
@@ -403,7 +403,7 @@ class MdbCashDevice(object):
     def dispenseCoin(self, type, amount):
         assert 0 <= type <= 15
         assert 0 < amount <= 15
-        self.log("dispensing {}x value {} (coin type {})".format(amount, self.coinValues[type], type))
+        self.log("dispensing {0}x value {1} (coin type {2})".format(amount, self.coinValues[type], type))
         assert self.cmd(MdbCashDevice.CMD_DISPENSE, [type | amount << 4]) == [MdbCashDevice.ACK]
 
     def tryDispenseCoinFromExternalHopper(self):
@@ -431,7 +431,7 @@ class MdbCashDevice(object):
         #==============================================================================
         self.log("trying to dispense from hopper")
         response = self.extensionCmd("H")
-        assert response == "A", "Did not receive ACK on first dispense request, but {}. Lost reply from a previous command?".format(response)
+        assert response == "A", "Did not receive ACK on first dispense request, but {0}. Lost reply from a previous command?".format(response)
         poll_tries = 20
         for _ in range(poll_tries):
             response = self.extensionCmd("H")
@@ -442,7 +442,7 @@ class MdbCashDevice(object):
                 continue
             else:
                 break
-        logging.info("response: {}".format(response))
+        logging.info("response: {0}".format(response))
         if response == "B":
             raise Exception("Hopper still busy after 6 seconds")
         elif response == "RD":
@@ -460,10 +460,10 @@ class MdbCashDevice(object):
                       "E05": "HOPPER_ERR_EARLY_COIN",
                       "E06": "HOPPER_ERR_UNEXPECTED_COIN_AT_COOLDOWN"}
             errorText = errors.get(response, "unknown error")
-            logging.warn("hopper is disabled because of hardware error {} - {}. poweroff interface board to re-enable.".format(response, errorText))
+            logging.warn("hopper is disabled because of hardware error {0} - {1}. poweroff interface board to re-enable.".format(response, errorText))
             return False
         else:
-            raise BusError("received unknown response {}.".format(response))
+            raise BusError("received unknown response {0}.".format(response))
 
     def setLEDs(self, leds):
         """ set RGB-LED color via extension command, if it is enabled in the extensionConfig.
@@ -477,7 +477,7 @@ class MdbCashDevice(object):
         assert len(leds) == 2
         for led in leds:
             assert re.match(r"^[0-9A-F]{6}[BTN]$", led), "invalid LED value"
-        assert self.extensionCmd("L{}{}".format(leds[0], leds[1])) == "OK",  "LED command failed"
+        assert self.extensionCmd("L{0}{1}".format(leds[0], leds[1])) == "OK",  "LED command failed"
 
     # =======================
     # higher level functions
@@ -499,8 +499,8 @@ class MdbCashDevice(object):
     def getPossiblePayout(self):
         v = self.getSortedCoinValues()
         t = self.getTubeStatus()
-        logging.debug("coinValues: {}".format(v))
-        logging.debug("tubeStatus: {}".format(t))
+        logging.debug("coinValues: {0}".format(v))
+        logging.debug("tubeStatus: {0}".format(t))
         return self._getPossiblePayout(v, t)
 
     @staticmethod
@@ -573,14 +573,14 @@ class MdbCashDevice(object):
             if number == 0:
                 continue
             if number == 1 and shouldSplit(coinValue):
-                logging.debug("splitting payout of 1x {} into 2x smaller coin".format(coinValue))
+                logging.debug("splitting payout of 1x {0} into 2x smaller coin".format(coinValue))
                 continue
             if number > 15:
                 number = 15
             self.dispenseCoin(coinType, number)
             dispensed = coinValue * number
             assert dispensed <= maximumDispense
-            return {"count": number, "denomination": coinValue, "storage": "tube{}".format(coinType)}
+            return {"count": number, "denomination": coinValue, "storage": "tube{0}".format(coinType)}
         return False
 
 class MdbCashDeviceTest(unittest.TestCase):

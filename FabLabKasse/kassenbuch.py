@@ -152,7 +152,7 @@ class Rechnung(object):
         return pos['anzahl'] * pos['einzelpreis']
 
     def to_string(self):
-        s = u'Rechnungsnr.: {}\nDatum: {:%Y-%m-%d %H:%M}\n'.format(self.id, self.datum)
+        s = u'Rechnungsnr.: {0}\nDatum: {1:%Y-%m-%d %H:%M}\n'.format(self.id, self.datum)
 
         for p in self.positionen:
             s += u'    {anzahl:>7.2f} {einheit:<8} {artikel:<45} {einzelpreis:>8.3f} EUR {gesamtpreis:>8.2f} EUR\n'.format(
@@ -211,7 +211,7 @@ class Rechnung(object):
         else:
             separator = '\n'
             for l in header.split('\n'):
-                r += u'{:^42.42}\n'.format(l)
+                r += u'{0:^42.42}\n'.format(l)
             r += u'\n'
 
             r += u'{datum:%Y-%m-%d} {id:>31}\n'.format(id=self.id, datum=self.datum)
@@ -237,11 +237,11 @@ class Rechnung(object):
             # Insert double line
             r += u'=' * 42 + '\n'
 
-            r += u'{:<28}  EUR {:>7} \n\n'.format(zahlungsart, moneyfmt(self.summe))
+            r += u'{0:<28}  EUR {1:>7} \n\n'.format(zahlungsart, moneyfmt(self.summe))
 
             # Add Footer
             for l in footer.split('\n'):
-                r += u'{:^42.42}\n'.format(l)
+                r += u'{0:^42.42}\n'.format(l)
 
         return r
 
@@ -469,7 +469,7 @@ class Kasse(object):
             s += 'SALDO\n'
 
         for konto, saldo in konto_saldi.items():
-            s += '{:<16} {:>8.2f} EUR\n'.format(konto, saldo)
+            s += '{0:<16} {1:>8.2f} EUR\n'.format(konto, saldo)
 
         s += '\n\n\n' + self.summary_to_string(filter_until_date)
 
@@ -488,7 +488,7 @@ class Kasse(object):
 
         buchungen = self.get_buchungen(from_date=None, until_date=date)
 
-        string += "Kassenstand am {}:\n".format(date)
+        string += "Kassenstand am {0}:\n".format(date)
         if not buchungen:
             string += "(noch keine Buchungen an diesem Datum -- 0 EUR)\n"
             return string
@@ -508,7 +508,7 @@ class Kasse(object):
 
         string += u'{:<16} {:>10} {:>10} {:>10}\n'.format("KONTO", "HABEN", "SOLL", "SALDO").encode('utf-8')
         for konto, saldo in konto_saldi.items():
-            string += u'{:<16} {:>10.2f} {:>10.2f} {:>10.2f} EUR\n'.format(
+            string += u'{0:<16} {1:>10.2f} {2:>10.2f} {3:>10.2f} EUR\n'.format(
                 konto,
                 konto_haben.get(konto, Decimal(0)),
                 konto_soll.get(konto, Decimal(0)),
@@ -805,7 +805,7 @@ if __name__ == '__main__':
             writer.writerow(['DATUM', 'KONTO', 'BETRAG', 'RECH.NR.', 'KOMMENTAR'])
             # Content
             for b in k.buchungen:
-                writer.writerow([unicode(b.datum), unicode(b.konto), u'{:.2f}'.format(b.betrag),
+                writer.writerow([unicode(b.datum), unicode(b.konto), u'{0:.2f}'.format(b.betrag),
                                  unicode(b.rechnung), unicode(b.kommentar)])
 
     elif arguments['export'] and arguments['invoices']:
@@ -820,8 +820,8 @@ if __name__ == '__main__':
             for r in k.rechnungen:
                 for p in r.positionen:
                     writer.writerow([str(r.id), str(r.datum), p['artikel'], str(p['anzahl']),
-                                     p['einheit'], '{:.2f}'.format(p['einzelpreis']),
-                                     '{:.2f}'.format(r.summe_position(p)),
+                                     p['einheit'], '{0:.2f}'.format(p['einzelpreis']),
+                                     '{0:.2f}'.format(r.summe_position(p)),
                                      p['produkt_ref']])
                 writer.writerow([])
 
@@ -859,7 +859,7 @@ if __name__ == '__main__':
             :type allowed_regexp: basestr | None
             :type extra_checks: function | None
             """
-            default_str = " [{}]".format(unicode(default_input)) if default_input is not None else ""
+            default_str = " [{0}]".format(unicode(default_input)) if default_input is not None else ""
             allowed_regexp = allowed_regexp if allowed_regexp is not None else ur".*"
             extra_checks = extra_checks if extra_checks else lambda x: True
 
@@ -882,7 +882,7 @@ if __name__ == '__main__':
             try:
                 kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
             except NoDataFound:
-                print(u"[!] Konnte keinen Kunde unter '{}' finden.".format(arguments['<name>']))
+                print(u"[!] Konnte keinen Kunde unter '{0}' finden.".format(arguments['<name>']))
                 sys.exit(2)
         else:
             kunde = Kunde('')  # will be filled in later
@@ -910,7 +910,7 @@ if __name__ == '__main__':
                                  extra_checks=check_name_unique)
 
         # PIN
-        print("[i] zufällige PIN-Vorschläge: {:04} {:04} {:04}".format(
+        print("[i] zufällige PIN-Vorschläge: {0:04} {1:04} {2:04}".format(
             random.randint(1, 9999), random.randint(1, 9999), random.randint(1, 9999)))
 
         default = None if not arguments['edit'] else kunde.pin
@@ -983,7 +983,7 @@ if __name__ == '__main__':
             sys.exit(2)
 
         k.con.commit()
-        print("[i] Gespeichert. Kundennummer lautet: {}".format(kunde.id))
+        print("[i] Gespeichert. Kundennummer lautet: {0}".format(kunde.id))
 
     elif arguments['client'] and arguments['show']:
         try:
@@ -1048,7 +1048,7 @@ if __name__ == '__main__':
             else:
                 letzte_zahlung = letzte_zahlung[0].strftime('%Y-%m-%d')
 
-            print(u'{:>4}|{:>25}|{:>8} EUR|{:>8}| {:>14}'.format(
+            print(u'{0:>4}|{1:>25}|{2:>8} EUR|{3:>8}| {4:>14}'.format(
                 k.id, k.name, moneyfmt(k.summe), moneyfmt(k.schuldengrenze), letzte_zahlung))
 
     elif arguments['receipt']:

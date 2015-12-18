@@ -67,7 +67,7 @@ class AbstractPaymentMethod(object):
         self.receipt_order_id = shopping_backend.get_current_order()
 
     def __repr__(self):
-        return "<{}(amount_to_pay={}, amount_paid={}, amount_returned={}, successful={}, ...)>".format(type(self).__name__, self.amount_to_pay, self.amount_paid, self.amount_returned, self.successful)
+        return "<{0}(amount_to_pay={1}, amount_paid={2}, amount_returned={3}, successful={4}, ...)>".format(type(self).__name__, self.amount_to_pay, self.amount_paid, self.amount_returned, self.successful)
 
     @abstractmethod
     def _show_dialog(self):
@@ -131,7 +131,7 @@ class AbstractPaymentMethod(object):
         You can safely override this with an empty method if you don't want
         this extra thank-you dialog.
         """
-        QtGui.QMessageBox.information(self.parent, "", u"Vielen Dank für deine Zahlung von {}.\nBitte das Aufräumen nicht vergessen!".format(self.shopping_backend.format_money(self.amount_paid - self.amount_returned)))
+        QtGui.QMessageBox.information(self.parent, "", u"Vielen Dank für deine Zahlung von {0}.\nBitte das Aufräumen nicht vergessen!".format(self.shopping_backend.format_money(self.amount_paid - self.amount_returned)))
 
     @staticmethod
     def is_enabled(cfg):
@@ -258,7 +258,7 @@ class ClientPayment(AbstractClientPaymentMethod):
             self.successful = True
             self._end_of_payment()
             QtGui.QMessageBox.information(self.parent, "Information", u"Vielen Dank.\n Dein neuer Kontostand beträgt " +
-                                          u"{}. \n(Positiv ist Guthaben)".format(self.shopping_backend.format_money(-new_debt)))
+                                          u"{0}. \n(Positiv ist Guthaben)".format(self.shopping_backend.format_money(-new_debt)))
         except DebtLimitExceeded, e:
             self.successful = False
             self._end_of_payment()

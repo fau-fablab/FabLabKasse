@@ -122,7 +122,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
             return
         elif diff > min(5, self.amount_total * 2):
             reply = QtGui.QMessageBox.question(self, 'Message',
-                                               u'<html>Willst du wirklich <span style="color:#006600; font-weight:bold;">{:.02f} € spenden</span>?</html>'.format(float(diff)),
+                                               u'<html>Willst du wirklich <span style="color:#006600; font-weight:bold;">{0:.02f} € spenden</span>?</html>'.format(float(diff)),
                                                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                                                QtGui.QMessageBox.No)
 

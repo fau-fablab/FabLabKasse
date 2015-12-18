@@ -322,7 +322,7 @@ class ESSPDevice(object):
                     data = False
                 else:
                     data = ESSPDevice.Response(self.buffer[3:length + 3])
-                    self.debug("response: {}".format(data))
+                    self.debug("response: {0}".format(data))
             else:
                 # the packet was not for us, but for another slave
                 data = False
@@ -493,7 +493,7 @@ class ESSPDevice(object):
             length = stream.readByte()
             assert length > 0, "nonzero length"
             receivedEncryptionCounter = stream.readUnsigned32(CheckOverrun=False)
-            assert self.encryptionCounter == receivedEncryptionCounter, "encryption counter: expected {}, received {}".format(self.encryptionCounter, receivedEncryptionCounter)
+            assert self.encryptionCounter == receivedEncryptionCounter, "encryption counter: expected {0}, received {1}".format(self.encryptionCounter, receivedEncryptionCounter)
             data = stream.readData(length)
 
             # discard padding
@@ -673,7 +673,7 @@ class NV11Device(ESSPDevice):
         """
         l = self.getPayoutValues()
         assert len(l) > 0
-        self.log("moving note {} from payout-store to cashbox. payout store contents before:{} ".format(l[-1], l))
+        self.log("moving note {0} from payout-store to cashbox. payout store contents before:{1} ".format(l[-1], l))
         self.command([0x43])
 
     def empty(self):
@@ -681,11 +681,11 @@ class NV11Device(ESSPDevice):
         s = self.command([0x58]).getDataStream()
         msg = "Counters: "
         assert s.readByte() == 5  # 5x4bytes
-        msg += "{} stacked, ".format(s.readUnsigned32())
-        msg += "{} stored, ".format(s.readUnsigned32())
-        msg += "{} dispensed, ".format(s.readUnsigned32())
-        msg += "{} transferred from store to stacker, ".format(s.readUnsigned32())
-        msg += "{} rejected.".format(s.readUnsigned32())
+        msg += "{0} stacked, ".format(s.readUnsigned32())
+        msg += "{0} stored, ".format(s.readUnsigned32())
+        msg += "{0} dispensed, ".format(s.readUnsigned32())
+        msg += "{0} transferred from store to stacker, ".format(s.readUnsigned32())
+        msg += "{0} rejected.".format(s.readUnsigned32())
         s.assertFinished()
         self.log(msg)
         self.log("emptying (smart-empty)")

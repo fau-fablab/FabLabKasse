@@ -105,7 +105,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         rechnung = self._rechnung_from_order_lines()
         assert rechnung.summe == method.amount_paid - method.amount_returned
         rechnung.store(self._kasse.cur)
-        logging.info("stored payment in Rechnung#{}".format(rechnung.id))
+        logging.info("stored payment in Rechnung#{0}".format(rechnung.id))
 
         b1 = Buchung(unicode(destination), rechnung.summe, rechnung=rechnung.id)
         b2 = Buchung(unicode(origin), -rechnung.summe, rechnung=rechnung.id, datum=b1.datum)
@@ -120,7 +120,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         rechnung = Rechnung()
         for line in self.get_order_lines():
             # this is hardcoded for prod_id used as four-digit product_code!
-            rechnung.add_position(line.name, line.price_per_unit, anzahl=line.qty, einheit=line.unit, produkt_ref="{:04}".format(line.product.prod_id))
+            rechnung.add_position(line.name, line.price_per_unit, anzahl=line.qty, einheit=line.unit, produkt_ref="{0:04}".format(line.product.prod_id))
         total = self.get_current_total()
         assert abs(rechnung.summe - total) < Decimal("0.01"), "sum mismatch when converting to rechnung"
         # rounding can cause a difference of up to 1 cent between the non-rounded Rechnung() object and our rounding get_total() function
@@ -147,7 +147,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         kunde = Kunde.load_from_id(client.client_id, self._kasse.cur)
         rechnung = self._rechnung_from_order_lines()
         rechnung.store(self._kasse.cur)
-        logging.info("stored client payment in Rechnung#{}".format(rechnung.id))
+        logging.info("stored client payment in Rechnung#{0}".format(rechnung.id))
 
         kunde.add_buchung(-rechnung.summe, rechnung=rechnung.id)
         kunde.store(self._kasse.cur)

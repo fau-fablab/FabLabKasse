@@ -45,4 +45,4 @@ class CheckCartAfterImportDialog(QtGui.QDialog, Ui_AppWarenkorb):
         self.table_order.update_cart(self.shoppingBackend)
 
         sumText = self.shoppingBackend.format_money(self.shoppingBackend.get_current_total())
-        self.sumText.setText(u"Gesamtsumme {}".format(sumText))
+        self.sumText.setText(u"Gesamtsumme {0}".format(sumText))

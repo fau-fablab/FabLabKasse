@@ -65,7 +65,7 @@ def demo():
 
     for i in range(4):
         print "read nothing:", k.readline()
-        s = "{}+{}".format(i, i)
+        s = "{0}+{1}".format(i, i)
         print "sending: " + s
         k.write(s + "\n")
         time.sleep(1)
