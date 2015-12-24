@@ -21,9 +21,8 @@
 from __future__ import print_function
 import copy
 import random
-import math
 import unittest
-
+import FabLabKasse.libs.random_lists as random_lists
 
 class BanknoteStackHelper(object):
     """
@@ -189,7 +188,7 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
         :param random.Random random_generator: RNG instance for calculating
             pseudorandom test parameters"""
         if payout_stack is None:
-            payout_stack = RandomLists.random_choice_list(
+            payout_stack = random_lists.random_choice_list(
                 random_generator,
                 possible_elements=[500, 1000, 2000, 5000],
                 number_of_elements=random.randint(1, 8))
@@ -266,29 +265,6 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
         assert sum_paid_out <= requested_payout  # did not pay out too much
 
 
-class RandomLists(object):
-
-    """randomly built lists with randomness taken from random.choice()
-
-    .. WARNING:: not cryptographically secure!"""
-
-    @staticmethod
-    def random_integer_list(random_generator, integer_range, number_of_elements):
-        """ return a list of length number_of_elements
-        with elements in the range integer_range[0] <= element <= integer_range[1]"""
-        my_list = []
-        for _ in range(number_of_elements):
-            my_list.append(random_generator.randint(integer_range[0], integer_range[1]))
-        return my_list
-
-    @staticmethod
-    def random_choice_list(random_generator, possible_elements, number_of_elements):
-        """return a random list with len(list)==number_of_elements,
-        list[i] in possible_elements (duplicates are possible)"""
-        ret = []
-        for _ in range(number_of_elements):
-            ret.append(random_generator.choice(possible_elements))
-        return ret
 
 class BanknoteStackHelperTest(unittest.TestCase):
     """Tests the banknote stack helper class"""
@@ -326,7 +302,7 @@ class BanknoteStackHelperTest(unittest.TestCase):
         self.assertTrue(test1.can_payout([1001]) <= 999)
 
         # test random values and, especially hard, accepted_rest=999
-        for accepted_rest in RandomLists.random_integer_list(random_generator, [1, 123456], 42) + [999] * 10:
+        for accepted_rest in random_lists.random_integer_list(random_generator, (1, 123456), 42) + [999] * 10:
             test = BanknoteStackHelperTester(accepted_rest)
             for _ in xrange(2345):
                 test.unittest_payout(random_generator)
