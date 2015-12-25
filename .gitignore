@@ -11,4 +11,9 @@
 # compiled files
 *.pyc
 
+# python-hypothesis
 .hypothesis/eval_source
+
+# python-coverage
+.coverage
+htmlcov
