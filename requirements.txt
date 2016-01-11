@@ -15,4 +15,4 @@ portalocker
 # dependency of escpos
 Pillow
 #testing
-hypothesis
+hypothesis<=1.19.0
