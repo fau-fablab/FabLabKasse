@@ -25,7 +25,7 @@ import serial
 import logging
 import re
 import unittest
-
+import FabLabKasse.cashPayment.server.helpers.coin_payout_helper as coin_payout_helper
 
 class BusError(Exception):
     pass
@@ -501,27 +501,10 @@ class MdbCashDevice(object):
         t = self.getTubeStatus()
         logging.debug("coinValues: {0}".format(v))
         logging.debug("tubeStatus: {0}".format(t))
-        return self._getPossiblePayout(v, t)
-
-    @staticmethod
-    def _getPossiblePayout(v, t):
-        totalAmount = 0
-        previousCoinValue = None
-        # go through the coins from large to small
-        for [index, value] in v:
-            n = t[index]["count"]
-            if previousCoinValue is not None and n * value < previousCoinValue:
-                # we dont have enough of this coin to "split" one previous coin
-                continue
-            if previousCoinValue is None:
-                previousCoinValue = 0
-            totalAmount += n * value - previousCoinValue
-            previousCoinValue = value
-
-        if previousCoinValue is None:
-            return [0, 0]
-
-        return [totalAmount, previousCoinValue]
+        # create list of (value, count) tuples
+        coins = [(value, t[index]["count"]) for [index, value] in v]
+        # TODO make max. number of coins configurable
+        return coin_payout_helper.get_possible_payout(coins)
 
     # dispense one coin type for the given value - may only be called if poll() returns busy==False
     # returns: dictionary with count, denomination, storage (tubeXX)
@@ -582,69 +565,3 @@ class MdbCashDevice(object):
             assert dispensed <= maximumDispense
             return {"count": number, "denomination": coinValue, "storage": "tube{0}".format(coinType)}
         return False
-
-class MdbCashDeviceTest(unittest.TestCase):
-    """test the MdbCashDevice class"""
-
-    def test_get_possible_payout(self):
-        seed = random.random()
-        print "MDB random test using seed=" + repr(seed)
-        random_generator = random.Random((seed,42))
-        for _ in xrange(300000):
-            self._unittest_getPossiblePayout(random_generator)
-
-    def _unittest_getPossiblePayout(self, random_generator):
-        def randFactor():
-            """pick a random float 0 ... 1 with a finite >0 probability for both endpoints"""
-            r = random_generator.random() * 1.2 - 0.1
-            if r < 0:
-                r = 0
-            if r > 1:
-                r = 1
-            return r
-
-        def myRandInt(n):
-            """pick an int from 0 ... n, with a finite >0 probability for both endpoints"""
-            return int(randFactor() * n)
-
-        n = myRandInt(5)
-        v = []
-        t = []
-        values = [1, 2, 5, 10, 20, 50, 100, 200]
-        for i in range(n):
-            v.append([i, values[myRandInt(len(values) - 1)]])
-            t.append({"count": myRandInt(20) + 1})
-
-        def cmpItem(x, y):
-            return cmp(x[1], y[1])
-        v.sort(cmp=cmpItem, reverse=True)
-
-        [canPay, remainingAllowed] = MdbCashDevice._getPossiblePayout(v, t)
-
-        pay = 0
-        shouldPay = myRandInt(canPay)
-        coinsRemaining = [x["count"] + myRandInt(2) for x in t]
-
-        def hasCoins(c):
-            for x in c:
-                if x > 0:
-                    return True
-            return False
-        while hasCoins(coinsRemaining):
-            couldPay = False
-            for [id, value] in v:
-                if coinsRemaining[id] > 0 and value <= (shouldPay - pay):
-                    coinsRemaining[id] -= 1
-                    pay += value
-                    couldPay = True
-                    break
-            if not couldPay:
-                break
-        self.assertTrue(shouldPay - remainingAllowed <= pay <= shouldPay)
-
-if __name__ == "__main__":
-    print "running unittest,  should take some minutes"
-    unittest.main()
-    print "ok"
-
-
