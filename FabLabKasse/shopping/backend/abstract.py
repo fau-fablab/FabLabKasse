@@ -115,7 +115,7 @@ def format_money(amount):
     if formatted.endswith("0"):
         formatted = formatted[:-1]
 
-    return u'{} €'.format(formatted).replace('.', ',')
+    return u'{0} €'.format(formatted).replace('.', ',')
 
 
 class Category(object):
@@ -455,9 +455,9 @@ class AbstractShoppingBackend(object):
                 email = u"einen zuständigen Betreuer"
             raise DebtLimitExceeded(
                 u"Der Kontostand wäre mit dieser Buchung über seinem Limit.\n"
-                u"Aktuelles Guthaben: {:.2f}\n"
-                u"Schuldengrenze für dieses Konto: {:.2f}\n\n"
-                u"Bie Fragen wende dich bitte an {}."
+                u"Aktuelles Guthaben: {0:.2f}\n"
+                u"Schuldengrenze für dieses Konto: {1:.2f}\n\n"
+                u"Bie Fragen wende dich bitte an {2}."
                 .format(-debt, debt_limit, email))
 
         self._pay_order_on_client_unchecked(client)
