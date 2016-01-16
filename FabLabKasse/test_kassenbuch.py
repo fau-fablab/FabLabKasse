@@ -33,25 +33,25 @@ class KassenbuchTestCase(unittest.TestCase):
         """
         # test show
         args = parse_args("show".split(' '))
-        self.assertEqual(args.which, 'show')
+        self.assertEqual(args.action, 'show')
         self.assertFalse(args.hide_receipts)
         self.assertIsNone(args.from_date)
         self.assertIsNone(args.until_date)
         args = parse_args("show --hide-receipts".split(' '))
-        self.assertEqual(args.which, 'show')
+        self.assertEqual(args.action, 'show')
         self.assertTrue(args.hide_receipts)
         self.assertIsNone(args.from_date)
         self.assertIsNone(args.until_date)
         args = parse_args("show --hide-receipts "
                           "--from 2016-12-31 13:37:42".split(' '))
-        self.assertEqual(args.which, 'show')
+        self.assertEqual(args.action, 'show')
         self.assertTrue(args.hide_receipts)
         self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31 13:37:42"))
         self.assertIsNone(args.until_date)
         args = parse_args("show --hide-receipts "
                           "--from 2016-12-31 13:37:42"
                           "--until 2017-1-23".split(' '))
-        self.assertEqual(args.which, 'show')
+        self.assertEqual(args.action, 'show')
         self.assertTrue(args.hide_receipts)
         self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31 13:37:42"))
         self.assertEquals(args.until_date, dateutil.parser.parse("2017-1-23"))

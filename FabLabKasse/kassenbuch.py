@@ -734,7 +734,6 @@ class Kundenbuchung(object):
 
 
 class UnicodeWriter(object):
-
     """
     A CSV writer which will write rows to CSV file "f",
     which is encoded in the given encoding.
@@ -796,17 +795,18 @@ def parse_args(argv=sys.argv[1:]):
     """
     Parse arguments
     :return: the parse arguments as object (see argparse doc)
+    :rtype: object
     """
     parser = argparse.ArgumentParser(description=__doc__)
-    subparsers = parser.add_subparsers(help='sub-command help')
+    subparsers = parser.add_subparsers(title='actions',
+                                       dest='action')
 
     DATE_HELP = "ISO formatted datetime, (2016-12-31 or 2016-12-31 13:37:42)"
     # show
     parser_show = subparsers.add_parser(
         'show',
-        help='show receipts'
+        help='show receipts',
     )
-    parser_show.set_defaults(which='show')
     parser_show.add_argument(
         '--hide-receipts',
         action='store_true',
@@ -833,21 +833,20 @@ def parse_args(argv=sys.argv[1:]):
     # export
     parser_export = subparsers.add_parser(
         'export',
-        help='export book or invoices'
+        help='export books or invoices',
     )
-    parser_export.set_defaults(which='export')
     parser_export.add_argument(
         'what',
         action='store',
         choices=['book', 'invoices'],
-        help="what do you want to export (book|invoices)"
+        help="what do you want to export (book|invoices)",
     )
     parser_export.add_argument(
         'outfile',
         action='store',
         type=argparse.FileType('wb'),
         default='-',
-        help="the output file, - for stdout"
+        help="the output file, - for stdout",
     )
     parser_export.add_argument(
         '--from',
@@ -872,14 +871,13 @@ def parse_args(argv=sys.argv[1:]):
         metavar='fileformat',
         default='csv',
         choices=['csv'],  # TODO more fileformats
-        help="format for the output file (default csv)"
+        help="format for the output file (default csv)",
     )
     # summary
     parser_summary = subparsers.add_parser(
         'summary',
-        help='show the summary'
+        help='show the summary',
     )
-    parser_summary.set_defaults(which='summary')
     parser_summary.add_argument(
         '--until',
         action='store',
@@ -891,59 +889,58 @@ def parse_args(argv=sys.argv[1:]):
     # transfer
     parser_transfer = subparsers.add_parser(
         'transfer',
-        help="transfer money from one resource to another"
+        help="transfer money from one resource to another",
     )
-    parser_transfer.set_defaults(which='transfer')
     parser_transfer.add_argument(
         'source',
         action='store',
         type=str,
-        help="the source"
+        help="the source",
     )
     parser_transfer.add_argument(
         'destination',
         action='store',
         type=str,
-        help="the destination"
+        help="the destination",
     )
     parser_transfer.add_argument(
         'amount',
         action='store',
         type=Decimal,
-        help="the amount"
+        help="the amount",
     )
     parser_transfer.add_argument(
         'comment',
         action='store',
         type=str,
-        help="a comment"
+        help="a comment",
     )
     # receipt
     parser_receipt = subparsers.add_parser(
         'receipt',
-        help="receipt"
+        help="receipt",  # TODO add a meaningful help
     )
-    parser_receipt.set_defaults(which='receipt')
     parser_receipt.add_argument(
         '--print',
         action='store_true',
-        dest='print',
+        dest='print_receipt',
         default=False,
-        help="print?"
+        help="print?",
     )
     parser_receipt.add_argument(
         '--export',
         action='store_true',
         dest='export',
         default=False,
-        help="export?"
+        help="export?",
     )
     parser_receipt.add_argument(
         'id',
         action='store',
-        type=int,  # TODO Kunde
-        help="the Kunden ID"
+        type=int,
+        help="the Kunden ID",
     )
+    # client
 
     if 'argcomplete' in globals():
         argcomplete.autocomplete(parser)
@@ -985,13 +982,13 @@ if __name__ == '__main__':
     startup_time = datetime.now()
     # TODO does not help if until argument is given that is greater than the current date
     # (and doesn't work at timezone jumps etc.)
-    if args.which == 'show':
+    if args.action == 'show':
         print(k.to_string(from_date=args.from_date,
                           until_date=args.until_date,
                           snapshot_time=startup_time,
                           show_receipts=not args.hide_receipts).
               encode('utf-8'))
-    elif args.which == 'export':
+    elif args.action == 'export':
         if args.what == 'book':
             # TODO Use csv.DictWriter
             writer = UnicodeWriter(args.outfile)
@@ -1035,11 +1032,11 @@ if __name__ == '__main__':
                             p['produkt_ref']
                         ])
                 writer.writerow([])
-    elif args.which == 'summary':
+    elif args.action == 'summary':
         print(k.summary_to_string(date=args.until_date,
                                   snapshot_time=startup_time).
               encode('utf-8'))
-    elif args.which == 'transfer':
+    elif args.action == 'transfer':
         comment = unicode(' '.join(args.comment).decode('utf-8'))  # TODO why??
 
         b1 = Buchung(unicode(args.source),
@@ -1051,6 +1048,14 @@ if __name__ == '__main__':
                      datum=b1.datum)
         k.buchen([b1, b2])
         print("[i] done")
+
+    elif args.action == 'receipt':
+        r = Rechnung.load_from_id(args.id, k.cur)
+        print(r.receipt(header=cfg.get('receipt', 'header'),
+                        footer=cfg.get('receipt', 'footer'),
+                        export=args.export))
+        if args.print_receipt:
+            r.print_receipt(cfg)
 
     elif args.what == 'client':
         print("not implemented")
@@ -1267,15 +1272,3 @@ if __name__ == '__main__':
 #
 #            print(u'{0:>4}|{1:>25}|{2:>8} EUR|{3:>8}| {4:>14}'.format(
 #                k.id, k.name, moneyfmt(k.summe), moneyfmt(k.schuldengrenze), letzte_zahlung))
-#
-#    elif arguments['receipt']:
-#        r = Rechnung.load_from_id(int(arguments['<id>']), k.cur)
-#        print(r.receipt(header=cfg.get('receipt', 'header'), footer=cfg.get('receipt', 'footer'),
-#                        export=bool(arguments["--export"])))
-#
-#        if arguments['--print']:
-#            r.print_receipt(cfg)
-#
-#    else:
-#        print("This should not have happend. Option not implemented.")
-#        print(arguments)
