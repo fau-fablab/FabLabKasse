@@ -806,6 +806,7 @@ def parse_args(argv=sys.argv[1:]):
         'show',
         help='show receipts'
     )
+    parser_show.set_defaults(which='show')
     parser_show.add_argument(
         '--hide-receipts',
         action='store_true',
@@ -818,20 +819,23 @@ def parse_args(argv=sys.argv[1:]):
         action='store',
         type=argparse_parse_date,
         metavar='date',
-        help=DATE_HELP
+        dest='from_date',
+        help=DATE_HELP,
     )
     parser_show.add_argument(
         '--until',
         action='store',
         type=argparse_parse_date,
         metavar='date',
-        help=DATE_HELP
+        dest='until_date',
+        help=DATE_HELP,
     )
     # export
     parser_export = subparsers.add_parser(
         'export',
         help='export book or invoices'
     )
+    parser_export.set_defaults(which='export')
     parser_export.add_argument(
         'what',
         action='store',
@@ -841,7 +845,7 @@ def parse_args(argv=sys.argv[1:]):
     parser_export.add_argument(
         'outfile',
         action='store',
-        type=argparse.FileType('w'),
+        type=argparse.FileType('wb'),
         default='-',
         help="the output file, - for stdout"
     )
@@ -850,14 +854,16 @@ def parse_args(argv=sys.argv[1:]):
         action='store',
         type=argparse_parse_date,
         metavar='date',
-        help=DATE_HELP
+        dest='from_date',
+        help=DATE_HELP,
     )
     parser_export.add_argument(
         '--until',
         action='store',
         type=argparse_parse_date,
         metavar='date',
-        help=DATE_HELP
+        dest='until_date',
+        help=DATE_HELP,
     )
     parser_export.add_argument(
         '--format',
@@ -873,18 +879,21 @@ def parse_args(argv=sys.argv[1:]):
         'summary',
         help='show the summary'
     )
+    parser_summary.set_defaults(which='summary')
     parser_summary.add_argument(
         '--until',
         action='store',
         type=argparse_parse_date,
         metavar='date',
-        help=DATE_HELP
+        dest='until_date',
+        help=DATE_HELP,
     )
     # transfer
     parser_transfer = subparsers.add_parser(
         'transfer',
         help="transfer money from one resource to another"
     )
+    parser_transfer.set_defaults(which='transfer')
     parser_transfer.add_argument(
         'source',
         action='store',
@@ -900,7 +909,7 @@ def parse_args(argv=sys.argv[1:]):
     parser_transfer.add_argument(
         'amount',
         action='store',
-        type=int,
+        type=Decimal,
         help="the amount"
     )
     parser_transfer.add_argument(
@@ -911,9 +920,10 @@ def parse_args(argv=sys.argv[1:]):
     )
     # receipt
     parser_receipt = subparsers.add_parser(
-        'transfer',
+        'receipt',
         help="receipt"
     )
+    parser_receipt.set_defaults(which='receipt')
     parser_receipt.add_argument(
         '--print',
         action='store_true',
@@ -975,272 +985,297 @@ if __name__ == '__main__':
     startup_time = datetime.now()
     # TODO does not help if until argument is given that is greater than the current date
     # (and doesn't work at timezone jumps etc.)
-    if arguments['show'] and not arguments['client']:
-        print(k.to_string(from_date=arguments['<from>'], until_date=arguments['<until>'], snapshot_time=startup_time, show_receipts=not arguments['--hide-receipts']).encode('utf-8'))
-
-    elif arguments['export'] and arguments['book']:
-        assert arguments['--format'] == 'csv', "Format not supported."
-
-        with open(arguments['<outfile>'], 'wb') as csvfile:
-            writer = UnicodeWriter(csvfile)
+    if args.which == 'show':
+        print(k.to_string(from_date=args.from_date,
+                          until_date=args.until_date,
+                          snapshot_time=startup_time,
+                          show_receipts=not args.hide_receipts).
+              encode('utf-8'))
+    elif args.which == 'export':
+        if args.what == 'book':
+            # TODO Use csv.DictWriter
+            writer = UnicodeWriter(args.outfile)
             # Header
-            writer.writerow(['DATUM', 'KONTO', 'BETRAG', 'RECH.NR.', 'KOMMENTAR'])
+            writer.writerow(['DATUM',
+                             'KONTO',
+                             'BETRAG',
+                             'RECH.NR.',
+                             'KOMMENTAR'])
             # Content
             for b in k.buchungen:
-                writer.writerow([unicode(b.datum), unicode(b.konto), u'{0:.2f}'.format(b.betrag),
-                                 unicode(b.rechnung), unicode(b.kommentar)])
-
-    elif arguments['export'] and arguments['invoices']:
-        assert arguments['--format'] == 'csv', "Format not supported."
-
-        with open(arguments['<outfile>'], 'wb') as csvfile:
-            writer = UnicodeWriter(csvfile)
+                writer.writerow([unicode(b.datum),
+                                 unicode(b.konto),
+                                 u'{0:.2f}'.format(b.betrag),
+                                 unicode(b.rechnung),
+                                 unicode(b.kommentar)])
+        elif args.what == 'invoices':
+            # TODO Use csv.DictWriter
+            writer = UnicodeWriter(args.outfile)
             # Header
-            writer.writerow(
-                ['RECH.NR.', 'DATUM', 'ARTIKEL', 'ANZAHL', 'EINHEIT', 'EINZELPREIS', 'SUMME', 'PRODUKT NR.'])
+            writer.writerow(['RECH.NR.',
+                             'DATUM',
+                             'ARTIKEL',
+                             'ANZAHL',
+                             'EINHEIT',
+                             'EINZELPREIS',
+                             'SUMME',
+                             'PRODUKT NR.'])
             # Content
             for r in k.rechnungen:
                 for p in r.positionen:
-                    writer.writerow([str(r.id), str(r.datum), p['artikel'], str(p['anzahl']),
-                                     p['einheit'], '{0:.2f}'.format(p['einzelpreis']),
-                                     '{0:.2f}'.format(r.summe_position(p)),
-                                     p['produkt_ref']])
+                    writer.writerow(
+                        [
+                            str(r.id),
+                            str(r.datum),
+                            p['artikel'],
+                            str(p['anzahl']),
+                            p['einheit'],
+                            '{0:.2f}'.format(p['einzelpreis']),
+                            '{0:.2f}'.format(r.summe_position(p)),
+                            p['produkt_ref']
+                        ])
                 writer.writerow([])
+    elif args.which == 'summary':
+        print(k.summary_to_string(date=args.until_date,
+                                  snapshot_time=startup_time).
+              encode('utf-8'))
+    elif args.which == 'transfer':
+        comment = unicode(' '.join(args.comment).decode('utf-8'))  # TODO why??
 
-    elif arguments['summary'] and not arguments['client']:
-        print(k.summary_to_string(date=arguments['<until>'], snapshot_time=startup_time).encode('utf-8'))
-
-    elif arguments['transfer']:
-        try:
-            betrag = Decimal(arguments['<amount>'])
-        except ValueError:
-            print("Amount has to be of a Decimal parsable string.")
-            exit(1)
-
-        comment = unicode(' '.join(arguments['<comment>']).decode('utf-8'))
-
-        b1 = Buchung(unicode(arguments['<source>']), -betrag, kommentar=comment)
-        b2 = Buchung(unicode(arguments['<destination>']), betrag, kommentar=comment, datum=b1.datum)
+        b1 = Buchung(unicode(args.source),
+                     -args.amount,
+                     kommentar=comment)
+        b2 = Buchung(unicode(args.destination),
+                     args.amount,
+                     kommentar=comment,
+                     datum=b1.datum)
         k.buchen([b1, b2])
+        print("[i] done")
 
-        print("done")
-
-    elif arguments['client'] and (arguments['create'] or arguments['edit']):
-
-        def fetch_input(explanation, default_input=None, allowed_regexp=None, extra_checks=None):
-            """
-            Fetches an input from stdin or uses the default
-            if no input was given and checks it
-            :param explanation: the explanation text of this input
-            :param default_input: the default value for this input or None
-            :param allowed_regexp: a regexp to check if the input is allowed
-            :param extra_checks: a function or lambda expression that
-                    requires the input as str as argument and returns True or False
-            :type default_input: basestr | None
-            :type explanation: basestr
-            :type allowed_regexp: basestr | None
-            :type extra_checks: function | None
-            """
-            default_str = " [{0}]".format(unicode(default_input)) if default_input is not None else ""
-            allowed_regexp = allowed_regexp if allowed_regexp is not None else ur".*"
-            extra_checks = extra_checks if extra_checks else lambda x: True
-
-            while True:
-                input_str = raw_input(u"{e}{d}: ".format(
-                    e=explanation, d=default_str))
-
-                if input_str == '' and default_input is not None:
-                    input_str = unicode(default_input)
-
-                if not re.match(allowed_regexp, input_str):
-                    print('[!] Eingabe ungültig!')
-                    continue  # retry
-                elif extra_checks(input_str):
-                    return input_str  # success
-                else:
-                    continue  # retry
-
-        if arguments['edit']:
-            try:
-                kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
-            except NoDataFound:
-                print(u"[!] Konnte keinen Kunde unter '{0}' finden.".format(arguments['<name>']))
-                sys.exit(2)
-        else:
-            kunde = Kunde('')  # will be filled in later
-
-        # Name
-        def check_name_unique(name):
-            """
-            Check function for fetch_input
-            checks if the given client name is unique (or unchanged)
-            :param name: the name to check if it is unique
-            :type name: basestr
-            :rtype : bool
-            """
-            if arguments['edit'] and kunde and name == kunde.name:
-                return True  # kunde keeps old name -> that's allowed
-            if k.cur.execute('SELECT id FROM kunde WHERE name=?', (name,)).fetchone() is not None:
-                print("[!] Name ist bereits in Verwendung.")
-                return False
-            return True
-
-        default = None if not arguments['edit'] else kunde.name
-        kunde.name = fetch_input(explanation=u'Name (ohne Leer- und Sonderzeichen!)',
-                                 default_input=default,
-                                 allowed_regexp=ur'^[a-zA-Z0-9\/_-]{1,}$',
-                                 extra_checks=check_name_unique)
-
-        # PIN
-        print("[i] zufällige PIN-Vorschläge: {0:04} {1:04} {2:04}".format(
-            random.randint(1, 9999), random.randint(1, 9999), random.randint(1, 9999)))
-
-        default = None if not arguments['edit'] else kunde.pin
-        kunde.pin = fetch_input(explanation=u'PIN (4 Ziffern, 0000: deaktiviert)',
-                                default_input=default,
-                                allowed_regexp=ur'^[0-9]{4}$')
-
-        # Schuldengrenze
-        def check_number_decimal(n):
-            """
-            Check function for fetch_input; checks if n is a Decimal
-            :param n: the number to check
-            :type n: unicode, str
-            :rtype : bool
-            """
-            try:
-                Decimal(n)
-                return True
-            except InvalidOperation:
-                print(u"[!] Formatierung ungültig.\n \
-                            Korrekt wäre z.B. '100.23' oder '-1'.")
-                return False
-
-        def check_number_greater_zero_or_minus_one(n):
-            """
-            Check function for fetch_input; checks if n >= 0 or == -1
-            :param n: the number to check
-            :type n: unicode, str
-            :rtype : bool
-            """
-            if Decimal(n) >= Decimal('0') or Decimal(n) == Decimal('-1'):
-                return True
-            else:
-                print("[!] Schuldengrenze muss >= 0 oder = -1 sein")
-                return False
-
-        default = None if not arguments['edit'] else kunde.schuldengrenze
-        kunde.schuldengrenze = Decimal(
-            fetch_input(explanation=u'Schuldengrenze (>=0: beschraenkt oder -1: unbeschraenkt)',
-                        default_input=default,
-                        allowed_regexp=ur'^[0-9-+,.]+$',
-                        extra_checks=lambda n: check_number_decimal(n) and check_number_greater_zero_or_minus_one(n)))
-
-        # Email
-        default = None if not arguments['edit'] else kunde.email
-        kunde.email = fetch_input(explanation=u'Email',
-                                  default_input=default,
-                                  allowed_regexp=ur'^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$')
-
-        # Telefon
-        default = None if not arguments['edit'] else kunde.telefon
-        kunde.telefon = fetch_input(explanation=u'Telefonnummer (optional; Ziffern, Leer, Raute, ... )',
-                                    default_input=default,
-                                    allowed_regexp=ur'^[0-9 \+\-#\*\(\)/]*$')
-
-        # Adresse
-        default = None if not arguments['edit'] else kunde.adresse
-        kunde.adresse = fetch_input(explanation=u'Adresse (optional; nur eine Zeile)',
-                                    default_input=default)
-
-        # Kommentar
-        default = None if not arguments['edit'] else kunde.kommentar
-        kunde.kommentar = fetch_input(explanation=u'Kommentar (optional; nur eine Zeile)',
-                                      default_input=default)
-
-        try:
-            kunde.store(k.cur)
-        except sqlite3.IntegrityError as e:
-            print("[!] Name ist bereits in Verwendung.")
-            sys.exit(2)
-
-        k.con.commit()
-        print("[i] Gespeichert. Kundennummer lautet: {0}".format(kunde.id))
-
-    elif arguments['client'] and arguments['show']:
-        try:
-            kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
-        except NoDataFound:
-            print(u"Konnte keinen Kunde unter '%s' finden." % arguments['<name>'])
-            sys.exit(2)
-
-        print(kunde.to_string(short=False))
-
-        print("Kontostand: " + moneyfmt(kunde.summe) + ' EUR')
-
-    elif arguments['client'] and arguments['summary']:
-        try:
-            kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
-        except NoDataFound:
-            print(u"Konnte keinen Kunde unter '%s' finden." % arguments['<name>'])
-            sys.exit(2)
-
-        print(kunde.to_string(short=True))
-
-        print("Kontostand: " + moneyfmt(kunde.summe) + ' EUR')
-
-    elif arguments['client'] and arguments['charge']:
-        try:
-            kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
-        except NoDataFound:
-            print(u"Konnte keinen Kunde unter '%s' finden." % arguments['<name>'])
-            sys.exit(2)
-
-        comment = unicode(' '.join(arguments['<comment>']).decode('utf-8'))
-
-        kunde.add_buchung(-Decimal(arguments['<amount>']), comment)
-        kunde.store(k.cur)
-
-        k.con.commit()
-
-    elif arguments['client'] and arguments['payup']:
-        try:
-            kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
-        except NoDataFound:
-            print(u"Konnte keinen Kunde unter '%s' finden." % arguments['<name>'])
-            sys.exit(2)
-
-        comment = unicode(' '.join(arguments['<comment>']).decode('utf-8'))
-
-        kunde.add_buchung(Decimal(arguments['<amount>']), comment)
-        kunde.store(k.cur)
-
-        k.con.commit()
-
-    elif arguments['client'] and arguments['list']:
-        print("KdNr|                     Name|  Kontostand|  Grenze| Letzte Zahlung")
-        print("----+-------------------------+------------+--------+---------------")
-
-        for k in k.kunden:
-            letzte_zahlung = sorted(map(lambda b: b.datum, filter(lambda b: b.betrag > 0,
-                                                                  k.buchungen)))[:1]
-
-            if not letzte_zahlung:
-                letzte_zahlung = "n/a"
-            else:
-                letzte_zahlung = letzte_zahlung[0].strftime('%Y-%m-%d')
-
-            print(u'{0:>4}|{1:>25}|{2:>8} EUR|{3:>8}| {4:>14}'.format(
-                k.id, k.name, moneyfmt(k.summe), moneyfmt(k.schuldengrenze), letzte_zahlung))
-
-    elif arguments['receipt']:
-        r = Rechnung.load_from_id(int(arguments['<id>']), k.cur)
-        print(r.receipt(header=cfg.get('receipt', 'header'), footer=cfg.get('receipt', 'footer'),
-                        export=bool(arguments["--export"])))
-
-        if arguments['--print']:
-            r.print_receipt(cfg)
+    elif args.what == 'client':
+        print("not implemented")
 
     else:
-        print("This should not have happend. Option not implemented.")
-        print(arguments)
+        print("[!] This should not have happend. Option not implemented.")
+        print(args)
+
+#    # OLD CODE:
+#    if arguments['client'] and (arguments['create'] or arguments['edit']):
+#
+#        def fetch_input(explanation, default_input=None, allowed_regexp=None, extra_checks=None):
+#            """
+#            Fetches an input from stdin or uses the default
+#            if no input was given and checks it
+#            :param explanation: the explanation text of this input
+#            :param default_input: the default value for this input or None
+#            :param allowed_regexp: a regexp to check if the input is allowed
+#            :param extra_checks: a function or lambda expression that
+#                    requires the input as str as argument and returns True or False
+#            :type default_input: basestr | None
+#            :type explanation: basestr
+#            :type allowed_regexp: basestr | None
+#            :type extra_checks: function | None
+#            """
+#            default_str = " [{0}]".format(unicode(default_input)) if default_input is not None else ""
+#            allowed_regexp = allowed_regexp if allowed_regexp is not None else ur".*"
+#            extra_checks = extra_checks if extra_checks else lambda x: True
+#
+#            while True:
+#                input_str = raw_input(u"{e}{d}: ".format(
+#                    e=explanation, d=default_str))
+#
+#                if input_str == '' and default_input is not None:
+#                    input_str = unicode(default_input)
+#
+#                if not re.match(allowed_regexp, input_str):
+#                    print('[!] Eingabe ungültig!')
+#                    continue  # retry
+#                elif extra_checks(input_str):
+#                    return input_str  # success
+#                else:
+#                    continue  # retry
+#
+#        if arguments['edit']:
+#            try:
+#                kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
+#            except NoDataFound:
+#                print(u"[!] Konnte keinen Kunde unter '{0}' finden.".format(arguments['<name>']))
+#                sys.exit(2)
+#        else:
+#            kunde = Kunde('')  # will be filled in later
+#
+#        # Name
+#        def check_name_unique(name):
+#            """
+#            Check function for fetch_input
+#            checks if the given client name is unique (or unchanged)
+#            :param name: the name to check if it is unique
+#            :type name: basestr
+#            :rtype : bool
+#            """
+#            if arguments['edit'] and kunde and name == kunde.name:
+#                return True  # kunde keeps old name -> that's allowed
+#            if k.cur.execute('SELECT id FROM kunde WHERE name=?', (name,)).fetchone() is not None:
+#                print("[!] Name ist bereits in Verwendung.")
+#                return False
+#            return True
+#
+#        default = None if not arguments['edit'] else kunde.name
+#        kunde.name = fetch_input(explanation=u'Name (ohne Leer- und Sonderzeichen!)',
+#                                 default_input=default,
+#                                 allowed_regexp=ur'^[a-zA-Z0-9\/_-]{1,}$',
+#                                 extra_checks=check_name_unique)
+#
+#        # PIN
+#        print("[i] zufällige PIN-Vorschläge: {0:04} {1:04} {2:04}".format(
+#            random.randint(1, 9999), random.randint(1, 9999), random.randint(1, 9999)))
+#
+#        default = None if not arguments['edit'] else kunde.pin
+#        kunde.pin = fetch_input(explanation=u'PIN (4 Ziffern, 0000: deaktiviert)',
+#                                default_input=default,
+#                                allowed_regexp=ur'^[0-9]{4}$')
+#
+#        # Schuldengrenze
+#        def check_number_decimal(n):
+#            """
+#            Check function for fetch_input; checks if n is a Decimal
+#            :param n: the number to check
+#            :type n: unicode, str
+#            :rtype : bool
+#            """
+#            try:
+#                Decimal(n)
+#                return True
+#            except InvalidOperation:
+#                print(u"[!] Formatierung ungültig.\n \
+#                            Korrekt wäre z.B. '100.23' oder '-1'.")
+#                return False
+#
+#        def check_number_greater_zero_or_minus_one(n):
+#            """
+#            Check function for fetch_input; checks if n >= 0 or == -1
+#            :param n: the number to check
+#            :type n: unicode, str
+#            :rtype : bool
+#            """
+#            if Decimal(n) >= Decimal('0') or Decimal(n) == Decimal('-1'):
+#                return True
+#            else:
+#                print("[!] Schuldengrenze muss >= 0 oder = -1 sein")
+#                return False
+#
+#        default = None if not arguments['edit'] else kunde.schuldengrenze
+#        kunde.schuldengrenze = Decimal(
+#            fetch_input(explanation=u'Schuldengrenze (>=0: beschraenkt oder -1: unbeschraenkt)',
+#                        default_input=default,
+#                        allowed_regexp=ur'^[0-9-+,.]+$',
+#                        extra_checks=lambda n: check_number_decimal(n) and check_number_greater_zero_or_minus_one(n)))
+#
+#        # Email
+#        default = None if not arguments['edit'] else kunde.email
+#        kunde.email = fetch_input(explanation=u'Email',
+#                                  default_input=default,
+#                                  allowed_regexp=ur'^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$')
+#
+#        # Telefon
+#        default = None if not arguments['edit'] else kunde.telefon
+#        kunde.telefon = fetch_input(explanation=u'Telefonnummer (optional; Ziffern, Leer, Raute, ... )',
+#                                    default_input=default,
+#                                    allowed_regexp=ur'^[0-9 \+\-#\*\(\)/]*$')
+#
+#        # Adresse
+#        default = None if not arguments['edit'] else kunde.adresse
+#        kunde.adresse = fetch_input(explanation=u'Adresse (optional; nur eine Zeile)',
+#                                    default_input=default)
+#
+#        # Kommentar
+#        default = None if not arguments['edit'] else kunde.kommentar
+#        kunde.kommentar = fetch_input(explanation=u'Kommentar (optional; nur eine Zeile)',
+#                                      default_input=default)
+#
+#        try:
+#            kunde.store(k.cur)
+#        except sqlite3.IntegrityError as e:
+#            print("[!] Name ist bereits in Verwendung.")
+#            sys.exit(2)
+#
+#        k.con.commit()
+#        print("[i] Gespeichert. Kundennummer lautet: {0}".format(kunde.id))
+#
+#    elif arguments['client'] and arguments['show']:
+#        try:
+#            kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
+#        except NoDataFound:
+#            print(u"Konnte keinen Kunde unter '%s' finden." % arguments['<name>'])
+#            sys.exit(2)
+#
+#        print(kunde.to_string(short=False))
+#
+#        print("Kontostand: " + moneyfmt(kunde.summe) + ' EUR')
+#
+#    elif arguments['client'] and arguments['summary']:
+#        try:
+#            kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
+#        except NoDataFound:
+#            print(u"Konnte keinen Kunde unter '%s' finden." % arguments['<name>'])
+#            sys.exit(2)
+#
+#        print(kunde.to_string(short=True))
+#
+#        print("Kontostand: " + moneyfmt(kunde.summe) + ' EUR')
+#
+#    elif arguments['client'] and arguments['charge']:
+#        try:
+#            kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
+#        except NoDataFound:
+#            print(u"Konnte keinen Kunde unter '%s' finden." % arguments['<name>'])
+#            sys.exit(2)
+#
+#        comment = unicode(' '.join(arguments['<comment>']).decode('utf-8'))
+#
+#        kunde.add_buchung(-Decimal(arguments['<amount>']), comment)
+#        kunde.store(k.cur)
+#
+#        k.con.commit()
+#
+#    elif arguments['client'] and arguments['payup']:
+#        try:
+#            kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
+#        except NoDataFound:
+#            print(u"Konnte keinen Kunde unter '%s' finden." % arguments['<name>'])
+#            sys.exit(2)
+#
+#        comment = unicode(' '.join(arguments['<comment>']).decode('utf-8'))
+#
+#        kunde.add_buchung(Decimal(arguments['<amount>']), comment)
+#        kunde.store(k.cur)
+#
+#        k.con.commit()
+#
+#    elif arguments['client'] and arguments['list']:
+#        print("KdNr|                     Name|  Kontostand|  Grenze| Letzte Zahlung")
+#        print("----+-------------------------+------------+--------+---------------")
+#
+#        for k in k.kunden:
+#            letzte_zahlung = sorted(map(lambda b: b.datum, filter(lambda b: b.betrag > 0,
+#                                                                  k.buchungen)))[:1]
+#
+#            if not letzte_zahlung:
+#                letzte_zahlung = "n/a"
+#            else:
+#                letzte_zahlung = letzte_zahlung[0].strftime('%Y-%m-%d')
+#
+#            print(u'{0:>4}|{1:>25}|{2:>8} EUR|{3:>8}| {4:>14}'.format(
+#                k.id, k.name, moneyfmt(k.summe), moneyfmt(k.schuldengrenze), letzte_zahlung))
+#
+#    elif arguments['receipt']:
+#        r = Rechnung.load_from_id(int(arguments['<id>']), k.cur)
+#        print(r.receipt(header=cfg.get('receipt', 'header'), footer=cfg.get('receipt', 'footer'),
+#                        export=bool(arguments["--export"])))
+#
+#        if arguments['--print']:
+#            r.print_receipt(cfg)
+#
+#    else:
+#        print("This should not have happend. Option not implemented.")
+#        print(arguments)
