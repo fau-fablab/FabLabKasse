@@ -14,15 +14,48 @@
 #
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
+
 """unittests for kassenbuch.py"""
+
 import unittest
-from FabLabKasse.kassenbuch import Kasse, Kunde, NoDataFound
+from FabLabKasse.kassenbuch import Kasse, Kunde, NoDataFound, parse_args
 from hypothesis import given
 from hypothesis.strategies import text
+import dateutil
 
 
 class KassenbuchTestCase(unittest.TestCase):
     """unittests for kassenbuch.py"""
+
+    def test_argparse(self):
+        """
+        test the argparser
+        """
+        # test show
+        args = parse_args("show".split(' '))
+        self.assertEqual(args.which, 'show')
+        self.assertFalse(args.hide_receipts)
+        self.assertIsNone(args.from_date)
+        self.assertIsNone(args.until_date)
+        args = parse_args("show --hide-receipts".split(' '))
+        self.assertEqual(args.which, 'show')
+        self.assertTrue(args.hide_receipts)
+        self.assertIsNone(args.from_date)
+        self.assertIsNone(args.until_date)
+        args = parse_args("show --hide-receipts "
+                          "--from 2016-12-31 13:37:42".split(' '))
+        self.assertEqual(args.which, 'show')
+        self.assertTrue(args.hide_receipts)
+        self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31 13:37:42"))
+        self.assertIsNone(args.until_date)
+        args = parse_args("show --hide-receipts "
+                          "--from 2016-12-31 13:37:42"
+                          "--until 2017-1-23".split(' '))
+        self.assertEqual(args.which, 'show')
+        self.assertTrue(args.hide_receipts)
+        self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31 13:37:42"))
+        self.assertEquals(args.until_date, dateutil.parser.parse("2017-1-23"))
+
     def test_accounting_database_setup(self):
         """tests the creation of the accounting database"""
         kasse = Kasse(sqlite_file=':memory:')
