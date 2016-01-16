@@ -1,25 +1,32 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
+# PYTHON_ARGCOMPLETE_OK
+
 #
-# FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
+# FabLabKasse, a Point-of-Sale Software for FabLabs and other public and
+# trust-based workshops.
 # Copyright (C) 2015  Julian Hammer <julian.hammer@fablab.fau.de>
 #                     Maximilian Gaukler <max@fablab.fau.de>
 #                     Patrick Kanzler <patrick.kanzler@fablab.fau.de>
 #                     Timo Voigt <timo@fablab.fau.de>
 #
-# This program is free software: you can redistribute it and/or modify it under the terms of the GNU
-# General Public License as published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-# even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along with this program. If not,
-# see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""Kassenbuch Backend mit doppelter Buchführung.
-
+"""
+Kassenbuch Backend mit doppelter Buchführung.
+"""
+"""
 Usage:
   kassenbuch.py show [--hide-receipts] [<from> [<until>]]
   kassenbuch.py export (book|invoices) <outfile> [<from> [<until>]] [--format=<fileformat>]
@@ -46,7 +53,6 @@ import sqlite3
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 import dateutil.parser
-from docopt import docopt
 import csv
 import cStringIO
 import codecs
@@ -55,6 +61,11 @@ import sys
 import os
 import random
 import scriptHelper
+import argparse
+try:
+    import argcomplete
+except ImportError:
+    pass
 
 import doctest
 
@@ -767,22 +778,185 @@ def parse_date(date):
     else:
         raise ValueError('cannot parse date value')
 
+
+def argparse_parse_date(date):
+    """
+    a wrapper for parings dates for argparse
+
+    :type date: see :meth:`parse_date`
+    :rtype: see :meth:`parse_date`
+    """
+    try:
+        return parse_date(date)
+    except ValueError as e:
+        raise argparse.ArgumentTypeError(e.message)
+
+
+def parse_args(argv=sys.argv[1:]):
+    """
+    Parse arguments
+    :return: the parse arguments as object (see argparse doc)
+    """
+    parser = argparse.ArgumentParser(description=__doc__)
+    subparsers = parser.add_subparsers(help='sub-command help')
+
+    DATE_HELP = "ISO formatted datetime, (2016-12-31 or 2016-12-31 13:37:42)"
+    # show
+    parser_show = subparsers.add_parser(
+        'show',
+        help='show receipts'
+    )
+    parser_show.add_argument(
+        '--hide-receipts',
+        action='store_true',
+        dest='hide_receipts',
+        default=False,
+        help="Don't show receipts in summary output, just the account balances"
+    )
+    parser_show.add_argument(
+        '--from',
+        action='store',
+        type=argparse_parse_date,
+        metavar='date',
+        help=DATE_HELP
+    )
+    parser_show.add_argument(
+        '--until',
+        action='store',
+        type=argparse_parse_date,
+        metavar='date',
+        help=DATE_HELP
+    )
+    # export
+    parser_export = subparsers.add_parser(
+        'export',
+        help='export book or invoices'
+    )
+    parser_export.add_argument(
+        'what',
+        action='store',
+        choices=['book', 'invoices'],
+        help="what do you want to export (book|invoices)"
+    )
+    parser_export.add_argument(
+        'outfile',
+        action='store',
+        type=argparse.FileType('w'),
+        default='-',
+        help="the output file, - for stdout"
+    )
+    parser_export.add_argument(
+        '--from',
+        action='store',
+        type=argparse_parse_date,
+        metavar='date',
+        help=DATE_HELP
+    )
+    parser_export.add_argument(
+        '--until',
+        action='store',
+        type=argparse_parse_date,
+        metavar='date',
+        help=DATE_HELP
+    )
+    parser_export.add_argument(
+        '--format',
+        action='store',
+        dest='format',
+        metavar='fileformat',
+        default='csv',
+        choices=['csv'],  # TODO more fileformats
+        help="format for the output file (default csv)"
+    )
+    # summary
+    parser_summary = subparsers.add_parser(
+        'summary',
+        help='show the summary'
+    )
+    parser_summary.add_argument(
+        '--until',
+        action='store',
+        type=argparse_parse_date,
+        metavar='date',
+        help=DATE_HELP
+    )
+    # transfer
+    parser_transfer = subparsers.add_parser(
+        'transfer',
+        help="transfer money from one resource to another"
+    )
+    parser_transfer.add_argument(
+        'source',
+        action='store',
+        type=str,
+        help="the source"
+    )
+    parser_transfer.add_argument(
+        'destination',
+        action='store',
+        type=str,
+        help="the destination"
+    )
+    parser_transfer.add_argument(
+        'amount',
+        action='store',
+        type=int,
+        help="the amount"
+    )
+    parser_transfer.add_argument(
+        'comment',
+        action='store',
+        type=str,
+        help="a comment"
+    )
+    # receipt
+    parser_receipt = subparsers.add_parser(
+        'transfer',
+        help="receipt"
+    )
+    parser_receipt.add_argument(
+        '--print',
+        action='store_true',
+        dest='print',
+        default=False,
+        help="print?"
+    )
+    parser_receipt.add_argument(
+        '--export',
+        action='store_true',
+        dest='export',
+        default=False,
+        help="export?"
+    )
+    parser_receipt.add_argument(
+        'id',
+        action='store',
+        type=int,  # TODO Kunde
+        help="the Kunden ID"
+    )
+
+    if 'argcomplete' in globals():
+        argcomplete.autocomplete(parser)
+
+    args = parser.parse_args(argv)
+
+    return args
+
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='Kassenbuch 1.0')
+    args = parse_args()
 
     # go to script dir (configs are relative path names)
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
     # Decode all arguments with proper utf-8 decoding:
-    arguments.update(
-        dict(map(lambda t: (t[0], t[1].decode('utf-8')),
-                 filter(lambda t: isinstance(t[1], str), arguments.items()))))
+    #arguments.update(
+    #    dict(map(lambda t: (t[0], t[1].decode('utf-8')),
+    #             filter(lambda t: isinstance(t[1], str), arguments.items()))))
 
     # decode date arguments
-    for arg_name in ['<until>', '<from>']:
-        # TODO also parse rechnung ID here (convert to date=max(rechnung.datum, rechnung.buchungen.datum) ?)
-        arguments[arg_name] = parse_date(arguments[arg_name])
-
+    #for arg_name in ['<until>', '<from>']:
+    #    # TODO also parse rechnung ID here (convert to date=max(rechnung.datum, rechnung.buchungen.datum) ?)
+    #    arguments[arg_name] = parse_date(arguments[arg_name])
 
     cfg = scriptHelper.getConfig()
     k = Kasse(cfg.get('general', 'db_file'))
