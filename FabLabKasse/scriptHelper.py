@@ -70,7 +70,7 @@ def setupGraphicalExceptHook():
                 email = cfg.get('general', 'support_mail')
             except ConfigParserError:
                 logging.warning("could not read mail address from config in graphical except-hook.")
-                email = "dex Verantwortlichx"
+                email = "den Verantwortlichen"
             msgbox = QtGui.QMessageBox()
             txt = u"Entschuldigung, das Programm wird wegen eines Fehlers beendet."
             infotxt = u"""Wenn dir Rückgeld entgangen ist, melde dich bei {0} und gebe neben einer
