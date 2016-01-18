@@ -12,7 +12,7 @@
 *.pyc
 
 # python-hypothesis
-.hypothesis
+.hypothesis/eval_source
 
 # python-coverage
 .coverage
