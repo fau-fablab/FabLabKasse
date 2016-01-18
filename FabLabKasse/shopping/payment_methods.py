@@ -327,9 +327,26 @@ class FAUCardPayment(AbstractPaymentMethod):
         return cfg.getboolean('payup_methods', 'FAUcard')
 
     def _show_dialog(self):
-        QtGui.QMessageBox.warning(self.parent, "", "Not yet implemented")
-        self.amount_paid = 0
+        from ..faucardPayment.faucard import PayupFAUCard
+        
+        pay_func = PayupFAUCard(parent=self.parent, amount=self.amount_to_pay)
+        ok = pay_func.executePayment()
+        paid_amount = pay_func.getPaidAmount()
+        self.amount_paid = paid_amount
         self.amount_returned = 0
-        self.successful = False
+        self.successful = ok
+        self.print_receipt = pay_func.getWantReceipt()
+        pay_func.close()
+    
+    def _end_of_payment(self):
+        """
+        Is required to complete the MagPosLog logging after the payment routine.
+        On a successfull payment, the last log entry will be set to status.booking_done
+        """
+        if self.successful is True:
+            from ..faucardPayment.faucard import finish_log
+
+            finish_log()
+
 
 PAYMENT_METHODS = [FAUCardPayment, AutoCashPayment, ManualCashPayment, ClientPayment]
