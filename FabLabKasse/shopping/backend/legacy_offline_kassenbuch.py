@@ -24,7 +24,7 @@ import logging
 from abstract import Product, Category, PrinterError
 from offline_base import AbstractOfflineShoppingBackend, Client
 from decimal import Decimal
-from ..payment_methods import ManualCashPayment, AutoCashPayment
+from ..payment_methods import ManualCashPayment, AutoCashPayment, FAUCardPayment
 from ... import scriptHelper
 from ...kassenbuch import Kasse, Rechnung, Buchung, Kunde
 from ...produkt import Produkt
@@ -100,6 +100,8 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
             destination = u"Handkasse"
         elif isinstance(method, AutoCashPayment):
             destination = u"Automatenkasse"
+        elif isinstance(method, FAUCardPayment):
+            destination = u"FAUKarte"
         else:
             raise Exception("unsupported payment method")
         rechnung = self._rechnung_from_order_lines()
