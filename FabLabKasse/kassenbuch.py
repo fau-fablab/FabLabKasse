@@ -605,19 +605,22 @@ class Kunde(object):
         return summe
 
     def to_string(self, short=False):
-        summary = (u'Kunde {name} ({id}):\n    Schuldengrenze: {schuldengrenze:.2f} EUR\n    ' +
-                   u'Mail: {email}\n    Telefon: {telefon}\n    Adresse: {adresse}\n    ' +
-                   u'Kommentar: {kommentar}\n    PIN: {pin}').format(
+        summary = u"""Kunde: {name} (#{id}):
+    Schuldengrenze: {schuldengrenze:.2f} EUR
+    Mail:           {email}
+    Telefon:        {telefon}
+    Adresse:        {adresse}
+    Kommentar:      {kommentar}
+    PIN:            {pin}""".format(
             id=self.id, name=self.name, schuldengrenze=self.schuldengrenze,
             email=self.email, telefon=self.telefon, adresse=self.adresse,
             kommentar=self.kommentar, pin=self.pin)
 
-        details = Kundenbuchung.header
-        details += '\n'.join(map(lambda b: b.to_string(), self.buchungen))
-
         if short:
             return summary
         else:
+            details = Kundenbuchung.header
+            details += '\n'.join((b.to_string() for b in self.buchungen))
             return summary + '\n\n' + details
 
     def __repr__(self):
