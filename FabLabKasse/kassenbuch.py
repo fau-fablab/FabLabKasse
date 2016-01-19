@@ -26,31 +26,11 @@
 """
 Kassenbuch Backend mit doppelter Buchführung.
 """
-"""
-Usage:
-  kassenbuch.py show [--hide-receipts] [<from> [<until>]]
-  kassenbuch.py export (book|invoices) <outfile> [<from> [<until>]] [--format=<fileformat>]
-  kassenbuch.py summary [<until>]
-  kassenbuch.py transfer <source> <destination> <amount> <comment>...
-  kassenbuch.py client (create|list)
-  kassenbuch.py client (edit|show|summary) <name>
-  kassenbuch.py client (charge|payup) <name> <amount> <comment>...
-  kassenbuch.py receipt [--print] [--export] <id>
-  kassenbuch.py (-h | --help)
-  kassenbuch.py --version
 
-Options:
-  -h --help     Show this screen.
-  --version     Show version.
-  --format=<fileformat>  Export Dateityp [default: csv].
-  --hide-receipts    Don't show receipts in summary output, just the account balances
-
-Date format:
-  <from>/<until> is ISO formatted datetime, like 2016-12-31 or "2016-12-31 13:37:42"
-"""
+from __future__ import print_function
 
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 import dateutil.parser
 import csv
@@ -763,16 +743,22 @@ class UnicodeWriter(object):
             self.writerow(row)
 
 
-def parse_date(date):
+def parse_date(value):
     """
     parse date from string or None
 
-    :type date: basestr | None
+    :type value: basestr | None
     :rtype: datetime.datetime | None
     """
-    if isinstance(date, basestring) and date != '':
-        return dateutil.parser.parse(date)
-    if date is None:
+    if isinstance(value, basestring) and value != '':
+        value = value.lower().strip()
+        if value == 'now' or value == 'today':
+            return datetime.today()
+        elif value == 'yesterday':
+            return datetime.today() - timedelta(1)
+        else:
+            return dateutil.parser.parse(value)
+    if value is None:
         return None
     else:
         raise ValueError('cannot parse date value')
@@ -791,6 +777,15 @@ def argparse_parse_date(date):
         raise argparse.ArgumentTypeError(e.message)
 
 
+def argparse_parse_currency(amount):
+    """parse currencies for argparse"""
+    try:
+        amount = amount.replace(',', '.').replace('€', '').strip()
+        return Decimal(amount)
+    except InvalidOperation as e:
+        raise argparse.ArgumentTypeError(e.message)
+
+
 def parse_args(argv=sys.argv[1:]):
     """
     Parse arguments
@@ -801,7 +796,7 @@ def parse_args(argv=sys.argv[1:]):
     subparsers = parser.add_subparsers(title='actions',
                                        dest='action')
 
-    DATE_HELP = "ISO formatted datetime, (2016-12-31 or 2016-12-31 13:37:42)"
+    DATE_HELP = "datetime e.g. ISO formatted, (2016-12-31 [13:37:42])"
     # show
     parser_show = subparsers.add_parser(
         'show',
@@ -906,13 +901,14 @@ def parse_args(argv=sys.argv[1:]):
     parser_transfer.add_argument(
         'amount',
         action='store',
-        type=Decimal,
+        type=argparse_parse_currency,
         help="the amount",
     )
     parser_transfer.add_argument(
         'comment',
         action='store',
         type=str,
+        nargs='+',
         help="a comment",
     )
     # receipt
@@ -989,7 +985,7 @@ def parse_args(argv=sys.argv[1:]):
     # client charge
     parser_client_charge = client_subparsers.add_parser(
         'charge',
-        help="Charge the credit of an existing client",  # TODO FIX ME
+        help="Charge the credit of an client (remove money from account)",
     )
     parser_client_charge.add_argument(
         'name',
@@ -1000,19 +996,20 @@ def parse_args(argv=sys.argv[1:]):
     parser_client_charge.add_argument(
         'amount',
         action='store',
-        type=int,
-        help="The amount to charge in Cents",  # TODO FIX ME
+        type=argparse_parse_currency,
+        help="The amount to charge in Euro",
     )
     parser_client_charge.add_argument(
         'comment',
         action='store',
         type=str,
+        nargs='+',
         help="A comment for this charging",
     )
     # client payup
     parser_client_payup = client_subparsers.add_parser(
         'payup',
-        help="Debit the credit of an existing client",
+        help="Pay up the credit of an client (add money to account)",
     )
     parser_client_payup.add_argument(
         'name',
@@ -1023,14 +1020,15 @@ def parse_args(argv=sys.argv[1:]):
     parser_client_payup.add_argument(
         'amount',
         action='store',
-        type=int,
-        help="The amount to charge in Cents",  # TODO FIX ME
+        type=argparse_parse_currency,
+        help="The amount to payup in Euro",
     )
     parser_client_payup.add_argument(
         'comment',
         action='store',
         type=str,
-        help="A comment for this debit",
+        nargs='+',
+        help="A comment for this payup",
     )
 
     if 'argcomplete' in globals():
@@ -1040,21 +1038,13 @@ def parse_args(argv=sys.argv[1:]):
 
     return args
 
-if __name__ == '__main__':
+
+def main():
+    """parse args, run the desired action"""
     args = parse_args()
 
     # go to script dir (configs are relative path names)
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
-
-    # Decode all arguments with proper utf-8 decoding:
-    #arguments.update(
-    #    dict(map(lambda t: (t[0], t[1].decode('utf-8')),
-    #             filter(lambda t: isinstance(t[1], str), arguments.items()))))
-
-    # decode date arguments
-    #for arg_name in ['<until>', '<from>']:
-    #    # TODO also parse rechnung ID here (convert to date=max(rechnung.datum, rechnung.buchungen.datum) ?)
-    #    arguments[arg_name] = parse_date(arguments[arg_name])
 
     cfg = scriptHelper.getConfig()
     k = Kasse(cfg.get('general', 'db_file'))
@@ -1073,6 +1063,10 @@ if __name__ == '__main__':
     startup_time = datetime.now()
     # TODO does not help if until argument is given that is greater than the current date
     # (and doesn't work at timezone jumps etc.)
+
+    if 'comment' in args:
+        args.comment = ' '.join(args.comment)
+
     if args.action == 'show':
         print(k.to_string(from_date=args.from_date,
                           until_date=args.until_date,
@@ -1128,14 +1122,13 @@ if __name__ == '__main__':
                                   snapshot_time=startup_time).
               encode('utf-8'))
     elif args.action == 'transfer':
-        comment = unicode(' '.join(args.comment).decode('utf-8'))  # TODO why??
 
-        b1 = Buchung(unicode(args.source),
+        b1 = Buchung(args.source,
                      -args.amount,
-                     kommentar=comment)
-        b2 = Buchung(unicode(args.destination),
+                     kommentar=args.comment)
+        b2 = Buchung(args.destination,
                      args.amount,
-                     kommentar=comment,
+                     kommentar=args.comment,
                      datum=b1.datum)
         k.buchen([b1, b2])
         print("[i] done")
@@ -1154,8 +1147,8 @@ if __name__ == '__main__':
             try:
                 kunde = Kunde.load_from_name(args.name, k.cur)
             except NoDataFound:
-                print(u"Konnte keinen Kunde unter '%s' finden." % args.name,
-                      sys.stderr)
+                print(u"[!] Konnte keinen Kunde unter '%s' finden." % args.name,
+                      file=sys.stderr)
                 sys.exit(2)
         elif args.client_action == 'create':
             kunde = Kunde('')  # will be filled in later
@@ -1189,7 +1182,7 @@ if __name__ == '__main__':
                         input_str = unicode(default_input)
 
                     if not re.match(allowed_regexp, input_str):
-                        print('[!] Eingabe ungültig!', sys.stderr)
+                        print('[!] Eingabe ungültig!', file=sys.stderr)
                         continue  # retry
                     elif extra_checks(input_str):
                         return input_str  # success
@@ -1208,7 +1201,7 @@ if __name__ == '__main__':
                 if args.edit and kunde and name == kunde.name:
                     return True  # kunde keeps old name -> that's allowed
                 if k.cur.execute('SELECT id FROM kunde WHERE name=?', (name,)).fetchone() is not None:
-                    print("[!] Name ist bereits in Verwendung.", sys.stderr)
+                    print("[!] Name ist bereits in Verwendung.", file=sys.stderr)
                     return False
                 return True
 
@@ -1247,7 +1240,7 @@ if __name__ == '__main__':
                 except InvalidOperation:
                     print(u"[!] Formatierung ungültig.\n \
                                 Korrekt wäre z.B. '100.23' oder '-1'.",
-                          sys.stderr)
+                          file=sys.stderr)
                     return False
 
             def check_number_greater_zero_or_minus_one(n):
@@ -1261,7 +1254,7 @@ if __name__ == '__main__':
                     return True
                 else:
                     print("[!] Schuldengrenze muss >= 0 oder = -1 sein",
-                          sys.stderr)
+                          file=sys.stderr)
                     return False
 
             default = None if not args.edit else kunde.schuldengrenze
@@ -1305,8 +1298,8 @@ if __name__ == '__main__':
 
             try:
                 kunde.store(k.cur)
-            except sqlite3.IntegrityError as e:
-                print("[!] Name ist bereits in Verwendung.", sys.stderr)
+            except sqlite3.IntegrityError:
+                print("[!] Name ist bereits in Verwendung.", file=sys.stderr)
                 sys.exit(2)
 
             k.con.commit()
@@ -1314,20 +1307,20 @@ if __name__ == '__main__':
 
         elif args.client_action == 'show':
 
-            print(kunde.to_string(short=args.detail))
+            print(kunde.to_string(short=not args.detail))
 
             print("Kontostand: " + moneyfmt(kunde.summe) + ' EUR')
 
         elif args.client_action == 'charge':
 
-            kunde.add_buchung(-Decimal(args.amount), args.comment)
+            kunde.add_buchung(-args.amount, args.comment)
             kunde.store(k.cur)
 
             k.con.commit()
 
         elif args.client_action == 'payup':
 
-            kunde.add_buchung(Decimal(args.amount), args.comment)
+            kunde.add_buchung(args.amount, args.comment)
             kunde.store(k.cur)
 
             k.con.commit()
@@ -1356,5 +1349,9 @@ KdNr|                     Name|  Kontostand|  Grenze| Letzte Zahlung
 
     else:
         print("[!] This should not have happend. Option not implemented.",
-              sys.stderr)
-        print(args, sys.stderr)
+              file=sys.stderr)
+        print(args, file=sys.stderr)
+
+
+if __name__ == '__main__':
+    main()
