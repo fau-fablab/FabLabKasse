@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
 
-#
+
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and
 # trust-based workshops.
 # Copyright (C) 2015  Julian Hammer <julian.hammer@fablab.fau.de>
@@ -45,7 +45,7 @@ import argparse
 try:
     import argcomplete
 except ImportError:
-    pass
+    pass  # NQA
 
 import doctest
 
@@ -755,7 +755,7 @@ def parse_date(value):
     """
     if isinstance(value, basestring) and value != '':
         value = value.lower().strip()
-        if value == 'now' or value == 'today':
+        if value in ['now', 'today']:
             return datetime.today()
         elif value == 'yesterday':
             return datetime.today() - timedelta(1)
@@ -808,12 +808,12 @@ def argparse_parse_client(value):
     try:
         return Kunde.load_from_id(int(value), k.cur)
     except (ValueError, NoDataFound):
-        pass
+        pass  # NQA
     try:
         return Kunde.load_from_name(value, k.cur)
     except NoDataFound:
         raise argparse.ArgumentTypeError(
-            u"Konnte keinen Kunde unter '%s' finden." % value)
+            u"Konnte keinen Kunde unter '{0}' finden.".format(value))
 
 
 def client_argcomplete(prefix, **kwargs):
@@ -833,7 +833,7 @@ def argparse_parse_receipt(rid):
         return Rechnung.load_from_id(int(rid), k.cur)
     except (ValueError, NoDataFound):
         raise argparse.ArgumentTypeError(
-            u"Konnte keine Rechnung mit der ID '%s' finden." % rid)
+            u"Konnte keine Rechnung mit der ID '{0}' finden.".format(rid))
 
 
 def receipt_argcomplete(prefix, **kwargs):
