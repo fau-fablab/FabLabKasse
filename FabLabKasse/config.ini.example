@@ -1,4 +1,7 @@
 [general]
+; support mail will be displayed when error occur
+support_mail = kasse@fablab.fau.de
+
 ; Path to sqlite3 file
 db_file = development.sqlite3
 

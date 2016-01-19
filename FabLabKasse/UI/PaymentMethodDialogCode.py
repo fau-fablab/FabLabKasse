@@ -28,6 +28,7 @@ class PaymentMethodDialog(QtGui.QDialog, Ui_PaymentMethodDialog):
     def __init__(self, parent, cfg, amount):
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
+        self.cfg = cfg
 
         self.method = None
 
@@ -41,7 +42,7 @@ class PaymentMethodDialog(QtGui.QDialog, Ui_PaymentMethodDialog):
             button = Qt.QPushButton(method.get_title())
             button.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
             button.clicked.connect(functools.partial(self.acceptAndSetMethod, method))  # cannot use lambda here because variable method will change in next iteration... python is counterintuitive here....
-            button.setVisible(method.is_enabled(cfg))
+            button.setVisible(method.is_enabled(self.cfg))
             self.layout_methods.addWidget(button)
 
         self.label_betrag.setText(self.parent().shoppingBackend.format_money(amount))
@@ -52,4 +53,4 @@ class PaymentMethodDialog(QtGui.QDialog, Ui_PaymentMethodDialog):
         self.accept()
 
     def getSelectedMethodInstance(self, parent, shopping_backend, amount_to_pay):
-        return self.method(parent, shopping_backend, amount_to_pay)
+        return self.method(parent, shopping_backend, amount_to_pay, self.cfg)
