@@ -794,7 +794,8 @@ def date_argcomplete(prefix, **kwargs):
 def argparse_parse_currency(amount):
     """parse currencies for argparse"""
     try:
-        amount = amount.replace(',', '.').replace('€', '').strip()
+        amount = amount.replace(',', '.').replace('€', '')
+        amount = amount.replace('EUR', '').strip()
         return Decimal(amount)
     except InvalidOperation as e:
         raise argparse.ArgumentTypeError(e.message)
