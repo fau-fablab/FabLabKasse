@@ -790,7 +790,7 @@ def argparse_parse_currency(amount):
 
 
 def argparse_parse_client(value):
-    """get an client out of the database by name or id"""
+    """get a client out of the database by name or id"""
     cfg = scriptHelper.getConfig()
     k = Kasse(cfg.get('general', 'db_file'))
     try:
@@ -811,6 +811,24 @@ def client_argcomplete(prefix, **kwargs):
     lst = [c.name for c in k.kunden if c.name.startswith(prefix)]
     lst += [str(c.id) for c in k.kunden if str(c.id).startswith(prefix)]
     return lst
+
+
+def argparse_parse_receipt(rid):
+    """get the receipt from its id"""
+    cfg = scriptHelper.getConfig()
+    k = Kasse(cfg.get('general', 'db_file'))
+    try:
+        return Rechnung.load_from_id(int(rid), k.cur)
+    except (ValueError, NoDataFound):
+        raise argparse.ArgumentTypeError(
+            u"Konnte keine Rechnung mit der ID '%s' finden." % rid)
+
+
+def receipt_argcomplete(prefix, **kwargs):
+    """tab completion for receipts"""
+    cfg = scriptHelper.getConfig()
+    k = Kasse(cfg.get('general', 'db_file'))
+    return [str(r.id) for r in k.rechnungen if str(r.id).startswith(prefix)]
 
 
 def parse_args(argv=sys.argv[1:]):
@@ -941,14 +959,14 @@ def parse_args(argv=sys.argv[1:]):
     # receipt
     parser_receipt = subparsers.add_parser(
         'receipt',
-        help="receipt",  # TODO add a meaningful help
+        help="View and print receipts (Rechnungen)",
     )
     parser_receipt.add_argument(
         '--print',
         action='store_true',
         dest='print_receipt',
         default=False,
-        help="print?",
+        help="print it with a connected printer",
     )
     parser_receipt.add_argument(
         '--export',
@@ -958,11 +976,12 @@ def parse_args(argv=sys.argv[1:]):
         help="export?",
     )
     parser_receipt.add_argument(
-        'id',
+        'receipt',
+        metavar='id',
         action='store',
-        type=int,
-        help="the Kunden ID",
-    )
+        type=argparse_parse_receipt,
+        help="the receipt ID (Rechnungsnummer)",
+    ).completer = receipt_argcomplete
     # client
     parser_client = subparsers.add_parser(
         'client',
@@ -1161,12 +1180,11 @@ def main():
         print("[i] done")
 
     elif args.action == 'receipt':
-        r = Rechnung.load_from_id(args.id, k.cur)
-        print(r.receipt(header=cfg.get('receipt', 'header'),
-                        footer=cfg.get('receipt', 'footer'),
-                        export=args.export))
+        print(args.receipt.receipt(header=cfg.get('receipt', 'header'),
+                                   footer=cfg.get('receipt', 'footer'),
+                                   export=args.export))
         if args.print_receipt:
-            r.print_receipt(cfg)
+            args.receipt.print_receipt(cfg)
 
     elif args.action == 'client':
 
