@@ -780,6 +780,17 @@ def argparse_parse_date(date):
         raise argparse.ArgumentTypeError(e.message)
 
 
+def date_argcomplete(prefix, **kwargs):
+    """tab completion for date"""
+    years = range(2010, datetime.today().year + 1)
+    months = range(1, 13)
+    days = range(1, 32)
+    lst = ["{y}-{m}-{d}".format(y=y, m=m, d=d) for y in years
+           for m in months for d in days]
+    lst += ['yesterday', 'today', 'now']
+    return [d for d in lst if d.startswith(prefix)]
+
+
 def argparse_parse_currency(amount):
     """parse currencies for argparse"""
     try:
@@ -861,7 +872,7 @@ def parse_args(argv=sys.argv[1:]):
         metavar='date',
         dest='from_date',
         help=DATE_HELP,
-    )
+    ).completer = date_argcomplete
     parser_show.add_argument(
         '--until',
         action='store',
@@ -869,7 +880,7 @@ def parse_args(argv=sys.argv[1:]):
         metavar='date',
         dest='until_date',
         help=DATE_HELP,
-    )
+    ).completer = date_argcomplete
     # export
     parser_export = subparsers.add_parser(
         'export',
@@ -895,7 +906,7 @@ def parse_args(argv=sys.argv[1:]):
         metavar='date',
         dest='from_date',
         help=DATE_HELP,
-    )
+    ).completer = date_argcomplete
     parser_export.add_argument(
         '--until',
         action='store',
@@ -903,14 +914,14 @@ def parse_args(argv=sys.argv[1:]):
         metavar='date',
         dest='until_date',
         help=DATE_HELP,
-    )
+    ).completer = date_argcomplete
     parser_export.add_argument(
         '--format',
         action='store',
         dest='format',
         metavar='fileformat',
         default='csv',
-        choices=['csv'],  # TODO more fileformats
+        choices=['csv'],
         help="format for the output file (default csv)",
     )
     # summary
@@ -925,7 +936,7 @@ def parse_args(argv=sys.argv[1:]):
         metavar='date',
         dest='until_date',
         help=DATE_HELP,
-    )
+    ).completer = date_argcomplete
     # transfer
     parser_transfer = subparsers.add_parser(
         'transfer',
@@ -934,13 +945,13 @@ def parse_args(argv=sys.argv[1:]):
     parser_transfer.add_argument(
         'source',
         action='store',
-        type=str,
+        type=str,  # TODO What is a valid source? -> provide tab completion
         help="the source",
     )
     parser_transfer.add_argument(
         'destination',
         action='store',
-        type=str,
+        type=str,  # TODO What is a valid dest? -> provide tab completion
         help="the destination",
     )
     parser_transfer.add_argument(
