@@ -19,9 +19,12 @@
 
 import unittest
 from FabLabKasse.kassenbuch import Kasse, Kunde, NoDataFound, parse_args
+from FabLabKasse.kassenbuch import argparse_parse_date, argparse_parse_currency
 from hypothesis import given
 from hypothesis.strategies import text
 import dateutil
+from datetime import datetime, timedelta
+from decimal import Decimal
 
 
 class KassenbuchTestCase(unittest.TestCase):
@@ -56,6 +59,17 @@ class KassenbuchTestCase(unittest.TestCase):
         self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31"))
         self.assertEquals(args.until_date, dateutil.parser.parse("2017-1-23"))
         # TODO more tests: Everytime you fix a bug in argparser, add a test
+
+    def test_parsing(self):
+        """test argument parsing helper"""
+        self.assertEqual(argparse_parse_currency(' 13,37€ '), Decimal('13.37'))
+        self.assertAlmostEqual(argparse_parse_date('today'), datetime.today(),
+                               delta=timedelta(minutes=5))
+        self.assertAlmostEqual(argparse_parse_date('yesterday'),
+                               datetime.today() - timedelta(1),
+                               delta=timedelta(minutes=5))
+        self.assertEqual(argparse_parse_date("2016-12-31 13:37:42"),
+                         dateutil.parser.parse("2016-12-31 13:37:42"))
 
     def test_accounting_database_setup(self):
         """tests the creation of the accounting database"""
