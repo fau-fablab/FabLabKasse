@@ -44,6 +44,10 @@ from ..UI.PayupManualDialogCode import PayupManualDialog
 from .. import scriptHelper
 from FabLabKasse.shopping.backend.abstract import DebtLimitExceeded
 
+try:
+    from ..faucardPayment.faucard import PayupFAUCard, finish_log
+except ImportError:
+    logging.info("FAUCardPayment is not installed.")
 
 class AbstractPaymentMethod(object):
 
@@ -317,6 +321,7 @@ class AutoCashPayment(AbstractPaymentMethod):
 
 
 class FAUCardPayment(AbstractPaymentMethod):
+    "Pay using the FAU-Magnacard using the FauCardPayment-Plugin which is not available to public."
 
     @staticmethod
     def get_title():
@@ -327,26 +332,33 @@ class FAUCardPayment(AbstractPaymentMethod):
         return cfg.getboolean('payup_methods', 'FAUcard')
 
     def _show_dialog(self):
-        from ..faucardPayment.faucard import PayupFAUCard
-        
-        pay_func = PayupFAUCard(parent=self.parent, amount=self.amount_to_pay)
-        ok = pay_func.executePayment()
-        paid_amount = pay_func.getPaidAmount()
-        self.amount_paid = paid_amount
-        self.amount_returned = 0
-        self.successful = ok
-        self.print_receipt = pay_func.getWantReceipt()
-        pay_func.close()
+        try:
+            pay_func = PayupFAUCard(parent=self.parent, amount=self.amount_to_pay)
+
+            self.successful = pay_func.executePayment()
+            self.amount_paid= pay_func.getPaidAmount()
+            self.print_receipt = pay_func.getWantReceipt()
+            self.amount_returned = 0
+
+            pay_func.close()
+        except NameError: # PayupFAUCard is not imported
+            self.successful = False
+            self.amount_paid = 0
+            self.amount_returned = 0
+
+            logging.info("FAUCardPayment: Payment method was used without importing files")
+            QtGui.QMessageBox.warning(self.parent, "", "Could not load corresponding payment method")
     
     def _end_of_payment(self):
         """
         Is required to complete the MagPosLog logging after the payment routine.
-        On a successfull payment, the last log entry will be set to status.booking_done
+        On a successful payment, the last log entry will be set to status.booking_done
         """
-        if self.successful is True:
-            from ..faucardPayment.faucard import finish_log
-
-            finish_log()
+        if self.successful:
+            try:
+                finish_log()
+            except NameError: # finish_log is not imported
+                logging.info("FAUCardPayment: _end_of_payment called without importing finish_log")
 
 
 PAYMENT_METHODS = [FAUCardPayment, AutoCashPayment, ManualCashPayment, ClientPayment]
