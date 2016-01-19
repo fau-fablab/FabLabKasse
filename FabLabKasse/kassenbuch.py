@@ -786,6 +786,30 @@ def argparse_parse_currency(amount):
         raise argparse.ArgumentTypeError(e.message)
 
 
+def argparse_parse_client(value):
+    """get an client out of the database by name or id"""
+    cfg = scriptHelper.getConfig()
+    k = Kasse(cfg.get('general', 'db_file'))
+    try:
+        return Kunde.load_from_id(int(value), k.cur)
+    except (ValueError, NoDataFound):
+        pass
+    try:
+        return Kunde.load_from_name(value, k.cur)
+    except NoDataFound:
+        raise argparse.ArgumentTypeError(
+            u"Konnte keinen Kunde unter '%s' finden." % value)
+
+
+def client_argcomplete(prefix, **kwargs):
+    """tab completion for clients"""
+    cfg = scriptHelper.getConfig()
+    k = Kasse(cfg.get('general', 'db_file'))
+    lst = [c.name for c in k.kunden if c.name.startswith(prefix)]
+    lst += [str(c.id) for c in k.kunden if str(c.id).startswith(prefix)]
+    return lst
+
+
 def parse_args(argv=sys.argv[1:]):
     """
     Parse arguments
@@ -959,22 +983,22 @@ def parse_args(argv=sys.argv[1:]):
         help="Edit an existing client",
     )
     parser_client_edit.add_argument(
-        'name',
+        'client',
         action='store',
-        type=str,
-        help="The name of the client",
-    )
+        type=argparse_parse_client,
+        help="The name or id of the client",
+    ).completer = client_argcomplete
     # client show
     parser_client_show = client_subparsers.add_parser(
         'show',
         help="Shows transactions of an existing client",
     )
     parser_client_show.add_argument(
-        'name',
+        'client',
         action='store',
-        type=str,
-        help="The name of the client",
-    )
+        type=argparse_parse_client,
+        help="The name or id of the client",
+    ).completer = client_argcomplete
     parser_client_show.add_argument(
         '--detail',
         action='store_true',
@@ -988,11 +1012,11 @@ def parse_args(argv=sys.argv[1:]):
         help="Charge the credit of an client (remove money from account)",
     )
     parser_client_charge.add_argument(
-        'name',
+        'client',
         action='store',
-        type=str,
-        help="The name of the client",
-    )
+        type=argparse_parse_client,
+        help="The name or id of the client",
+    ).completer = client_argcomplete
     parser_client_charge.add_argument(
         'amount',
         action='store',
@@ -1012,11 +1036,11 @@ def parse_args(argv=sys.argv[1:]):
         help="Pay up the credit of an client (add money to account)",
     )
     parser_client_payup.add_argument(
-        'name',
+        'client',
         action='store',
-        type=str,
-        help="The name of the client",
-    )
+        type=argparse_parse_client,
+        help="The name or id of the client",
+    ).completer = client_argcomplete
     parser_client_payup.add_argument(
         'amount',
         action='store',
@@ -1143,17 +1167,13 @@ def main():
 
     elif args.action == 'client':
 
-        if "name" in args:
-            try:
-                kunde = Kunde.load_from_name(args.name, k.cur)
-            except NoDataFound:
-                print(u"[!] Konnte keinen Kunde unter '%s' finden." % args.name,
-                      file=sys.stderr)
-                sys.exit(2)
+        if "client" in args:
+            kunde = args.client
         elif args.client_action == 'create':
             kunde = Kunde('')  # will be filled in later
 
         if args.client_action == 'create' or args.client_action == 'edit':
+            edit = args.client_action == 'edit'  # to shorten expressions
 
             def fetch_input(explanation, default_input=None,
                             allowed_regexp=None, extra_checks=None):
@@ -1198,14 +1218,14 @@ def main():
                 :type name: basestr
                 :rtype : bool
                 """
-                if args.edit and kunde and name == kunde.name:
+                if edit and kunde and name == kunde.name:
                     return True  # kunde keeps old name -> that's allowed
                 if k.cur.execute('SELECT id FROM kunde WHERE name=?', (name,)).fetchone() is not None:
                     print("[!] Name ist bereits in Verwendung.", file=sys.stderr)
                     return False
                 return True
 
-            default = None if not args.edit else kunde.name
+            default = kunde.name if edit else None
             kunde.name = fetch_input(
                 explanation=u'Name (ohne Leer- und Sonderzeichen!)',
                 default_input=default,
@@ -1219,7 +1239,7 @@ def main():
                 random.randint(1, 9999),
                 random.randint(1, 9999)))
 
-            default = None if not args.edit else kunde.pin
+            default = kunde.pin if edit else None
             kunde.pin = fetch_input(
                 explanation=u'PIN (4 Ziffern, 0000: deaktiviert)',
                 default_input=default,
@@ -1257,7 +1277,7 @@ def main():
                           file=sys.stderr)
                     return False
 
-            default = None if not args.edit else kunde.schuldengrenze
+            default = kunde.schuldengrenze if edit else None
             kunde.schuldengrenze = Decimal(
                 fetch_input(
                     explanation=u'Schuldengrenze (>=0: beschraenkt oder -1: unbeschraenkt)',
@@ -1267,7 +1287,7 @@ def main():
             )
 
             # Email
-            default = None if not args.edit else kunde.email
+            default = kunde.email if edit else None
             kunde.email = fetch_input(
                 explanation=u'Email',
                 default_input=default,
@@ -1275,7 +1295,7 @@ def main():
             )
 
             # Telefon
-            default = None if not args.edit else kunde.telefon
+            default = kunde.telefon if edit else None
             kunde.telefon = fetch_input(
                 explanation=u'Telefonnummer (optional; Ziffern, Leer, Raute, ... )',
                 default_input=default,
@@ -1283,14 +1303,14 @@ def main():
             )
 
             # Adresse
-            default = None if not args.edit else kunde.adresse
+            default = kunde.adresse if edit else None
             kunde.adresse = fetch_input(
                 explanation=u'Adresse (optional; nur eine Zeile)',
                 default_input=default
             )
 
             # Kommentar
-            default = None if not args.edit else kunde.kommentar
+            default = kunde.kommentar if edit else None
             kunde.kommentar = fetch_input(
                 explanation=u'Kommentar (optional; nur eine Zeile)',
                 default_input=default
