@@ -589,14 +589,14 @@ class Kunde(object):
         :param cur: sqlite cursor to database
         :type cur: sqlite3.Cursor
         """
+        self.buchungen = []
+
         if self.id is None:
-            self.buchungen = []
             return
 
         cur.execute("SELECT id, datum, kunde, rechnung, betrag, kommentar FROM kundenbuchung " +
                     "WHERE kunde=? ORDER BY id ASC", (self.id,))
 
-        self.buchungen = []
         for row in cur:
             self.buchungen.append(Kundenbuchung.load_from_row(row))
 
