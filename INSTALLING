@@ -23,8 +23,9 @@ If you have a standalone PC or VM only for FabLabKasse, you can also use `FabLab
 
         apt-get install python-pip python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort python-qrcode python-docopt python-requests python-simplejson python-sphinx
         pip install monotonic
-        pip install oerplib # only for connection to OpenERP/odoo
+        pip install oerplib  # only for connection to OpenERP/odoo
         pip install portalocker
+        pip install argparse argcomplete  # for kassenbuch.py
 
  - for the real terminal implementation: xserver-xorg git nodm ssh x11-apps xterm
  - for the style: kde-style-oxygen kde-workspace-bin
@@ -59,6 +60,7 @@ Modem-Manager interferes with the serial port. It is highly recommended to remov
         dnf install python python-qt4 python-qt4-devel python-dateutil python-lxml python-crypto python-termcolor python-natsort python-qrcode python-docopt python-requests python-simplejson python-monotonic
         pip install oerplib # only for connection to OpenERP/odoo
         pip install portalocker
+        pip install argparse argcomplete  # for kassenbuch.py
 
  - for development: qt4-designer
  - for documentation: dnf: doxygen python-pygraphviz; pip: doxypy
@@ -124,6 +126,7 @@ recommended setup firewall:
 
 TODO....
 
-GUI for normal users
-administrative tasks: `ssh kasse@terminal; cd FabLabKasse; ./kassenbuch.py`
--> see help output
+ - GUI for normal users
+ - administrative tasks: `ssh kasse@terminal; cd FabLabKasse; ./kassenbuch.py -h`
+    - see help output
+    - run `activate-global-python-argcomplete` to enable tab completion

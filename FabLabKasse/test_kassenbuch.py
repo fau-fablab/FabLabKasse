@@ -42,19 +42,20 @@ class KassenbuchTestCase(unittest.TestCase):
         self.assertTrue(args.hide_receipts)
         self.assertIsNone(args.from_date)
         self.assertIsNone(args.until_date)
-        args = parse_args("show --hide-receipts "
-                          "--from 2016-12-31 13:37:42".split(' '))
+        args = parse_args(['show', '--hide-receipts',
+                          '--from', '2016-12-31 13:37:42'])
         self.assertEqual(args.action, 'show')
         self.assertTrue(args.hide_receipts)
         self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31 13:37:42"))
         self.assertIsNone(args.until_date)
         args = parse_args("show --hide-receipts "
-                          "--from 2016-12-31 13:37:42"
+                          "--from 2016-12-31 "
                           "--until 2017-1-23".split(' '))
         self.assertEqual(args.action, 'show')
         self.assertTrue(args.hide_receipts)
-        self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31 13:37:42"))
+        self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31"))
         self.assertEquals(args.until_date, dateutil.parser.parse("2017-1-23"))
+        # TODO more tests: Everytime you fix a bug in argparser, add a test
 
     def test_accounting_database_setup(self):
         """tests the creation of the accounting database"""
