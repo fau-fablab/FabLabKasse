@@ -45,7 +45,7 @@ import argparse
 try:
     import argcomplete
 except ImportError:
-    pass  # NQA
+    pass  # it's also working without argcomplete
 
 import doctest
 
@@ -808,7 +808,7 @@ def argparse_parse_client(value):
     try:
         return Kunde.load_from_id(int(value), k.cur)
     except (ValueError, NoDataFound):
-        pass  # NQA
+        pass  # ok, maybe it's not an ID but a name:
     try:
         return Kunde.load_from_name(value, k.cur)
     except NoDataFound:
