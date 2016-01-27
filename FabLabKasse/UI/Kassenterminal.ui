@@ -224,6 +224,33 @@ aus App laden</string>
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_web">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>76</width>
+              <height>76</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>30</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>?</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
         <item>
@@ -2093,7 +2120,7 @@ aus App laden</string>
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="font">

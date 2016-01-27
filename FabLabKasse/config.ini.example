@@ -109,3 +109,7 @@ pricelist_id = 1
 version = 7.0
 anonymous_partner_id = 87
 strip_location = TODO
+
+[web]
+enabled = true
+homepage = https://fablab.fau.de/

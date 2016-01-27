@@ -39,7 +39,7 @@ import logging
 import datetime
 import os
 from decimal import Decimal, DecimalException
-from PyQt4 import QtGui, QtCore, Qt
+from PyQt4 import QtGui, QtCore, Qt, QtWebKit
 import functools
 from ConfigParser import Error as ConfigParserError
 
@@ -51,6 +51,7 @@ from FabLabKasse.UI.GUIHelper import resize_table_columns
 from UI.uic_generated.Kassenterminal import Ui_Kassenterminal
 from UI.PaymentMethodDialogCode import PaymentMethodDialog
 from UI.KeyboardDialogCode import KeyboardDialog
+from UI.WebDialogCode import WebDialog
 
 import scriptHelper
 from cashPayment.client.PaymentDevicesManager import PaymentDevicesManager
@@ -277,6 +278,16 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                     logging.warning("Automatic reset on idle is disabled since idleTracker returned `disabled`.")
 
         self.pushButton_load_cart_from_app.setVisible(cfg.has_option("mobile_app", "enabled") and cfg.getboolean("mobile_app", "enabled"))
+        
+        # Web mode
+        if not cfg.has_option("web", "enabled") or not cfg.getboolean("web", "enabled"):
+            # Disable
+            self.pushButton_web.hide()
+        else:
+            # Enable if configured
+            self.pushButton_web.clicked.connect(self.web)
+            
+            
 
     def restart(self):
         # Ask if restart is okay
@@ -591,7 +602,8 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         assert total >= 0
         assert total % Decimal("0.01") == 0, "current order total is not rounded to cents"
 
-        logging.info(u"starting payment for cart: {0}".format(self.shoppingBackend.get_order_lines()))
+        logging.info(u"starting payment for cart: {0}".format(
+            self.shoppingBackend.get_order_lines()))
 
         if total > 250:
             # cash-accept is unlimited, but dispense is locked to maximum 200€ hardcoded. Limit to
@@ -611,7 +623,8 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             return
 
         paymentmethod = pm_diag.getSelectedMethodInstance(self, self.shoppingBackend, total)
-        logging.info(u"started payment of {0} with {1}".format(self.shoppingBackend.format_money(total), str(type(paymentmethod))))
+        logging.info(u"started payment of {0} with {1}".format(
+            self.shoppingBackend.format_money(total), str(type(paymentmethod))))
         paymentmethod.execute_and_store()
         logging.info(u"payment ended. result: {0}".format(paymentmethod))
         assert paymentmethod.amount_paid >= 0
@@ -843,6 +856,14 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                 self.updateProductsAndCategories()
         # Give focus to lineEdit
         self.lineEdit.setFocus()
+    
+    def web(self):
+        '''Enabled Webbrowser mode'''
+        web_diag = WebDialog(parent=self)
+        if cfg.has_option("web", "homepage"):
+            web_diag.webView.load(QtCore.QUrl(cfg.get('web', 'homepage')))
+            
+        web_diag.exec_()
 
     def _check_idle(self):
         """checks whether the GUI is idle for a great time span
