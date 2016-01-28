@@ -860,6 +860,11 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
     def web(self):
         '''Enabled Webbrowser mode'''
         web_diag = WebDialog(parent=self)
+        
+        # set allowed urls:
+        for u in cfg.get('web', 'allowed_urls').split(' '):
+            web_diag.proxy.addAllowedUrlBase(u)
+        
         if cfg.has_option("web", "homepage"):
             web_diag.webView.load(QtCore.QUrl(cfg.get('web', 'homepage')))
             

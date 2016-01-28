@@ -17,9 +17,29 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-from PyQt4 import QtGui
+from PyQt4 import QtCore, QtGui, QtNetwork
 from .uic_generated.WebDialog import Ui_WebDialog
 
+
+class WhiteListNetworkAccessManager(QtNetwork.QNetworkAccessManager):
+    def __init__(self, parent=None):
+        QtNetwork.QNetworkAccessManager.__init__(self, parent)
+        
+        self.allowed_urls = []
+    
+    def addAllowedUrlBase(self, url_base):
+        self.allowed_urls.append(url_base)
+        
+    def createRequest(self, op, req, device=None):
+        for u in self.allowed_urls:
+            if req.url().toString().startsWith(u):
+                # URL is ok
+                return QtNetwork.QNetworkAccessManager.createRequest(self, op, req, device)
+        
+        # No allowed url matched
+        print req.url().toString(), "DENIED"
+        req.setUrl(QtCore.QUrl("forbidden://localhost/"))
+        return QtNetwork.QNetworkAccessManager.createRequest(self, op, req, device)
 
 class WebDialog(QtGui.QDialog, Ui_WebDialog):
     def __init__(self, parent):
@@ -29,6 +49,10 @@ class WebDialog(QtGui.QDialog, Ui_WebDialog):
         # Function keys
         self.pushButton_close.clicked.connect(self.close)
         self.pushButton_back.clicked.connect(self.back)
+        
+        # Set Whitelist Proxy
+        self.proxy = WhiteListNetworkAccessManager(parent=self);
+        self.webView.page().setNetworkAccessManager(self.proxy);
 
     def close(self):
         QtGui.QDialog.accept(self)

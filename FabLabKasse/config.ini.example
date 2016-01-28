@@ -113,3 +113,4 @@ strip_location = TODO
 [web]
 enabled = true
 homepage = https://fablab.fau.de/
+allowed_urls = https://fablab.fau.de http://photos.fablab.fau.de https://faufablab.smugmug.com/ ; space separated list of allowed urls
