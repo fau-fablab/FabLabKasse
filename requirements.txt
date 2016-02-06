@@ -12,7 +12,13 @@ natsort
 monotonic
 oerplib
 portalocker
+
 # dependency of escpos
 Pillow
-#testing
+
+# testing
 hypothesis<=1.19.0
+
+# clis (kassenbuch.py)
+argparse
+argcomplete

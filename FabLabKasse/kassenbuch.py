@@ -1,52 +1,38 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
-#
-# FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
+# PYTHON_ARGCOMPLETE_OK
+
+
+# FabLabKasse, a Point-of-Sale Software for FabLabs and other public and
+# trust-based workshops.
 # Copyright (C) 2015  Julian Hammer <julian.hammer@fablab.fau.de>
 #                     Maximilian Gaukler <max@fablab.fau.de>
 #                     Patrick Kanzler <patrick.kanzler@fablab.fau.de>
 #                     Timo Voigt <timo@fablab.fau.de>
 #
-# This program is free software: you can redistribute it and/or modify it under the terms of the GNU
-# General Public License as published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-# even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along with this program. If not,
-# see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""Kassenbuch Backend mit doppelter Buchführung.
-
-Usage:
-  kassenbuch.py show [--hide-receipts] [<from> [<until>]]
-  kassenbuch.py export (book|invoices) <outfile> [<from> [<until>]] [--format=<fileformat>]
-  kassenbuch.py summary [<until>]
-  kassenbuch.py transfer <source> <destination> <amount> <comment>...
-  kassenbuch.py client (create|list)
-  kassenbuch.py client (edit|show|summary) <name>
-  kassenbuch.py client (charge|payup) <name> <amount> <comment>...
-  kassenbuch.py receipt [--print] [--export] <id>
-  kassenbuch.py (-h | --help)
-  kassenbuch.py --version
-
-Options:
-  -h --help     Show this screen.
-  --version     Show version.
-  --format=<fileformat>  Export Dateityp [default: csv].
-  --hide-receipts    Don't show receipts in summary output, just the account balances
-
-Date format:
-  <from>/<until> is ISO formatted datetime, like 2016-12-31 or "2016-12-31 13:37:42"
+"""
+Kassenbuch Backend mit doppelter Buchführung.
 """
 
+from __future__ import print_function
+
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 import dateutil.parser
-from docopt import docopt
 import csv
 import cStringIO
 import codecs
@@ -55,6 +41,11 @@ import sys
 import os
 import random
 import scriptHelper
+import argparse
+try:
+    import argcomplete
+except ImportError:
+    pass  # it's also working without argcomplete
 
 import doctest
 
@@ -614,19 +605,22 @@ class Kunde(object):
         return summe
 
     def to_string(self, short=False):
-        summary = (u'Kunde {name} ({id}):\n    Schuldengrenze: {schuldengrenze:.2f} EUR\n    ' +
-                   u'Mail: {email}\n    Telefon: {telefon}\n    Adresse: {adresse}\n    ' +
-                   u'Kommentar: {kommentar}\n    PIN: {pin}').format(
+        summary = u"""Kunde: {name} (#{id}):
+    Schuldengrenze: {schuldengrenze:.2f} EUR
+    Mail:           {email}
+    Telefon:        {telefon}
+    Adresse:        {adresse}
+    Kommentar:      {kommentar}
+    PIN:            {pin}""".format(
             id=self.id, name=self.name, schuldengrenze=self.schuldengrenze,
             email=self.email, telefon=self.telefon, adresse=self.adresse,
             kommentar=self.kommentar, pin=self.pin)
 
-        details = Kundenbuchung.header
-        details += '\n'.join(map(lambda b: b.to_string(), self.buchungen))
-
         if short:
             return summary
         else:
+            details = Kundenbuchung.header
+            details += '\n'.join((b.to_string() for b in self.buchungen))
             return summary + '\n\n' + details
 
     def __repr__(self):
@@ -723,7 +717,6 @@ class Kundenbuchung(object):
 
 
 class UnicodeWriter(object):
-
     """
     A CSV writer which will write rows to CSV file "f",
     which is encoded in the given encoding.
@@ -753,36 +746,363 @@ class UnicodeWriter(object):
             self.writerow(row)
 
 
-def parse_date(date):
+def parse_date(value):
     """
     parse date from string or None
 
-    :type date: basestr | None
+    :type value: basestr | None
     :rtype: datetime.datetime | None
     """
-    if isinstance(date, basestring) and date != '':
-        return dateutil.parser.parse(date)
-    if date is None:
+    if isinstance(value, basestring) and value != '':
+        value = value.lower().strip()
+        if value in ['now', 'today']:
+            return datetime.today()
+        elif value == 'yesterday':
+            return datetime.today() - timedelta(1)
+        else:
+            return dateutil.parser.parse(value)
+    if value is None:
         return None
     else:
         raise ValueError('cannot parse date value')
 
-if __name__ == '__main__':
-    arguments = docopt(__doc__, version='Kassenbuch 1.0')
+
+def argparse_parse_date(date):
+    """
+    a wrapper for parings dates for argparse
+
+    :type date: see :meth:`parse_date`
+    :rtype: see :meth:`parse_date`
+    """
+    try:
+        return parse_date(date)
+    except ValueError as e:
+        raise argparse.ArgumentTypeError(e.message)
+
+
+def date_argcomplete(prefix, **kwargs):
+    """tab completion for date"""
+    years = range(2010, datetime.today().year + 1)
+    months = range(1, 13)
+    days = range(1, 32)
+    lst = ["{y}-{m}-{d}".format(y=y, m=m, d=d) for y in years
+           for m in months for d in days]
+    lst += ['yesterday', 'today', 'now']
+    return [d for d in lst if d.startswith(prefix)]
+
+
+def argparse_parse_currency(amount):
+    """parse currencies for argparse"""
+    try:
+        amount = amount.replace(',', '.').replace('€', '')
+        amount = amount.replace('EUR', '').strip()
+        return Decimal(amount)
+    except InvalidOperation as e:
+        raise argparse.ArgumentTypeError(e.message)
+
+
+def argparse_parse_client(value):
+    """get a client out of the database by name or id"""
+    cfg = scriptHelper.getConfig()
+    k = Kasse(cfg.get('general', 'db_file'))
+    try:
+        return Kunde.load_from_id(int(value), k.cur)
+    except (ValueError, NoDataFound):
+        pass  # ok, maybe it's not an ID but a name:
+    try:
+        return Kunde.load_from_name(value, k.cur)
+    except NoDataFound:
+        raise argparse.ArgumentTypeError(
+            u"Konnte keinen Kunde unter '{0}' finden.".format(value))
+
+
+def client_argcomplete(prefix, **kwargs):
+    """tab completion for clients"""
+    cfg = scriptHelper.getConfig()
+    k = Kasse(cfg.get('general', 'db_file'))
+    lst = [c.name for c in k.kunden if c.name.startswith(prefix)]
+    lst += [str(c.id) for c in k.kunden if str(c.id).startswith(prefix)]
+    return lst
+
+
+def argparse_parse_receipt(rid):
+    """get the receipt from its id"""
+    cfg = scriptHelper.getConfig()
+    k = Kasse(cfg.get('general', 'db_file'))
+    try:
+        return Rechnung.load_from_id(int(rid), k.cur)
+    except (ValueError, NoDataFound):
+        raise argparse.ArgumentTypeError(
+            u"Konnte keine Rechnung mit der ID '{0}' finden.".format(rid))
+
+
+def receipt_argcomplete(prefix, **kwargs):
+    """tab completion for receipts"""
+    cfg = scriptHelper.getConfig()
+    k = Kasse(cfg.get('general', 'db_file'))
+    return [str(r.id) for r in k.rechnungen if str(r.id).startswith(prefix)]
+
+
+def parse_args(argv=sys.argv[1:]):
+    """
+    Parse arguments
+    :return: the parse arguments as object (see argparse doc)
+    :rtype: object
+    """
+    parser = argparse.ArgumentParser(description=__doc__)
+    subparsers = parser.add_subparsers(title='actions',
+                                       dest='action')
+
+    DATE_HELP = "datetime e.g. ISO formatted, (2016-12-31 [13:37:42])"
+    # show
+    parser_show = subparsers.add_parser(
+        'show',
+        help='show receipts',
+    )
+    parser_show.add_argument(
+        '--hide-receipts',
+        action='store_true',
+        dest='hide_receipts',
+        default=False,
+        help="Don't show receipts in summary output, just the account balances"
+    )
+    parser_show.add_argument(
+        '--from',
+        action='store',
+        type=argparse_parse_date,
+        metavar='date',
+        dest='from_date',
+        help=DATE_HELP,
+    ).completer = date_argcomplete
+    parser_show.add_argument(
+        '--until',
+        action='store',
+        type=argparse_parse_date,
+        metavar='date',
+        dest='until_date',
+        help=DATE_HELP,
+    ).completer = date_argcomplete
+    # export
+    parser_export = subparsers.add_parser(
+        'export',
+        help='export books or invoices',
+    )
+    parser_export.add_argument(
+        'what',
+        action='store',
+        choices=['book', 'invoices'],
+        help="what do you want to export (book|invoices)",
+    )
+    parser_export.add_argument(
+        'outfile',
+        action='store',
+        type=argparse.FileType('wb'),
+        default='-',
+        help="the output file, - for stdout",
+    )
+    parser_export.add_argument(
+        '--from',
+        action='store',
+        type=argparse_parse_date,
+        metavar='date',
+        dest='from_date',
+        help=DATE_HELP,
+    ).completer = date_argcomplete
+    parser_export.add_argument(
+        '--until',
+        action='store',
+        type=argparse_parse_date,
+        metavar='date',
+        dest='until_date',
+        help=DATE_HELP,
+    ).completer = date_argcomplete
+    parser_export.add_argument(
+        '--format',
+        action='store',
+        dest='format',
+        metavar='fileformat',
+        default='csv',
+        choices=['csv'],
+        help="format for the output file (default csv)",
+    )
+    # summary
+    parser_summary = subparsers.add_parser(
+        'summary',
+        help='show the summary',
+    )
+    parser_summary.add_argument(
+        '--until',
+        action='store',
+        type=argparse_parse_date,
+        metavar='date',
+        dest='until_date',
+        help=DATE_HELP,
+    ).completer = date_argcomplete
+    # transfer
+    parser_transfer = subparsers.add_parser(
+        'transfer',
+        help="transfer money from one resource to another",
+    )
+    parser_transfer.add_argument(
+        'source',
+        action='store',
+        type=str,  # TODO What is a valid source? -> provide tab completion
+        help="the source",
+    )
+    parser_transfer.add_argument(
+        'destination',
+        action='store',
+        type=str,  # TODO What is a valid dest? -> provide tab completion
+        help="the destination",
+    )
+    parser_transfer.add_argument(
+        'amount',
+        action='store',
+        type=argparse_parse_currency,
+        help="the amount",
+    )
+    parser_transfer.add_argument(
+        'comment',
+        action='store',
+        type=str,
+        nargs='+',
+        help="a comment",
+    )
+    # receipt
+    parser_receipt = subparsers.add_parser(
+        'receipt',
+        help="View and print receipts (Rechnungen)",
+    )
+    parser_receipt.add_argument(
+        '--print',
+        action='store_true',
+        dest='print_receipt',
+        default=False,
+        help="print it with a connected printer",
+    )
+    parser_receipt.add_argument(
+        '--export',
+        action='store_true',
+        dest='export',
+        default=False,
+        help="export?",
+    )
+    parser_receipt.add_argument(
+        'receipt',
+        metavar='id',
+        action='store',
+        type=argparse_parse_receipt,
+        help="the receipt ID (Rechnungsnummer)",
+    ).completer = receipt_argcomplete
+    # client
+    parser_client = subparsers.add_parser(
+        'client',
+        help="Add, show, edit, list clients",
+    )
+    client_subparsers = parser_client.add_subparsers(title='actions',
+                                                     dest='client_action')
+    # client create
+    parser_client_create = client_subparsers.add_parser(
+        'create',
+        help="Create/add a new client in interactive mode",
+    )
+    # client list
+    parser_client_list = client_subparsers.add_parser(
+        'list',
+        help="List all existing clients",
+    )
+    # client edit
+    parser_client_edit = client_subparsers.add_parser(
+        'edit',
+        help="Edit an existing client",
+    )
+    parser_client_edit.add_argument(
+        'client',
+        action='store',
+        type=argparse_parse_client,
+        help="The name or id of the client",
+    ).completer = client_argcomplete
+    # client show
+    parser_client_show = client_subparsers.add_parser(
+        'show',
+        help="Shows transactions of an existing client",
+    )
+    parser_client_show.add_argument(
+        'client',
+        action='store',
+        type=argparse_parse_client,
+        help="The name or id of the client",
+    ).completer = client_argcomplete
+    parser_client_show.add_argument(
+        '--detail',
+        action='store_true',
+        dest='detail',
+        default=False,
+        help="Show accounting of the client",
+    )  # replaces old 'client summary'
+    # client charge
+    parser_client_charge = client_subparsers.add_parser(
+        'charge',
+        help="Charge the credit of an client (remove money from account)",
+    )
+    parser_client_charge.add_argument(
+        'client',
+        action='store',
+        type=argparse_parse_client,
+        help="The name or id of the client",
+    ).completer = client_argcomplete
+    parser_client_charge.add_argument(
+        'amount',
+        action='store',
+        type=argparse_parse_currency,
+        help="The amount to charge in Euro",
+    )
+    parser_client_charge.add_argument(
+        'comment',
+        action='store',
+        type=str,
+        nargs='+',
+        help="A comment for this charging",
+    )
+    # client payup
+    parser_client_payup = client_subparsers.add_parser(
+        'payup',
+        help="Pay up the credit of an client (add money to account)",
+    )
+    parser_client_payup.add_argument(
+        'client',
+        action='store',
+        type=argparse_parse_client,
+        help="The name or id of the client",
+    ).completer = client_argcomplete
+    parser_client_payup.add_argument(
+        'amount',
+        action='store',
+        type=argparse_parse_currency,
+        help="The amount to payup in Euro",
+    )
+    parser_client_payup.add_argument(
+        'comment',
+        action='store',
+        type=str,
+        nargs='+',
+        help="A comment for this payup",
+    )
+
+    if 'argcomplete' in globals():
+        argcomplete.autocomplete(parser)
+
+    args = parser.parse_args(argv)
+
+    return args
+
+
+def main():
+    """parse args, run the desired action"""
+    args = parse_args()
 
     # go to script dir (configs are relative path names)
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
-
-    # Decode all arguments with proper utf-8 decoding:
-    arguments.update(
-        dict(map(lambda t: (t[0], t[1].decode('utf-8')),
-                 filter(lambda t: isinstance(t[1], str), arguments.items()))))
-
-    # decode date arguments
-    for arg_name in ['<until>', '<from>']:
-        # TODO also parse rechnung ID here (convert to date=max(rechnung.datum, rechnung.buchungen.datum) ?)
-        arguments[arg_name] = parse_date(arguments[arg_name])
-
 
     cfg = scriptHelper.getConfig()
     k = Kasse(cfg.get('general', 'db_file'))
@@ -801,272 +1121,290 @@ if __name__ == '__main__':
     startup_time = datetime.now()
     # TODO does not help if until argument is given that is greater than the current date
     # (and doesn't work at timezone jumps etc.)
-    if arguments['show'] and not arguments['client']:
-        print(k.to_string(from_date=arguments['<from>'], until_date=arguments['<until>'], snapshot_time=startup_time, show_receipts=not arguments['--hide-receipts']).encode('utf-8'))
 
-    elif arguments['export'] and arguments['book']:
-        assert arguments['--format'] == 'csv', "Format not supported."
+    if 'comment' in args:
+        args.comment = ' '.join(args.comment)
 
-        with open(arguments['<outfile>'], 'wb') as csvfile:
-            writer = UnicodeWriter(csvfile)
+    if args.action == 'show':
+        print(k.to_string(from_date=args.from_date,
+                          until_date=args.until_date,
+                          snapshot_time=startup_time,
+                          show_receipts=not args.hide_receipts).
+              encode('utf-8'))
+    elif args.action == 'export':
+        if args.what == 'book':
+            # TODO Use csv.DictWriter
+            writer = UnicodeWriter(args.outfile)
             # Header
-            writer.writerow(['DATUM', 'KONTO', 'BETRAG', 'RECH.NR.', 'KOMMENTAR'])
+            writer.writerow(['DATUM',
+                             'KONTO',
+                             'BETRAG',
+                             'RECH.NR.',
+                             'KOMMENTAR'])
             # Content
             for b in k.buchungen:
-                writer.writerow([unicode(b.datum), unicode(b.konto), u'{0:.2f}'.format(b.betrag),
-                                 unicode(b.rechnung), unicode(b.kommentar)])
-
-    elif arguments['export'] and arguments['invoices']:
-        assert arguments['--format'] == 'csv', "Format not supported."
-
-        with open(arguments['<outfile>'], 'wb') as csvfile:
-            writer = UnicodeWriter(csvfile)
+                writer.writerow([unicode(b.datum),
+                                 unicode(b.konto),
+                                 u'{0:.2f}'.format(b.betrag),
+                                 unicode(b.rechnung),
+                                 unicode(b.kommentar)])
+        elif args.what == 'invoices':
+            # TODO Use csv.DictWriter
+            writer = UnicodeWriter(args.outfile)
             # Header
-            writer.writerow(
-                ['RECH.NR.', 'DATUM', 'ARTIKEL', 'ANZAHL', 'EINHEIT', 'EINZELPREIS', 'SUMME', 'PRODUKT NR.'])
+            writer.writerow(['RECH.NR.',
+                             'DATUM',
+                             'ARTIKEL',
+                             'ANZAHL',
+                             'EINHEIT',
+                             'EINZELPREIS',
+                             'SUMME',
+                             'PRODUKT NR.'])
             # Content
             for r in k.rechnungen:
                 for p in r.positionen:
-                    writer.writerow([str(r.id), str(r.datum), p['artikel'], str(p['anzahl']),
-                                     p['einheit'], '{0:.2f}'.format(p['einzelpreis']),
-                                     '{0:.2f}'.format(r.summe_position(p)),
-                                     p['produkt_ref']])
+                    writer.writerow(
+                        [
+                            str(r.id),
+                            str(r.datum),
+                            p['artikel'],
+                            str(p['anzahl']),
+                            p['einheit'],
+                            '{0:.2f}'.format(p['einzelpreis']),
+                            '{0:.2f}'.format(r.summe_position(p)),
+                            p['produkt_ref']
+                        ])
                 writer.writerow([])
+    elif args.action == 'summary':
+        print(k.summary_to_string(date=args.until_date,
+                                  snapshot_time=startup_time).
+              encode('utf-8'))
+    elif args.action == 'transfer':
 
-    elif arguments['summary'] and not arguments['client']:
-        print(k.summary_to_string(date=arguments['<until>'], snapshot_time=startup_time).encode('utf-8'))
-
-    elif arguments['transfer']:
-        try:
-            betrag = Decimal(arguments['<amount>'])
-        except ValueError:
-            print("Amount has to be of a Decimal parsable string.")
-            exit(1)
-
-        comment = unicode(' '.join(arguments['<comment>']).decode('utf-8'))
-
-        b1 = Buchung(unicode(arguments['<source>']), -betrag, kommentar=comment)
-        b2 = Buchung(unicode(arguments['<destination>']), betrag, kommentar=comment, datum=b1.datum)
+        b1 = Buchung(args.source,
+                     -args.amount,
+                     kommentar=args.comment)
+        b2 = Buchung(args.destination,
+                     args.amount,
+                     kommentar=args.comment,
+                     datum=b1.datum)
         k.buchen([b1, b2])
+        print("[i] done")
 
-        print("done")
+    elif args.action == 'receipt':
+        print(args.receipt.receipt(header=cfg.get('receipt', 'header'),
+                                   footer=cfg.get('receipt', 'footer'),
+                                   export=args.export))
+        if args.print_receipt:
+            args.receipt.print_receipt(cfg)
 
-    elif arguments['client'] and (arguments['create'] or arguments['edit']):
+    elif args.action == 'client':
 
-        def fetch_input(explanation, default_input=None, allowed_regexp=None, extra_checks=None):
-            """
-            Fetches an input from stdin or uses the default
-            if no input was given and checks it
-            :param explanation: the explanation text of this input
-            :param default_input: the default value for this input or None
-            :param allowed_regexp: a regexp to check if the input is allowed
-            :param extra_checks: a function or lambda expression that
-                    requires the input as str as argument and returns True or False
-            :type default_input: basestr | None
-            :type explanation: basestr
-            :type allowed_regexp: basestr | None
-            :type extra_checks: function | None
-            """
-            default_str = " [{0}]".format(unicode(default_input)) if default_input is not None else ""
-            allowed_regexp = allowed_regexp if allowed_regexp is not None else ur".*"
-            extra_checks = extra_checks if extra_checks else lambda x: True
-
-            while True:
-                input_str = raw_input(u"{e}{d}: ".format(
-                    e=explanation, d=default_str))
-
-                if input_str == '' and default_input is not None:
-                    input_str = unicode(default_input)
-
-                if not re.match(allowed_regexp, input_str):
-                    print('[!] Eingabe ungültig!')
-                    continue  # retry
-                elif extra_checks(input_str):
-                    return input_str  # success
-                else:
-                    continue  # retry
-
-        if arguments['edit']:
-            try:
-                kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
-            except NoDataFound:
-                print(u"[!] Konnte keinen Kunde unter '{0}' finden.".format(arguments['<name>']))
-                sys.exit(2)
-        else:
+        if "client" in args:
+            kunde = args.client
+        elif args.client_action == 'create':
             kunde = Kunde('')  # will be filled in later
 
-        # Name
-        def check_name_unique(name):
-            """
-            Check function for fetch_input
-            checks if the given client name is unique (or unchanged)
-            :param name: the name to check if it is unique
-            :type name: basestr
-            :rtype : bool
-            """
-            if arguments['edit'] and kunde and name == kunde.name:
-                return True  # kunde keeps old name -> that's allowed
-            if k.cur.execute('SELECT id FROM kunde WHERE name=?', (name,)).fetchone() is not None:
-                print("[!] Name ist bereits in Verwendung.")
-                return False
-            return True
+        if args.client_action == 'create' or args.client_action == 'edit':
+            edit = args.client_action == 'edit'  # to shorten expressions
 
-        default = None if not arguments['edit'] else kunde.name
-        kunde.name = fetch_input(explanation=u'Name (ohne Leer- und Sonderzeichen!)',
-                                 default_input=default,
-                                 allowed_regexp=ur'^[a-zA-Z0-9\/_-]{1,}$',
-                                 extra_checks=check_name_unique)
+            def fetch_input(explanation, default_input=None,
+                            allowed_regexp=None, extra_checks=None):
+                """
+                Fetches an input from stdin or uses the default
+                if no input was given and checks it
+                :param explanation: the explanation text of this input
+                :param default_input: the default value for this input or None
+                :param allowed_regexp: a regexp to check if input is allowed
+                :param extra_checks: a function or lambda expression that
+                        requires an input as str and returns a bool
+                :type default_input: basestr | None
+                :type explanation: basestr
+                :type allowed_regexp: basestr | None
+                :type extra_checks: function | None
+                """
+                default_str = " [{0}]".format(unicode(default_input)) if default_input is not None else ""
+                allowed_regexp = allowed_regexp if allowed_regexp is not None else ur".*"
+                extra_checks = extra_checks if extra_checks else lambda x: True
 
-        # PIN
-        print("[i] zufällige PIN-Vorschläge: {0:04} {1:04} {2:04}".format(
-            random.randint(1, 9999), random.randint(1, 9999), random.randint(1, 9999)))
+                while True:
+                    input_str = raw_input(u"{e}{d}: ".format(
+                        e=explanation, d=default_str))
 
-        default = None if not arguments['edit'] else kunde.pin
-        kunde.pin = fetch_input(explanation=u'PIN (4 Ziffern, 0000: deaktiviert)',
-                                default_input=default,
-                                allowed_regexp=ur'^[0-9]{4}$')
+                    if input_str == '' and default_input is not None:
+                        input_str = unicode(default_input)
 
-        # Schuldengrenze
-        def check_number_decimal(n):
-            """
-            Check function for fetch_input; checks if n is a Decimal
-            :param n: the number to check
-            :type n: unicode, str
-            :rtype : bool
-            """
+                    if not re.match(allowed_regexp, input_str):
+                        print('[!] Eingabe ungültig!', file=sys.stderr)
+                        continue  # retry
+                    elif extra_checks(input_str):
+                        return input_str  # success
+                    else:
+                        continue  # retry
+
+            # Name
+            def check_name_unique(name):
+                """
+                Check function for fetch_input
+                checks if the given client name is unique (or unchanged)
+                :param name: the name to check if it is unique
+                :type name: basestr
+                :rtype : bool
+                """
+                if edit and kunde and name == kunde.name:
+                    return True  # kunde keeps old name -> that's allowed
+                if k.cur.execute('SELECT id FROM kunde WHERE name=?', (name,)).fetchone() is not None:
+                    print("[!] Name ist bereits in Verwendung.", file=sys.stderr)
+                    return False
+                return True
+
+            default = kunde.name if edit else None
+            kunde.name = fetch_input(
+                explanation=u'Name (ohne Leer- und Sonderzeichen!)',
+                default_input=default,
+                allowed_regexp=ur'^[a-zA-Z0-9\/_-]{1,}$',
+                extra_checks=check_name_unique
+            )
+
+            # PIN
+            print("[i] zufällige PIN-Vorschläge: {0:04} {1:04} {2:04}".format(
+                random.randint(1, 9999),
+                random.randint(1, 9999),
+                random.randint(1, 9999)))
+
+            default = kunde.pin if edit else None
+            kunde.pin = fetch_input(
+                explanation=u'PIN (4 Ziffern, 0000: deaktiviert)',
+                default_input=default,
+                allowed_regexp=ur'^[0-9]{4}$'
+            )
+
+            # Schuldengrenze
+            def check_number_decimal(n):
+                """
+                Check function for fetch_input; checks if n is a Decimal
+                :param n: the number to check
+                :type n: unicode, str
+                :rtype : bool
+                """
+                try:
+                    Decimal(n)
+                    return True
+                except InvalidOperation:
+                    print(u"[!] Formatierung ungültig.\n \
+                                Korrekt wäre z.B. '100.23' oder '-1'.",
+                          file=sys.stderr)
+                    return False
+
+            def check_number_greater_zero_or_minus_one(n):
+                """
+                Check function for fetch_input; checks if n >= 0 or == -1
+                :param n: the number to check
+                :type n: unicode, str
+                :rtype : bool
+                """
+                if Decimal(n) >= Decimal('0') or Decimal(n) == Decimal('-1'):
+                    return True
+                else:
+                    print("[!] Schuldengrenze muss >= 0 oder = -1 sein",
+                          file=sys.stderr)
+                    return False
+
+            default = kunde.schuldengrenze if edit else None
+            kunde.schuldengrenze = Decimal(
+                fetch_input(
+                    explanation=u'Schuldengrenze (>=0: beschraenkt oder -1: unbeschraenkt)',
+                    default_input=default,
+                    allowed_regexp=ur'^[0-9-+,.]+$',
+                    extra_checks=lambda n: check_number_decimal(n) and check_number_greater_zero_or_minus_one(n))
+            )
+
+            # Email
+            default = kunde.email if edit else None
+            kunde.email = fetch_input(
+                explanation=u'Email',
+                default_input=default,
+                allowed_regexp=ur'^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$'
+            )
+
+            # Telefon
+            default = kunde.telefon if edit else None
+            kunde.telefon = fetch_input(
+                explanation=u'Telefonnummer (optional; Ziffern, Leer, Raute, ... )',
+                default_input=default,
+                allowed_regexp=ur'^[0-9 \+\-#\*\(\)/]*$'
+            )
+
+            # Adresse
+            default = kunde.adresse if edit else None
+            kunde.adresse = fetch_input(
+                explanation=u'Adresse (optional; nur eine Zeile)',
+                default_input=default
+            )
+
+            # Kommentar
+            default = kunde.kommentar if edit else None
+            kunde.kommentar = fetch_input(
+                explanation=u'Kommentar (optional; nur eine Zeile)',
+                default_input=default
+            )
+
             try:
-                Decimal(n)
-                return True
-            except InvalidOperation:
-                print(u"[!] Formatierung ungültig.\n \
-                            Korrekt wäre z.B. '100.23' oder '-1'.")
-                return False
+                kunde.store(k.cur)
+            except sqlite3.IntegrityError:
+                print("[!] Name ist bereits in Verwendung.", file=sys.stderr)
+                sys.exit(2)
 
-        def check_number_greater_zero_or_minus_one(n):
-            """
-            Check function for fetch_input; checks if n >= 0 or == -1
-            :param n: the number to check
-            :type n: unicode, str
-            :rtype : bool
-            """
-            if Decimal(n) >= Decimal('0') or Decimal(n) == Decimal('-1'):
-                return True
-            else:
-                print("[!] Schuldengrenze muss >= 0 oder = -1 sein")
-                return False
+            k.con.commit()
+            print("[i] Gespeichert. Kundennummer lautet: {0}".format(kunde.id))
 
-        default = None if not arguments['edit'] else kunde.schuldengrenze
-        kunde.schuldengrenze = Decimal(
-            fetch_input(explanation=u'Schuldengrenze (>=0: beschraenkt oder -1: unbeschraenkt)',
-                        default_input=default,
-                        allowed_regexp=ur'^[0-9-+,.]+$',
-                        extra_checks=lambda n: check_number_decimal(n) and check_number_greater_zero_or_minus_one(n)))
+        elif args.client_action == 'show':
 
-        # Email
-        default = None if not arguments['edit'] else kunde.email
-        kunde.email = fetch_input(explanation=u'Email',
-                                  default_input=default,
-                                  allowed_regexp=ur'^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$')
+            print(kunde.to_string(short=not args.detail))
 
-        # Telefon
-        default = None if not arguments['edit'] else kunde.telefon
-        kunde.telefon = fetch_input(explanation=u'Telefonnummer (optional; Ziffern, Leer, Raute, ... )',
-                                    default_input=default,
-                                    allowed_regexp=ur'^[0-9 \+\-#\*\(\)/]*$')
+            print("Kontostand: " + moneyfmt(kunde.summe) + ' EUR')
 
-        # Adresse
-        default = None if not arguments['edit'] else kunde.adresse
-        kunde.adresse = fetch_input(explanation=u'Adresse (optional; nur eine Zeile)',
-                                    default_input=default)
+        elif args.client_action == 'charge':
 
-        # Kommentar
-        default = None if not arguments['edit'] else kunde.kommentar
-        kunde.kommentar = fetch_input(explanation=u'Kommentar (optional; nur eine Zeile)',
-                                      default_input=default)
-
-        try:
+            kunde.add_buchung(-args.amount, args.comment)
             kunde.store(k.cur)
-        except sqlite3.IntegrityError as e:
-            print("[!] Name ist bereits in Verwendung.")
-            sys.exit(2)
 
-        k.con.commit()
-        print("[i] Gespeichert. Kundennummer lautet: {0}".format(kunde.id))
+            k.con.commit()
 
-    elif arguments['client'] and arguments['show']:
-        try:
-            kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
-        except NoDataFound:
-            print(u"Konnte keinen Kunde unter '%s' finden." % arguments['<name>'])
-            sys.exit(2)
+        elif args.client_action == 'payup':
 
-        print(kunde.to_string(short=False))
+            kunde.add_buchung(args.amount, args.comment)
+            kunde.store(k.cur)
 
-        print("Kontostand: " + moneyfmt(kunde.summe) + ' EUR')
+            k.con.commit()
 
-    elif arguments['client'] and arguments['summary']:
-        try:
-            kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
-        except NoDataFound:
-            print(u"Konnte keinen Kunde unter '%s' finden." % arguments['<name>'])
-            sys.exit(2)
+        elif args.client_action == 'list':
 
-        print(kunde.to_string(short=True))
+            print("""
+KdNr|                     Name|  Kontostand|  Grenze| Letzte Zahlung
+----+-------------------------+------------+--------+---------------""")
 
-        print("Kontostand: " + moneyfmt(kunde.summe) + ' EUR')
+            for k in k.kunden:
+                letzte_zahlung = sorted(
+                    map(
+                        lambda b: b.datum,
+                        filter(lambda b: b.betrag > 0, k.buchungen)
+                    )
+                )[:1]
 
-    elif arguments['client'] and arguments['charge']:
-        try:
-            kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
-        except NoDataFound:
-            print(u"Konnte keinen Kunde unter '%s' finden." % arguments['<name>'])
-            sys.exit(2)
+                if not letzte_zahlung:
+                    letzte_zahlung = "n/a"
+                else:
+                    letzte_zahlung = letzte_zahlung[0].strftime('%Y-%m-%d')
 
-        comment = unicode(' '.join(arguments['<comment>']).decode('utf-8'))
-
-        kunde.add_buchung(-Decimal(arguments['<amount>']), comment)
-        kunde.store(k.cur)
-
-        k.con.commit()
-
-    elif arguments['client'] and arguments['payup']:
-        try:
-            kunde = Kunde.load_from_name(arguments['<name>'], k.cur)
-        except NoDataFound:
-            print(u"Konnte keinen Kunde unter '%s' finden." % arguments['<name>'])
-            sys.exit(2)
-
-        comment = unicode(' '.join(arguments['<comment>']).decode('utf-8'))
-
-        kunde.add_buchung(Decimal(arguments['<amount>']), comment)
-        kunde.store(k.cur)
-
-        k.con.commit()
-
-    elif arguments['client'] and arguments['list']:
-        print("KdNr|                     Name|  Kontostand|  Grenze| Letzte Zahlung")
-        print("----+-------------------------+------------+--------+---------------")
-
-        for k in k.kunden:
-            letzte_zahlung = sorted(map(lambda b: b.datum, filter(lambda b: b.betrag > 0,
-                                                                  k.buchungen)))[:1]
-
-            if not letzte_zahlung:
-                letzte_zahlung = "n/a"
-            else:
-                letzte_zahlung = letzte_zahlung[0].strftime('%Y-%m-%d')
-
-            print(u'{0:>4}|{1:>25}|{2:>8} EUR|{3:>8}| {4:>14}'.format(
-                k.id, k.name, moneyfmt(k.summe), moneyfmt(k.schuldengrenze), letzte_zahlung))
-
-    elif arguments['receipt']:
-        r = Rechnung.load_from_id(int(arguments['<id>']), k.cur)
-        print(r.receipt(header=cfg.get('receipt', 'header'), footer=cfg.get('receipt', 'footer'),
-                        export=bool(arguments["--export"])))
-
-        if arguments['--print']:
-            r.print_receipt(cfg)
+                print(u'{0:>4}|{1:>25}|{2:>8} EUR|{3:>8}| {4:>14}'.format(
+                    k.id, k.name, moneyfmt(k.summe), moneyfmt(k.schuldengrenze), letzte_zahlung))
 
     else:
-        print("This should not have happend. Option not implemented.")
-        print(arguments)
+        print("[!] This should not have happend. Option not implemented.",
+              file=sys.stderr)
+        print(args, file=sys.stderr)
+
+
+if __name__ == '__main__':
+    main()

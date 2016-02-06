@@ -14,15 +14,63 @@
 #
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
+
 """unittests for kassenbuch.py"""
+
 import unittest
-from FabLabKasse.kassenbuch import Kasse, Kunde, NoDataFound
+from FabLabKasse.kassenbuch import Kasse, Kunde, NoDataFound, parse_args
+from FabLabKasse.kassenbuch import argparse_parse_date, argparse_parse_currency
 from hypothesis import given
 from hypothesis.strategies import text
+import dateutil
+from datetime import datetime, timedelta
+from decimal import Decimal
 
 
 class KassenbuchTestCase(unittest.TestCase):
     """unittests for kassenbuch.py"""
+
+    def test_argparse(self):
+        """
+        test the argparser
+        """
+        # test show
+        args = parse_args("show".split(' '))
+        self.assertEqual(args.action, 'show')
+        self.assertFalse(args.hide_receipts)
+        self.assertIsNone(args.from_date)
+        self.assertIsNone(args.until_date)
+        args = parse_args("show --hide-receipts".split(' '))
+        self.assertEqual(args.action, 'show')
+        self.assertTrue(args.hide_receipts)
+        self.assertIsNone(args.from_date)
+        self.assertIsNone(args.until_date)
+        args = parse_args(['show', '--hide-receipts',
+                          '--from', '2016-12-31 13:37:42'])
+        self.assertEqual(args.action, 'show')
+        self.assertTrue(args.hide_receipts)
+        self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31 13:37:42"))
+        self.assertIsNone(args.until_date)
+        args = parse_args("show --hide-receipts "
+                          "--from 2016-12-31 "
+                          "--until 2017-1-23".split(' '))
+        self.assertEqual(args.action, 'show')
+        self.assertTrue(args.hide_receipts)
+        self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31"))
+        self.assertEquals(args.until_date, dateutil.parser.parse("2017-1-23"))
+        # TODO more tests: Everytime you fix a bug in argparser, add a test
+
+    def test_parsing(self):
+        """test argument parsing helper"""
+        self.assertEqual(argparse_parse_currency(' 13,37€ '), Decimal('13.37'))
+        self.assertAlmostEqual(argparse_parse_date('today'), datetime.today(),
+                               delta=timedelta(minutes=5))
+        self.assertAlmostEqual(argparse_parse_date('yesterday'),
+                               datetime.today() - timedelta(1),
+                               delta=timedelta(minutes=5))
+        self.assertEqual(argparse_parse_date("2016-12-31 13:37:42"),
+                         dateutil.parser.parse("2016-12-31 13:37:42"))
+
     def test_accounting_database_setup(self):
         """tests the creation of the accounting database"""
         kasse = Kasse(sqlite_file=':memory:')
