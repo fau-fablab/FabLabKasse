@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 1
 
    FabLabKasse
+   buildyourown/index
 
     
 Code structure overview
