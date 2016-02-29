@@ -14,6 +14,7 @@
 
 import sys
 import os
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -101,7 +102,10 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'nature'
+if on_rtd:
+    html_theme = 'default'
+else:
+    html_theme = 'nature'
 # TODO sphinx_rtd_theme is nicer, but add a fallback for older sphinx versions that don't have it
 
 # Theme options are theme-specific and customize the look and feel of a theme
