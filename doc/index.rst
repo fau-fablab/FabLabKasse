@@ -11,8 +11,8 @@ Contents:
 .. toctree::
    :maxdepth: 1
 
-   FabLabKasse
    buildyourown/index
+   FabLabKasse
 
     
 Code structure overview
