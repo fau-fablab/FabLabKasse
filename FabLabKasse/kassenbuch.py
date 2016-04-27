@@ -1025,7 +1025,8 @@ def parse_args(argv=sys.argv[1:]):
     # client show
     parser_client_show = client_subparsers.add_parser(
         'show',
-        help="Shows transactions of an existing client",
+        help="Shows details for an existing client " +
+        "(--transactions for transactions)"
     )
     parser_client_show.add_argument(
         'client',
@@ -1034,11 +1035,11 @@ def parse_args(argv=sys.argv[1:]):
         help="The name or id of the client",
     ).completer = client_argcomplete
     parser_client_show.add_argument(
-        '--detail',
+        '--transactions',
         action='store_true',
-        dest='detail',
+        dest='transactions',
         default=False,
-        help="Show accounting of the client",
+        help="Show transactions of the client",
     )  # replaces old 'client summary'
     # client charge
     parser_client_charge = client_subparsers.add_parser(
@@ -1360,7 +1361,7 @@ def main():
 
         elif args.client_action == 'show':
 
-            print(kunde.to_string(short=not args.detail))
+            print(kunde.to_string(short=not args.transactions))
 
             print("Kontostand: " + moneyfmt(kunde.summe) + ' EUR')
 
