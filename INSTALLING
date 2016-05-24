@@ -69,6 +69,13 @@ Modem-Manager interferes with the serial port. It is highly recommended to remov
 
  TODO
 
+### Virtualenv
+
+ - install system packages for your OS, and python-virtualenv
+
+        virtualenv --system-site-packages .env  # create virtualenv and use system python packages
+        source .env/bin/activate                # enter the environment
+        pip install -r requirements.txt         # install python requirements using pip
 
 2.  Configuration
 -----------------
