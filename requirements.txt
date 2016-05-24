@@ -10,7 +10,7 @@ simplejson
 Sphinx
 natsort
 monotonic
-oerplib
+oerplib  # only for connection to OpenERP/odoo
 portalocker==0.5.6
 
 # dependency of escpos
