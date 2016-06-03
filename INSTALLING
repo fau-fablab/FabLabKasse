@@ -72,6 +72,13 @@ Modem-Manager interferes with the serial port. It is highly recommended to remov
         source .env/bin/activate                # enter the environment
         pip install -r requirements.txt         # install python requirements using pip
 
+ - you have to be "in" the virtual environment to run FabLabKasse and other programs (see your shell prompt):
+
+        source .env/bin/activate                # enter the environment
+        ./run.py                                # run programs
+        ./FabLabKasse/kassenbuch.py
+        # [...]
+
 2.  Configuration
 -----------------
 
