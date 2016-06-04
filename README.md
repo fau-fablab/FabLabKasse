@@ -22,7 +22,7 @@ Please checkout the repository recursively since it contains submodules:
 
 `git clone --recursive git@github.com:fau-fablab/FabLabKasse.git`
 
-If you want to test on a VM, take a look at Vagrant.README.md on how to automatically set up a Virtualbox VM for testing.
+If you want to test on a VM, take a look at [README_Vagrant.md](README_Vagrant.md) on how to automatically set up a Virtualbox VM for testing.
 
 See [INSTALLING.md](INSTALLING.md) for detailed instructions on how to install the required dependencies. You can skip the configuration stuff for later.
 
