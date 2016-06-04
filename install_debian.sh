@@ -49,7 +49,7 @@ sudo cp /home/$INSTALL_USER/FabLabKasse/FabLabKasse/tools/sudoers.d/kassenterm-r
 # load example config if no config.ini exists
 cd /home/$INSTALL_USER/FabLabKasse/ && sudo -u $INSTALL_USER ./run.py --example --only-load-config
 echo "Warning: if no config exists, an example config will be installed. Please change it if you use this for a real system"
-echo "Warning: For using it on a real system, cronjobs must be setup manually, please see INSTALLING"
+echo "Warning: For using it on a real system, cronjobs must be setup manually, please see INSTALLING.md"
 
 sudo service nodm stop
 sleep 2

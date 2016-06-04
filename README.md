@@ -24,7 +24,7 @@ Please checkout the repository recursively since it contains submodules:
 
 If you want to test on a VM, take a look at Vagrant.README.md on how to automatically set up a Virtualbox VM for testing.
 
-See INSTALLING for detailed instructions on how to install the required dependencies. You can skip the configuration stuff for later.
+See [INSTALLING.md](INSTALLING.md) for detailed instructions on how to install the required dependencies. You can skip the configuration stuff for later.
 
 Then, for the first try, you can just do:
 
