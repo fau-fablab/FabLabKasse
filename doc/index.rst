@@ -22,7 +22,7 @@ Code structure overview
 - the rest of the code is in folder FabLabKasse
 - kassenbuch.py (currently still german) accounting CLI for legacy_offline_kassenbuch shopping backend
 - produkt.py is directly in FabLabKasse-folder for legacy reasons
-- cashPayment: automated cash payment - coin and banknote acceptors. see README.cashPayment
+- cashPayment: automated cash payment - coin and banknote acceptors. see README_cashPayment.md
 
   - client: interface towards the GUI that connects with the device drivers
   
