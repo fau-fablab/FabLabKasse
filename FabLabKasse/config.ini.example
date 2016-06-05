@@ -85,7 +85,7 @@ payout_impossible_product_id=9994
 [cash_payment]
 ; only used when cash=on in [payup_methods]
 ; devices (*.py files in cashPayment/server/)
-; please read README.cashPayment ! larger devices first, because they are used first for payout.
+; please read README_cashPayment.md ! larger devices first, because they are used first for payout.
 ;device1=exampleServer
 ;device1_name=example1
 ;device2=mdbCoinChanger

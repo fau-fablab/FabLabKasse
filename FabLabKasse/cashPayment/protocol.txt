@@ -114,4 +114,4 @@ STOP
 
 ------
 
-(Service mode: refilling is normal via ACCEPT command - this money will be counted just like money paid in by the user and therefore needs a corrective transfer in the cash audit log. see README.cashPayment)
+(Service mode: refilling is normal via ACCEPT command - this money will be counted just like money paid in by the user and therefore needs a corrective transfer in the cash audit log. see README_cashPayment.md)
