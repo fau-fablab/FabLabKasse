@@ -351,6 +351,39 @@ class Kasse(object):
         cur.execute("CREATE INDEX IF NOT EXISTS statistikDateIndex ON statistik(datum)")
         cur.execute("CREATE INDEX IF NOT EXISTS statistikRechnungIndex ON statistik(rechnung)")
 
+    @staticmethod
+    def _date_query_generator(from_table=None, from_date=None, until_date=None):
+        """
+        returns a string for a SQL query to rechnung or buchung
+
+        :param from_table: which table should be queried
+        :param from_date: datetime start date (included)
+        :param until_date: datetime end date (not included)
+        :type from_date: datetime.datetime | None
+        :type until_date: datetime.datetime | None
+        :return: query string
+        """
+        # TODO this will probably make problems with py3 --> import unicode_literals from future --> check whole file
+        if from_table != "buchung" and from_table != "rechnung":
+            # this function only generates rechnung and buchung queries
+            raise NotImplementedError
+
+        query = "SELECT id FROM {0}".format(from_table)
+        if from_date and until_date:
+            query = query + " WHERE datum >= Datetime('{from_date}') AND datum < Datetime('{until_date}')".format(
+                from_date=from_date, until_date=until_date
+            )
+        elif from_date:
+            query = query + " WHERE datum >= Datetime('{from_date}')".format(
+                from_date=from_date
+            )
+        elif until_date:
+            query = query + " WHERE datum < Datetime('{until_date}')".format(
+                until_date=until_date
+            )
+
+        return query
+
     @property
     def buchungen(self):
         return self.get_buchungen()
@@ -366,20 +399,7 @@ class Kasse(object):
         """
         buchungen = []
 
-        query = "SELECT id FROM buchung"
-        if from_date and until_date:
-            query = query + " WHERE datum >= Datetime('{from_date}') AND datum < Datetime('{until_date}')".format(
-                from_date=from_date, until_date=until_date
-            )
-        elif from_date:
-            query = query + " WHERE datum >= Datetime('{from_date}')".format(
-                from_date=from_date
-            )
-        elif until_date:
-            query = query + " WHERE datum < Datetime('{until_date}')".format(
-                until_date=until_date
-            )
-
+        query = Kasse._date_query_generator(from_table="buchung", from_date=from_date, until_date=until_date)
         self.cur.execute(query)
         for row in self.cur.fetchall():
             buchungen.append(Buchung.load_from_id(row[0], self.cur))
@@ -401,20 +421,7 @@ class Kasse(object):
         """
         rechnungen = []
 
-        query = "SELECT id FROM rechnung"
-        if from_date and until_date:
-            query = query + " WHERE datum >= Datetime('{from_date}') AND datum < Datetime('{until_date}')".format(
-                from_date=from_date, until_date=until_date
-            )
-        elif from_date:
-            query = query + " WHERE datum >= Datetime('{from_date}')".format(
-                from_date=from_date
-            )
-        elif until_date:
-            query = query + " WHERE datum < Datetime('{until_date}')".format(
-                until_date=until_date
-            )
-
+        query = Kasse._date_query_generator(from_table="rechnung", from_date=from_date, until_date=until_date)
         self.cur.execute(query)
         for row in self.cur.fetchall():
             rechnungen.append(Rechnung.load_from_id(row[0], self.cur))
