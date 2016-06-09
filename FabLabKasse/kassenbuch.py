@@ -340,6 +340,17 @@ class Kasse(object):
         cur.execute(
             "CREATE TABLE IF NOT EXISTS statistik(id INTEGER PRIMARY KEY AUTOINCREMENT, datum, gruppe, user, rechnung INT, betrag)")
 
+        # search indexes for faster execution
+        cur.execute("CREATE INDEX IF NOT EXISTS buchungDateIndex ON buchung(datum)")
+        cur.execute("CREATE INDEX IF NOT EXISTS buchungRechnungIndex ON buchung(rechnung)")
+        cur.execute("CREATE INDEX IF NOT EXISTS rechnungDateIndex ON rechnung(datum)")
+        cur.execute("CREATE INDEX IF NOT EXISTS positionRechnungIndex ON position(rechnung)")
+        cur.execute("CREATE INDEX IF NOT EXISTS bargeldDateIndex ON bargeld(datum)")
+        cur.execute("CREATE INDEX IF NOT EXISTS kundenbuchungDateIndex ON kundenbuchung(datum)")
+        cur.execute("CREATE INDEX IF NOT EXISTS kundenbuchungKundeIndex ON kundenbuchung(kunde)")
+        cur.execute("CREATE INDEX IF NOT EXISTS statistikDateIndex ON statistik(datum)")
+        cur.execute("CREATE INDEX IF NOT EXISTS statistikRechnungIndex ON statistik(rechnung)")
+
     @property
     def buchungen(self):
         return self.get_buchungen()
