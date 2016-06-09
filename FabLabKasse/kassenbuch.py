@@ -355,15 +355,23 @@ class Kasse(object):
         """
         buchungen = []
 
-        self.cur.execute("SELECT id FROM buchung")
+        query = "SELECT id FROM buchung"
+        if from_date and until_date:
+            query = query + " WHERE datum >= Datetime('{from_date}') AND datum < Datetime('{until_date}')".format(
+                from_date=from_date, until_date=until_date
+            )
+        elif from_date:
+            query = query + " WHERE datum >= Datetime('{from_date}')".format(
+                from_date=from_date
+            )
+        elif until_date:
+            query = query + " WHERE datum < Datetime('{until_date}')".format(
+                until_date=until_date
+            )
+
+        self.cur.execute(query)
         for row in self.cur.fetchall():
             buchungen.append(Buchung.load_from_id(row[0], self.cur))
-
-        # TODO move filters to SQL query
-        if from_date:
-            buchungen = [b for b in buchungen if b.datum >= from_date]
-        if until_date:
-            buchungen = [b for b in buchungen if b.datum < until_date]
 
         return buchungen
 
@@ -371,17 +379,34 @@ class Kasse(object):
     def rechnungen(self):
         return self.get_rechnungen()
 
-    def get_rechnungen(self, von=None, bis=None):
+    def get_rechnungen(self, from_date=None, until_date=None):
+        """
+        get invoices between the given dates. If a date is ``None``, no filter will be applied.
+
+        :param from_date: start datetime (included)
+        :param until_date: end datetime (not included)
+        :type from_date: datetime.datetime | None
+        :type until_date: datetime.datetime | None
+        """
         rechnungen = []
 
-        self.cur.execute("SELECT id FROM rechnung")
+        query = "SELECT id FROM rechnung"
+        if from_date and until_date:
+            query = query + " WHERE datum >= Datetime('{from_date}') AND datum < Datetime('{until_date}')".format(
+                from_date=from_date, until_date=until_date
+            )
+        elif from_date:
+            query = query + " WHERE datum >= Datetime('{from_date}')".format(
+                from_date=from_date
+            )
+        elif until_date:
+            query = query + " WHERE datum < Datetime('{until_date}')".format(
+                until_date=until_date
+            )
+
+        self.cur.execute(query)
         for row in self.cur.fetchall():
             rechnungen.append(Rechnung.load_from_id(row[0], self.cur))
-
-        if von:
-            rechnungen = [r for r in rechnungen if r.datum >= von]
-        if bis:
-            rechnungen = [r for r in rechnungen if r.datum < bis]
 
         return rechnungen
 
