@@ -363,10 +363,12 @@ class Kasse(object):
         :type until_date: datetime.datetime | None
         :return: query string
         """
-        # TODO this will probably make problems with py3 --> import unicode_literals from future --> check whole file
-        if from_table != "buchung" and from_table != "rechnung":
-            # this function only generates rechnung and buchung queries
-            raise NotImplementedError
+        # TODO comparing against these strings might make problems with py3
+        # --> best import unicode_literals from future
+        # --> check whole file if this import is problematic
+        known_tables = ["buchung", "rechnung"]
+        if from_table not in known_tables:
+            raise NotImplementedError("unimplemented table {0}".format(from_table))
 
         query = "SELECT id FROM {0}".format(from_table)
         if from_date and until_date:
