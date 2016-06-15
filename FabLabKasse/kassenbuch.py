@@ -28,8 +28,11 @@ Kassenbuch Backend mit doppelter Buchführung.
 """
 
 from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import absolute_import
 
 import sqlite3
+import argparse
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 import dateutil.parser
@@ -41,7 +44,6 @@ import sys
 import os
 import random
 import scriptHelper
-import argparse
 try:
     import argcomplete
 except ImportError:
@@ -361,9 +363,9 @@ class Kasse(object):
 
         # TODO move filters to SQL query
         if from_date:
-            buchungen = filter(lambda b: b.datum >= from_date, buchungen)
+            buchungen = [b for b in buchungen if b.datum >= from_date]
         if until_date:
-            buchungen = filter(lambda b: b.datum < until_date, buchungen)
+            buchungen = [b for b in buchungen if b.datum < until_date]
 
         return buchungen
 
@@ -379,9 +381,9 @@ class Kasse(object):
             rechnungen.append(Rechnung.load_from_id(row[0], self.cur))
 
         if von:
-            rechnungen = filter(lambda b: b.datum >= von, rechnungen)
+            rechnungen = [r for r in rechnungen if r.datum >= von]
         if bis:
-            rechnungen = filter(lambda b: b.datum < bis, rechnungen)
+            rechnungen = [r for r in rechnungen if r.datum < bis]
 
         return rechnungen
 
@@ -761,7 +763,7 @@ def parse_date(value):
             return datetime.today() - timedelta(1)
         else:
             return dateutil.parser.parse(value)
-    if value is None:
+    if not value:
         return None
     else:
         raise ValueError('cannot parse date value')
@@ -1387,10 +1389,7 @@ KdNr|                     Name|  Kontostand|  Grenze| Letzte Zahlung
 
             for k in k.kunden:
                 letzte_zahlung = sorted(
-                    map(
-                        lambda b: b.datum,
-                        filter(lambda b: b.betrag > 0, k.buchungen)
-                    )
+                    [b.datum for b in [b for b in k.buchungen if b.betrag > 0]]
                 )[:1]
 
                 if not letzte_zahlung:
