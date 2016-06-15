@@ -23,7 +23,7 @@
 def random_integer_list(random_generator, integer_range, number_of_elements):
     """ return a list of length number_of_elements
     with elements in the range integer_range[0] <= element <= integer_range[1]
-    
+
     :param random.Random random_generator: RNG instance
     :param (int, int) integer_range: range (min, max) -- ends are included
     :param int number_of_elements: length of resulting list"""
@@ -35,8 +35,8 @@ def random_integer_list(random_generator, integer_range, number_of_elements):
 def random_choice_list(random_generator, possible_elements, number_of_elements):
     """return a random list with len(list)==number_of_elements,
     list[i] in possible_elements (duplicates are possible)
-    
-    :param random.Random random_generator: RNG instance 
+
+    :param random.Random random_generator: RNG instance
     :param list possible_elements: list elements to choose from
     :param int number_of_elements: length of resulting list"""
     ret = []

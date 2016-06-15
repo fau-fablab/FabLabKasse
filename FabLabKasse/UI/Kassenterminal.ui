@@ -53,7 +53,7 @@ QPushButton{
 padding:5px;
 margin:0px;
 font-size:14pt;
-/* blue color: 
+/* blue color:
  background-color: rgb(44, 114, 199);
 color: white;  */
 }

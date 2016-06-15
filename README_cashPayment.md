@@ -27,7 +27,7 @@ auf Deutsch, weil auch die ganze GUI auf Deutsch ist
 
  - Ausleeren -> Nein, Nachfüllen -> Nein, Absperren -> Ja
 
- - Jetzt kann der Automat nicht mehr benutzt werden, bis man wieder durch ./enableServiceMode.sh und OK klicken entsperrt. 
+ - Jetzt kann der Automat nicht mehr benutzt werden, bis man wieder durch ./enableServiceMode.sh und OK klicken entsperrt.
 
 ### 1. Abgleich interner Stand mit Kassenbuch:
 
@@ -52,7 +52,7 @@ auf Deutsch, weil auch die ganze GUI auf Deutsch ist
 
  - Ausleeren Ja -> der (nicht zugängliche) Speicher des Scheinwechslers wird in die Cashbox umgefüllt.
 
- - Cashbox des Scheinwechslers entnehmen und zählen 
+ - Cashbox des Scheinwechslers entnehmen und zählen
    - Aktuellen Stand abfragen per: `./cash show`
    - oder auch vergleichen mit gezähltem Stand -> z.B. 3x50€, 1x20€
 
@@ -119,7 +119,7 @@ Dies damit `./cash move muenz.manual muenz.tubeN /123x50c/` zurückgefüllt
 
     ./cash show
 
-Configuration 
+Configuration
 -------------
 
 see config.ini.example
@@ -152,7 +152,7 @@ If you want to launch a driver without the GUI, look for a line in gui.log like
 
     starting cashPayment server: PYTHONPATH=.. /usr/bin/env python2.7 -m FabLabKasse.cashPayment.server.mdbCoinChanger KGRwMApWbmFtZQpwMQpWbXVlbnoKcDIKc1Zwb3J0CnAzClZod2dyZXA6Ly9VU0JcdTAwNWMgVklEXHUwMDVjOlBJRFx1MDA1Yz0wNDAzXHUwMDVjOjYwMDFcdTAwNWMgU05SXHUwMDVjPUExMDBRT0YyCnA0CnMu
 
-and run (in FabLabKasse/) the specified command starting with PYTHONPATH=../ 
+and run (in FabLabKasse/) the specified command starting with PYTHONPATH=../
 The argument is a base64 encoded pickled dictionary of the per-deivce options specified in config.ini
 You can then communicate with this via stdin/stdout and use commands like POLL, ACCEPT 1234, STOP, DISPENSE 234, STOP according to cashPayment/protocol.txt
 

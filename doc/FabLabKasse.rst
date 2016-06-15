@@ -46,7 +46,7 @@ Files that are here for legacy reasons
 ---------------------------------------
 
 Some parts of :class:`FabLabKasse.shopping.backend.legacy_offline_kassenbuch` are in this folder for historical reasons
-    
+
 Kassenbuch
 ^^^^^^^^^^^^^^^^^^^^^
 this file is here for legacy reasons
@@ -56,7 +56,7 @@ this file is here for legacy reasons
     :undoc-members:
     :show-inheritance:
 
-    
+
 produkt
 ^^^^^^^^^^
 

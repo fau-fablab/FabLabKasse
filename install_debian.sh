@@ -36,7 +36,7 @@ else
 fi
 
 echo "while [ ! -f /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh ]; do sleep 1; echo Waiting for git repo; done; /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh" > /home/$INSTALL_USER/.xsession
-ln -s /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh /home/$INSTALL_USER/.xsession 
+ln -s /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh /home/$INSTALL_USER/.xsession
 
 # the ubuntu cloud image doesn't include german locale, so the OpenERP import crashes -- add it.
 echo 'de_DE.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen

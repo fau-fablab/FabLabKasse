@@ -40,13 +40,13 @@ Modem-Manager interferes with the serial port. It is highly recommended to remov
  - Qt: http://qt-project.org/downloads
  - SIP: http://www.riverbankcomputing.com/software/sip/download (entpacken, `configure`, `make`, `make install`)
  - PyQt4: http://www.riverbankcomputing.com/software/pyqt/download (entpacken, `configure`, `make`, `make install`)
- - lxml: 
+ - lxml:
 
         cd /tmp
         wget http://lxml.de/files/lxml-2.2.2.tgz
-        tar -xzvf lxml-2.2.2.tgz 
+        tar -xzvf lxml-2.2.2.tgz
         cd lxml-2.2.2
-        python setup.py build --static-deps --libxml2-version=2.7.3  --libxslt-version=1.1.24 
+        python setup.py build --static-deps --libxml2-version=2.7.3  --libxslt-version=1.1.24
         sudo python setup.py install
 
 
