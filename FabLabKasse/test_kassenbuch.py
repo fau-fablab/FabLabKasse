@@ -22,6 +22,7 @@ from FabLabKasse.kassenbuch import Kasse, Kunde, NoDataFound, parse_args
 from FabLabKasse.kassenbuch import argparse_parse_date, argparse_parse_currency
 from hypothesis import given
 from hypothesis.strategies import text
+import hypothesis.extra.datetime as hypothesis_datetime
 import dateutil
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -95,3 +96,17 @@ class KassenbuchTestCase(unittest.TestCase):
             self.fail("client entry in database has not been created")
         # TODO test integrity checking (no double creation of same ID)
         # TODO code crashes when reading Kunde with "None" in e.g. schuldengrenze
+
+    @given(from_date=hypothesis_datetime.datetimes(), until_date=hypothesis_datetime.datetimes())
+    def test_datestring_generator(self, from_date, until_date):
+        """test the datestring_generator in Kasse"""
+        query = Kasse._date_query_generator('buchung', from_date=from_date, until_date=until_date)
+        pristine_query = "SELECT id FROM buchung WHERE datum >= Datetime('{from_date}') AND " \
+                         "datum < Datetime('{until_date}')".format(from_date=from_date, until_date=until_date)
+        assert(query == pristine_query)
+        query = Kasse._date_query_generator('buchung', until_date=until_date)
+        pristine_query = "SELECT id FROM buchung WHERE datum < Datetime('{until_date}')".format(until_date=until_date)
+        assert(query == pristine_query)
+        query = Kasse._date_query_generator('buchung', from_date=from_date)
+        pristine_query = "SELECT id FROM buchung WHERE datum >= Datetime('{from_date}')".format(from_date=from_date)
+        assert(query == pristine_query)
