@@ -1432,7 +1432,7 @@ KdNr|                     Name|  Kontostand|  Grenze| Letzte Zahlung
 
             for k in k.kunden:
                 letzte_zahlung = sorted(
-                    [b.datum for b in [b for b in k.buchungen if b.betrag > 0]]
+                    (b.datum for b in (b for b in k.buchungen if b.betrag > 0))
                 )[:1]
 
                 if not letzte_zahlung:
