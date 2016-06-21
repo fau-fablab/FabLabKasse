@@ -340,6 +340,52 @@ class Kasse(object):
         cur.execute(
             "CREATE TABLE IF NOT EXISTS statistik(id INTEGER PRIMARY KEY AUTOINCREMENT, datum, gruppe, user, rechnung INT, betrag)")
 
+        # search indexes for faster execution
+        cur.execute("CREATE INDEX IF NOT EXISTS buchungDateIndex ON buchung(datum)")
+        cur.execute("CREATE INDEX IF NOT EXISTS buchungRechnungIndex ON buchung(rechnung)")
+        cur.execute("CREATE INDEX IF NOT EXISTS rechnungDateIndex ON rechnung(datum)")
+        cur.execute("CREATE INDEX IF NOT EXISTS positionRechnungIndex ON position(rechnung)")
+        cur.execute("CREATE INDEX IF NOT EXISTS bargeldDateIndex ON bargeld(datum)")
+        cur.execute("CREATE INDEX IF NOT EXISTS kundenbuchungDateIndex ON kundenbuchung(datum)")
+        cur.execute("CREATE INDEX IF NOT EXISTS kundenbuchungKundeIndex ON kundenbuchung(kunde)")
+        cur.execute("CREATE INDEX IF NOT EXISTS statistikDateIndex ON statistik(datum)")
+        cur.execute("CREATE INDEX IF NOT EXISTS statistikRechnungIndex ON statistik(rechnung)")
+
+    @staticmethod
+    def _date_query_generator(from_table=None, from_date=None, until_date=None):
+        """
+        returns a string for a SQL query to rechnung or buchung
+
+        :param from_table: which table should be queried
+        :param from_date: datetime start date (included)
+        :param until_date: datetime end date (not included)
+        :type from_date: datetime.datetime | None
+        :type until_date: datetime.datetime | None
+        :return: query string
+        """
+        # TODO comparing against these strings might make problems with py3
+        # --> best import unicode_literals from future
+        # --> check whole file if this import is problematic
+        known_tables = ["buchung", "rechnung"]
+        if from_table not in known_tables:
+            raise NotImplementedError("unimplemented table {0}".format(from_table))
+
+        query = "SELECT id FROM {0}".format(from_table)
+        if from_date and until_date:
+            query = query + " WHERE datum >= Datetime('{from_date}') AND datum < Datetime('{until_date}')".format(
+                from_date=from_date, until_date=until_date
+            )
+        elif from_date:
+            query = query + " WHERE datum >= Datetime('{from_date}')".format(
+                from_date=from_date
+            )
+        elif until_date:
+            query = query + " WHERE datum < Datetime('{until_date}')".format(
+                until_date=until_date
+            )
+
+        return query
+
     @property
     def buchungen(self):
         return self.get_buchungen()
@@ -355,15 +401,10 @@ class Kasse(object):
         """
         buchungen = []
 
-        self.cur.execute("SELECT id FROM buchung")
+        query = Kasse._date_query_generator(from_table="buchung", from_date=from_date, until_date=until_date)
+        self.cur.execute(query)
         for row in self.cur.fetchall():
             buchungen.append(Buchung.load_from_id(row[0], self.cur))
-
-        # TODO move filters to SQL query
-        if from_date:
-            buchungen = [b for b in buchungen if b.datum >= from_date]
-        if until_date:
-            buchungen = [b for b in buchungen if b.datum < until_date]
 
         return buchungen
 
@@ -371,17 +412,21 @@ class Kasse(object):
     def rechnungen(self):
         return self.get_rechnungen()
 
-    def get_rechnungen(self, von=None, bis=None):
+    def get_rechnungen(self, from_date=None, until_date=None):
+        """
+        get invoices between the given dates. If a date is ``None``, no filter will be applied.
+
+        :param from_date: start datetime (included)
+        :param until_date: end datetime (not included)
+        :type from_date: datetime.datetime | None
+        :type until_date: datetime.datetime | None
+        """
         rechnungen = []
 
-        self.cur.execute("SELECT id FROM rechnung")
+        query = Kasse._date_query_generator(from_table="rechnung", from_date=from_date, until_date=until_date)
+        self.cur.execute(query)
         for row in self.cur.fetchall():
             rechnungen.append(Rechnung.load_from_id(row[0], self.cur))
-
-        if von:
-            rechnungen = [r for r in rechnungen if r.datum >= von]
-        if bis:
-            rechnungen = [r for r in rechnungen if r.datum < bis]
 
         return rechnungen
 
@@ -1387,7 +1432,7 @@ KdNr|                     Name|  Kontostand|  Grenze| Letzte Zahlung
 
             for k in k.kunden:
                 letzte_zahlung = sorted(
-                    [b.datum for b in [b for b in k.buchungen if b.betrag > 0]]
+                    (b.datum for b in (b for b in k.buchungen if b.betrag > 0))
                 )[:1]
 
                 if not letzte_zahlung:
