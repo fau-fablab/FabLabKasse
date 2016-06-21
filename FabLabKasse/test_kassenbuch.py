@@ -18,7 +18,7 @@
 """unittests for kassenbuch.py"""
 
 import unittest
-from FabLabKasse.kassenbuch import Kasse, Kunde, NoDataFound, parse_args
+from FabLabKasse.kassenbuch import Kasse, Kunde, Buchung, Rechnung, NoDataFound, parse_args
 from FabLabKasse.kassenbuch import argparse_parse_date, argparse_parse_currency
 from hypothesis import given
 from hypothesis.strategies import text
@@ -110,3 +110,42 @@ class KassenbuchTestCase(unittest.TestCase):
         query = Kasse._date_query_generator('buchung', from_date=from_date)
         pristine_query = "SELECT id FROM buchung WHERE datum >= Datetime('{from_date}')".format(from_date=from_date)
         assert(query == pristine_query)
+
+    @given(rechnung_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
+           from_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
+           until_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]))
+    def test_get_rechnungen(self, rechnung_date, from_date, until_date):
+        """test the get_rechnungen function"""
+        kasse = Kasse(sqlite_file=':memory:')
+        rechnung = Rechnung(datum=rechnung_date.strftime('%Y-%m-%d %H:%M:%S.%f'))
+        rechnung.store(kasse.cur)
+        kasse.con.commit()
+
+        query = kasse.get_rechnungen(from_date, until_date)
+        if from_date <= rechnung_date < until_date:
+            assert query
+        else:
+            assert(not query)
+
+    @given(buchung_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
+           from_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
+           until_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]))
+    def test_get_buchungen(self, buchung_date, from_date, until_date):
+        """test the get_buchungen function"""
+        kasse = Kasse(sqlite_file=':memory:')
+        rechnung = Rechnung(datum=buchung_date.strftime('%Y-%m-%d %H:%M:%S.%f'))
+        rechnung.store(kasse.cur)
+        buchung = Buchung(konto='somewhere',
+                          betrag='0',
+                          rechnung=rechnung.id,
+                          kommentar="Passing By And Thought I'd Drop In",
+                          datum=buchung_date.strftime('%Y-%m-%d %H:%M:%S.%f'))
+        buchung._store(kasse.cur)
+        kasse.con.commit()
+
+        #TODO load_from_row ist sehr anfällig gegen kaputte datetimes, das sollte am besten schon sauber in die Datenbank
+        query = kasse.get_buchungen(from_date, until_date)
+        if from_date <= buchung_date < until_date:
+            assert query
+        else:
+            assert(not query)
