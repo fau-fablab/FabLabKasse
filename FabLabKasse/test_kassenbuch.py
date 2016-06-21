@@ -103,13 +103,13 @@ class KassenbuchTestCase(unittest.TestCase):
         query = Kasse._date_query_generator('buchung', from_date=from_date, until_date=until_date)
         pristine_query = "SELECT id FROM buchung WHERE datum >= Datetime('{from_date}') AND " \
                          "datum < Datetime('{until_date}')".format(from_date=from_date, until_date=until_date)
-        assert(query == pristine_query)
+        self.assertEqual(query, pristine_query)
         query = Kasse._date_query_generator('buchung', until_date=until_date)
         pristine_query = "SELECT id FROM buchung WHERE datum < Datetime('{until_date}')".format(until_date=until_date)
-        assert(query == pristine_query)
+        self.assertEqual(query, pristine_query)
         query = Kasse._date_query_generator('buchung', from_date=from_date)
         pristine_query = "SELECT id FROM buchung WHERE datum >= Datetime('{from_date}')".format(from_date=from_date)
-        assert(query == pristine_query)
+        self.assertEqual(query, pristine_query)
 
     @given(rechnung_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
            from_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
@@ -123,9 +123,9 @@ class KassenbuchTestCase(unittest.TestCase):
 
         query = kasse.get_rechnungen(from_date, until_date)
         if from_date <= rechnung_date < until_date:
-            assert query
+            self.assertTrue(query)
         else:
-            assert(not query)
+            self.assertFalse(query)
 
     @given(buchung_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
            from_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
@@ -146,6 +146,6 @@ class KassenbuchTestCase(unittest.TestCase):
         #TODO load_from_row ist sehr anfällig gegen kaputte datetimes, das sollte am besten schon sauber in die Datenbank
         query = kasse.get_buchungen(from_date, until_date)
         if from_date <= buchung_date < until_date:
-            assert query
+            self.assertTrue(query)
         else:
-            assert(not query)
+            self.assertFalse(query)
