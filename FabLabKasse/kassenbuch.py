@@ -41,15 +41,14 @@ import re
 import sys
 import os
 import random
-import scriptHelper
+import doctest
 try:
     import argcomplete
 except ImportError:
     pass  # it's also working without argcomplete
 
-import doctest
-
 import libs.escpos.printer as escpos_printer
+import scriptHelper
 
 
 def moneyfmt(value, places=2, curr='', sep='.', dp=',',
@@ -1056,6 +1055,15 @@ def parse_args(argv=sys.argv[1:]):
         'list',
         help="List all existing clients",
     )
+    parser_client_list.add_argument(
+        '--maxbalance', '-m', metavar='MAX', type=Decimal,
+        help='Restricts output to clients with a balance of MAX or below.')
+    parser_client_list.add_argument(
+        '--inactive', '-i', metavar='N', type=int,
+        help='Restricts output to clients with no activity for atleast N days.')
+    parser_client_list.add_argument(
+        '--remove-zeros', '-z', action='store_true', default=False,
+        help='Removes all clients with exactly zero balance.')
     # client edit
     parser_client_edit = client_subparsers.add_parser(
         'edit',
@@ -1427,21 +1435,46 @@ def main():
         elif args.client_action == 'list':
 
             print("""
-KdNr|                     Name|  Kontostand|  Grenze| Letzte Zahlung
-----+-------------------------+------------+--------+---------------""")
+KdNr|                     Name|  Kontostand|  Grenze| Letzte Zahlung | Letzte Buchung |
+----+-------------------------+------------+--------+----------------+----------------+""")
 
             for k in k.kunden:
-                letzte_zahlung = sorted(
-                    (b.datum for b in (b for b in k.buchungen if b.betrag > 0))
+                last_payment = sorted(
+                    [b.datum for b in k.buchungen if b.betrag > 0], reverse=True
                 )[:1]
+                last_charge = sorted(
+                    [b.datum for b in k.buchungen if b.betrag < 0], reverse=True
+                )[:1]
+                
+                # Using a skip flag, to allow overlapping filtering, where any filter will allow
+                # an entry to pass
+                skip = True
+                if args.inactive is not None and last_charge:
+                    # skip sufficiently active clients
+                    if (datetime.now()-last_charge[0]).days >= args.inactive:
+                        skip = False
+                if args.maxbalance is not None and k.summe < args.maxbalance:
+                    # skip clients with sufficient balance
+                    skip = False
+                if args.maxbalance is None and args.inactive is None:
+                    # Let everything pass if not filters were given
+                    skip = False
+                if args.remove_zeros and abs(k.summe) < 0.005:
+                    skip = True                
+                if skip: continue
 
-                if not letzte_zahlung:
-                    letzte_zahlung = "n/a"
+                if not last_payment:
+                    last_payment = "n/a"
                 else:
-                    letzte_zahlung = letzte_zahlung[0].strftime('%Y-%m-%d')
+                    last_payment = last_payment[0].strftime('%Y-%m-%d')
+                if not last_charge:
+                    last_charge = "n/a"
+                else:
+                    last_charge = last_charge[0].strftime('%Y-%m-%d')
 
-                print(u'{0:>4}|{1:>25}|{2:>8} EUR|{3:>8}| {4:>14}'.format(
-                    k.id, k.name, moneyfmt(k.summe), moneyfmt(k.schuldengrenze), letzte_zahlung))
+                print(u'{0:>4}|{1:>25}|{2:>8} EUR|{3:>8}| {4:>14} | {5:>14}'.format(
+                    k.id, k.name, moneyfmt(k.summe), moneyfmt(k.schuldengrenze),
+                    last_payment, last_charge))
 
     else:
         print("[!] This should not have happend. Option not implemented.",
