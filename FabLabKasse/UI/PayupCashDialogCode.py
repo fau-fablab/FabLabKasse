@@ -289,7 +289,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
             # and we are not in the special case where receipt printing is enforced by the backend
             if self.centsReceived > self.centsPaidOut and self.centsToPay > 0:
                 self.pushButton_receipt.setVisible(True)
-                self.pushButton_finish.setText(u"Ich brauche keine Rechnung")
+                self.pushButton_finish.setText(u"Ich brauche keine Quittung")
         else:
             raise Exception("Unknown state")
 
