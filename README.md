@@ -10,7 +10,7 @@ FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-bas
 
 
 
-Please see https://fablabkasse.readthedocs.org for the documentation
+Please see https://fablabkasse.readthedocs.io for the documentation
 
 
 
