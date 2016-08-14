@@ -365,6 +365,8 @@ class Kasse(object):
         :type until_date: datetime.datetime | None
         :return: query string
         """
+        assert isinstance(from_date, (datetime, type(None)))
+        assert isinstance(until_date, (datetime, type(None)))
         # TODO comparing against these strings might make problems with py3
         # --> best import unicode_literals from future
         # --> check whole file if this import is problematic
@@ -374,15 +376,15 @@ class Kasse(object):
 
         query = "SELECT id FROM {0}".format(from_table)
         if from_date and until_date:
-            query = query + " WHERE datum >= Datetime('{from_date}') AND datum < Datetime('{until_date}')".format(
+            query = query + " WHERE Datetime(datum) >= Datetime('{from_date}') AND Datetime(datum) < Datetime('{until_date}')".format(
                 from_date=from_date, until_date=until_date
             )
         elif from_date:
-            query = query + " WHERE datum >= Datetime('{from_date}')".format(
+            query = query + " WHERE Datetime(datum) >= Datetime('{from_date}')".format(
                 from_date=from_date
             )
         elif until_date:
-            query = query + " WHERE datum < Datetime('{until_date}')".format(
+            query = query + " WHERE Datetime(datum) < Datetime('{until_date}')".format(
                 until_date=until_date
             )
 
@@ -395,6 +397,8 @@ class Kasse(object):
     def get_buchungen(self, from_date=None, until_date=None):
         """
         get accounting records between the given dates. If a date is ``None``, no filter will be applied.
+
+        The time comparison will ignore the fractional second part.
 
         :param from_date: start datetime (included)
         :param until_date: end datetime (not included)
@@ -417,6 +421,8 @@ class Kasse(object):
     def get_rechnungen(self, from_date=None, until_date=None):
         """
         get invoices between the given dates. If a date is ``None``, no filter will be applied.
+
+        The time comparison will ignore the fractional second part.
 
         :param from_date: start datetime (included)
         :param until_date: end datetime (not included)
