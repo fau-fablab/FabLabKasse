@@ -20,7 +20,7 @@
 import unittest
 from FabLabKasse.kassenbuch import Kasse, Kunde, Buchung, Rechnung, NoDataFound, parse_args
 from FabLabKasse.kassenbuch import argparse_parse_date, argparse_parse_currency
-from hypothesis import given
+from hypothesis import given, example
 from hypothesis.strategies import text
 import hypothesis.extra.datetime as hypothesis_datetime
 import dateutil
@@ -117,7 +117,7 @@ class KassenbuchTestCase(unittest.TestCase):
     def test_get_rechnungen(self, rechnung_date, from_date, until_date):
         """test the get_rechnungen function"""
         kasse = Kasse(sqlite_file=':memory:')
-        rechnung = Rechnung(datum=rechnung_date.strftime('%Y-%m-%d %H:%M:%S.%f'))
+        rechnung = Rechnung(datum=rechnung_date)
         rechnung.store(kasse.cur)
         kasse.con.commit()
 
@@ -130,16 +130,18 @@ class KassenbuchTestCase(unittest.TestCase):
     @given(buchung_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
            from_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
            until_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]))
+    # corner case: microseconds
+    @example(buchung_date=datetime(2000, 1, 1, 0, 0), from_date=datetime(2000, 1, 1, 0, 0), until_date=datetime(2000, 1, 1, 0, 0, 0, 1))
     def test_get_buchungen(self, buchung_date, from_date, until_date):
         """test the get_buchungen function"""
         kasse = Kasse(sqlite_file=':memory:')
-        rechnung = Rechnung(datum=buchung_date.strftime('%Y-%m-%d %H:%M:%S.%f'))
+        rechnung = Rechnung(datum=buchung_date)
         rechnung.store(kasse.cur)
         buchung = Buchung(konto='somewhere',
                           betrag='0',
                           rechnung=rechnung.id,
                           kommentar="Passing By And Thought I'd Drop In",
-                          datum=buchung_date.strftime('%Y-%m-%d %H:%M:%S.%f'))
+                          datum=buchung_date)
         buchung._store(kasse.cur)
         kasse.con.commit()
 
@@ -149,3 +151,6 @@ class KassenbuchTestCase(unittest.TestCase):
             self.assertTrue(query)
         else:
             self.assertFalse(query)
+
+if __name__ == "__main__":
+    unittest.main()

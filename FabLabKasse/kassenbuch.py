@@ -116,8 +116,9 @@ class NoDataFound(Exception):
 class Rechnung(object):
 
     def __init__(self, id=None, datum=None):
+        assert(isinstance(id, (int, type(None))))
+        assert(isinstance(datum, (datetime, type(None))))
         self.id = id
-
         if not datum:
             self.datum = datetime.now()
         else:
@@ -248,6 +249,8 @@ class Rechnung(object):
 class Buchung(object):
 
     def __init__(self, konto, betrag, rechnung=None, kommentar=None, id=None, datum=None):
+        assert(isinstance(id, (int, type(None))))
+        assert(isinstance(datum, (datetime, type(None))))
         self.id = id
         if not datum:
             self.datum = datetime.now()
