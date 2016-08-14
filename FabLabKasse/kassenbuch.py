@@ -1277,19 +1277,19 @@ def main():
                 :type allowed_regexp: basestr | None
                 :type extra_checks: function | None
                 """
-                default_str = " [{0}]".format(unicode(default_input)) if default_input is not None else ""
+                default_str = u" [{0}]".format(unicode(default_input)) if default_input is not None else u""
                 allowed_regexp = allowed_regexp if allowed_regexp is not None else ur".*"
                 extra_checks = extra_checks if extra_checks else lambda x: True
 
                 while True:
                     input_str = raw_input(u"{e}{d}: ".format(
-                        e=explanation, d=default_str))
+                        e=explanation, d=default_str)).decode(sys.stdin.encoding)
 
                     if input_str == '' and default_input is not None:
                         input_str = unicode(default_input)
 
                     if not re.match(allowed_regexp, input_str):
-                        print('[!] Eingabe ungültig!', file=sys.stderr)
+                        print(u'[!] Eingabe ungültig!', file=sys.stderr)
                         continue  # retry
                     elif extra_checks(input_str):
                         return input_str  # success
