@@ -16,3 +16,5 @@ portalocker
 Pillow
 #testing
 hypothesis<=1.19.0
+#faucardpayment
+enum
