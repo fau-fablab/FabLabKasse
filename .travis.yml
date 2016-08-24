@@ -20,5 +20,5 @@ after_success:
 # command to run tests
 script:
     - cd FabLabKasse/UI/ && ./compile_all.py
-    - cd FabLabKasse/faucardPayment/ && ./compile_ui.py
+    - cd ../faucardPayment/ && ./compile_ui.py
     - cd ../../ && coverage run run_unittests.py
