@@ -3,7 +3,7 @@
 #
 
 import codecs
-import FabLabKasse import scriptHelper
+from FabLabKasse import scriptHelper
 from ConfigParser import ConfigParser
 
 import sqlite3
