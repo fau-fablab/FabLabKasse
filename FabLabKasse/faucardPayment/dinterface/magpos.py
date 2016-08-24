@@ -89,7 +89,7 @@ class MagPOS:
         :param retries: Max. Attempts to accomplish connection, Default value is 5
         :type retries: int
         """
-        return True
+        raise NotImplementedError()
 
     def card_on_reader(self):
         """
@@ -97,7 +97,7 @@ class MagPOS:
         :return: True if card on reader, False if not
         :rtype: bool
         """
-        return True
+        raise NotImplementedError()
 
     def set_display_mode(self, mode = 0, amount=0):
         """
@@ -109,7 +109,7 @@ class MagPOS:
         :param amonunt: (Optional) Amount the is asked for on display
         :type amount: int
         """
-        return True
+        raise NotImplementedError()
 
     def get_last_transaction_result(self):
         """
@@ -117,13 +117,13 @@ class MagPOS:
         :return: Returns List of relevant data: status code, card number and amount
         :rtype: list[int,int,int]
         """
-        return [0,0,0]  # last transaction was acknowledged
+        raise NotImplementedError()
 
     def response_ack(self):
         """
         Sends an acknowledge-signal to the MagaBox
         """
-        pass
+        raise NotImplementedError()
 
 
     def decrease_card_balance_and_token(self, amount, card_number=0, token_index=0):
@@ -138,7 +138,7 @@ class MagPOS:
         :param token_index: (Optional) sets token id which should be decreased by 1
         :type token_index: int
         """
-        return [card_number, 9999, 9999-amount, 0]
+        raise NotImplementedError()
 
     def get_long_card_number_and_balance(self):
         """
@@ -146,11 +146,11 @@ class MagPOS:
         :return: Returns list containing the response data from MagnaBox: card number and balance
         :rtype: list[int]
         """
-        return [123456789, 9999]
+        raise NotImplementedError()
 
     def close(self):
         """ Closes serial connection to MagnaBox. Needed to release the serial port for further transactions."""
-        pass
+        raise NotImplementedError()
 
 
 if __name__ == '__main__':

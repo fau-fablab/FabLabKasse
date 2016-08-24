@@ -18,5 +18,5 @@
 # see <http://www.gnu.org/licenses/>.
 
 
-from magpos import *
+from dinterface import *
 
