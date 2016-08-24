@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 import sqlite3
 import codecs
 from decimal import Decimal
+from FabLabKasse import scriptHelper
+
 
 def valid_date(s):
     try:
@@ -36,6 +38,7 @@ if __name__ == '__main__':
     startdate = args.startdate
     enddate = args.enddate
     summe = Decimal(0)
+    cfg = scriptHelper.getConfig()
 
     try:
         con = sqlite3.connect(args.file)
@@ -116,9 +119,9 @@ if __name__ == '__main__':
         outputfile = codecs.open(args.outputpath+"summary.txt", 'w', encoding="utf-8")
 
         # Write Summary file
-        outputfile.write(u"Abrechnung bargeldloser Umsaetze - Akzeptanzstelle FabLab\n")
+        outputfile.write(u"Abrechnung bargeldloser Umsaetze - Akzeptanzstelle FAU FabLab\n")
         outputfile.write(u"Abrechnungszeitraum: {0} bis {1}\n".format(firstdate.strftime("%d-%m-%Y %H:%M:%S"), lastdate.strftime("%d-%m-%Y %H:%M:%S")))
-        outputfile.write(u"Seriennummer der MagnaBox: MB211475 \n")
+        outputfile.write(u"Seriennummer der MagnaBox: {0}\n".format(cfg.get('magna_carta', 'serial')))
         outputfile.write(u"Der anfallende Betrag betraegt: {0}\n".format(summe))
     except IOError as e:
         print "ERROR: Saving CSV and / or Summary failed"
