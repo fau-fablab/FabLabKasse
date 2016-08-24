@@ -3,7 +3,7 @@
 #
 
 import codecs
-import scriptHelper
+from FabLabKasse import scriptHelper
 from ConfigParser import ConfigParser
 
 import sqlite3
@@ -18,7 +18,6 @@ from faucardStates import Status, Info
 
 
 cfg = scriptHelper.getConfig()
-cfg.readfp(codecs.open('config.ini', 'r', 'utf8'))
 
 
 class PayupFAUCard(QtCore.QObject):

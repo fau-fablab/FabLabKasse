@@ -12,14 +12,17 @@ from datetime import datetime
 from faucardStates import Status, Info
 from MagPosLog import MagPosLog
 
-from magpos import magpos, codes
 
+try:                    # Test if interface is available
+    from magpos import magpos, codes
+except ImportError as e:     # Load Dummy otherwise
+    print e
+    from dinterface import magpos, codes
 
-import scriptHelper
+from FabLabKasse import scriptHelper
 from ConfigParser import ConfigParser
 
 cfg = scriptHelper.getConfig()
-cfg.readfp(codecs.open('config.ini', 'r', 'utf8'))
 
 class FAUcardThread(QtCore.QObject):
     """
@@ -271,6 +274,9 @@ class FAUcardThread(QtCore.QObject):
             self.response_ready.emit([Info.check_transaction_failed])
             self.info = Info.check_transaction_failed
             self.quit()
+        except NotImplementedError as e:
+            logging.error("FAUcardThread: MagPos not implemented, maybe dummy loaded.")
+            self.terminate()
         except Exception:
             self.terminate()
             raise
