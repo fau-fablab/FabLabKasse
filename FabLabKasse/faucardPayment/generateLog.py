@@ -87,7 +87,8 @@ if __name__ == '__main__':
                 safetyCounter += 1
                 rechnungsnr = rowKb[0]
 
-            #assert safetyCounter == 1
+            # There should only be one result. Otherwise throw exception.
+            assert safetyCounter == 1
 
             # Write CSV-Line
             line = u"{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}\n".format(seperator, timestamp.strftime("%d-%m-%Y %H:%M:%S"), row[1], row[2], row[3], row[4], rechnungsnr)

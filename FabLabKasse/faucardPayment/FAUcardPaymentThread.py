@@ -22,7 +22,6 @@ except ImportError as e:     # Load Dummy otherwise
 from FabLabKasse import scriptHelper
 from ConfigParser import ConfigParser
 
-cfg = scriptHelper.getConfig()
 
 class FAUcardThread(QtCore.QObject):
     """
@@ -69,6 +68,7 @@ class FAUcardThread(QtCore.QObject):
         :param thread: Thread the process should work in
         :type thread: Qt.QThread
         """
+        self.cfg = scriptHelper.getConfig()
         QtCore.QObject.__init__(self)
         logging.info("FAU-Terminal: thread is being initialized")
 
@@ -215,7 +215,7 @@ class FAUcardThread(QtCore.QObject):
             return
 
         # Init MagPosLog in worker thread
-        self.con = sqlite3.connect(cfg.get('magna_carta', 'log_file'))
+        self.con = sqlite3.connect(self.cfg.get('magna_carta', 'log_file'))
         self.cur = self.con.cursor()
         self.con.text_factory = unicode
         self.log = MagPosLog(float(self.amount)/100, self.cur, self.con)
@@ -302,14 +302,14 @@ class FAUcardThread(QtCore.QObject):
         """
         value = [False]
         try:
-            pos = magpos.MagPOS(cfg.get('magna_carta', 'device_port'))
+            pos = magpos.MagPOS(self.cfg.get('magna_carta', 'device_port'))
             if pos.start_connection() is True:
                 value = pos.get_last_transaction_result()
                 pos.response_ack()
             pos.close()
         except (magpos.serial.SerialException, magpos.ConnectionTimeoutError):
             logging.error("CheckTransaction: Magnabox COM-Port '{}', serial malfunction".format(
-                          cfg.get('magna_carta', 'device_port')))
+                          self.cfg.get('magna_carta', 'device_port')))
             return False
         except magpos.ResponseError as e:
             logging.error("CheckTransaction: {}".format(e))
@@ -340,7 +340,7 @@ class FAUcardThread(QtCore.QObject):
         self.log.set_status(self.status, self.info)
 
         # 2. Create MagPos Object
-        self.pos = magpos.MagPOS(cfg.get('magna_carta', 'device_port'))
+        self.pos = magpos.MagPOS(self.cfg.get('magna_carta', 'device_port'))
         # 3. Try to start connection
         if not self.pos.start_connection():
             raise self.ConnectionError()
@@ -457,7 +457,7 @@ class FAUcardThread(QtCore.QObject):
                 self.response_ready.emit([Info.con_error])
                 lost = True
 
-            # Abortion of the processs not allowed
+            # Abortion of the process not allowed
             # self.set_cancel_button_enabled.emit(False)
             # Clear cancel Flag if user tried to abort: no abortion allowed after this tep
             QtCore.QCoreApplication.processEvents()
@@ -475,7 +475,7 @@ class FAUcardThread(QtCore.QObject):
                         self.pos.close()
 
                         # retry serial connection
-                        self.pos = magpos.MagPOS(cfg.get('magna_carta', 'device_port'))
+                        self.pos = magpos.MagPOS(self.cfg.get('magna_carta', 'device_port'))
 
                         # clear previous command and response
                         self.pos.start_connection()

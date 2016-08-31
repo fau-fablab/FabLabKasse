@@ -17,9 +17,6 @@ from FAUcardPaymentThread import FAUcardThread
 from faucardStates import Status, Info
 
 
-cfg = scriptHelper.getConfig()
-
-
 class PayupFAUCard(QtCore.QObject):
     def __init__(self, parent, amount):
         """
@@ -119,6 +116,7 @@ def check_last_transaction():
     :return: True on success reading last transaction details, False otherwise
     :rtype: bool
     """
+    cfg = scriptHelper.getConfig()
     con = sqlite3.connect(cfg.get('magna_carta', 'log_file'))
     cur = con.cursor()
     con.text_factory = unicode
