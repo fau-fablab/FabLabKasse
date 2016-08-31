@@ -747,7 +747,7 @@ def main():
             date = dateFromString(" ".join(arguments['<date>']), None)
         else:
             date = None
-        verifySum(db, date=date)
+        verifySum(db, printMessage=True, date=date)
     elif arguments['verify-search']:
         step = timedelta(0, 3600)
         verifySearch(db, step)

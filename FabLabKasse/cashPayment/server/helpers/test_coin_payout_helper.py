@@ -71,7 +71,7 @@ class CoinPayoutHelperTestcase(unittest.TestCase):
         self.assertGreaterEqual(payout_infinite_coin_number, 0)
         self.assertLessEqual(payout_limited_coin_number, payout_infinite_coin_number)
         self.assertLessEqual(payout_infinite_coin_number, total)
-        
+
         # pick request, simulate payout
         requested = round(requested_fraction * total)
         paid_out = simulate_payout(coins, requested)

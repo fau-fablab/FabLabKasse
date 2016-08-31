@@ -10,10 +10,7 @@ read
 sudo apt-get update
 sudo apt-get -y install git
 sudo apt-get -y install python-pip python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-qrcode python-docopt python-requests python-simplejson python-sphinx
-sudo pip install natsort
-sudo pip install monotonic
-sudo pip install oerplib # only for connection to OpenERP/odoo
-sudo pip install portalocker
+sudo pip install -r requirements.txt
 sudo apt-get -y install xserver-xorg git nodm ssh x11-apps xterm kde-style-oxygen kde-workspace-bin fonts-crosextra-carlito
 
 # Setup user and 'kiosk mode' desktop manager that autostarts FabLabKasse
@@ -39,7 +36,7 @@ else
 fi
 
 echo "while [ ! -f /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh ]; do sleep 1; echo Waiting for git repo; done; /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh" > /home/$INSTALL_USER/.xsession
-ln -s /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh /home/$INSTALL_USER/.xsession 
+ln -s /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh /home/$INSTALL_USER/.xsession
 
 # the ubuntu cloud image doesn't include german locale, so the OpenERP import crashes -- add it.
 echo 'de_DE.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen
@@ -52,7 +49,7 @@ sudo cp /home/$INSTALL_USER/FabLabKasse/FabLabKasse/tools/sudoers.d/kassenterm-r
 # load example config if no config.ini exists
 cd /home/$INSTALL_USER/FabLabKasse/ && sudo -u $INSTALL_USER ./run.py --example --only-load-config
 echo "Warning: if no config exists, an example config will be installed. Please change it if you use this for a real system"
-echo "Warning: For using it on a real system, cronjobs must be setup manually, please see INSTALLING"
+echo "Warning: For using it on a real system, cronjobs must be setup manually, please see INSTALLING.md"
 
 sudo service nodm stop
 sleep 2

@@ -48,18 +48,20 @@ from FabLabKasse.faucardPayment.faucard import PayupFAUCard, finish_log
 class AbstractPaymentMethod(object):
 
     """interface for payment methods
-    
+
     :param QWidget parent: handle for main window - for Qt usage
     :param FabLabKasse.shopping.backend.abstract.AbstractShoppingBackend shopping_backend: ShoppingBackend instance
     :param Decimal amount_to_pay: requested amount (rounded to cents)
+    :param cfg: config object
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, parent, shopping_backend, amount_to_pay):
+    def __init__(self, parent, shopping_backend, amount_to_pay, cfg):
 
         self.parent = parent
         self.shopping_backend = shopping_backend
         self.amount_to_pay = amount_to_pay
+        self.cfg = cfg
         self.successful = None
         self.amount_paid = None
         self.amount_returned = None
@@ -307,7 +309,8 @@ class AutoCashPayment(AbstractPaymentMethod):
         return "Bargeld (Automatenkasse)"
 
     def _show_dialog(self):
-        pay_diag = PayupCashDialog(parent=self.parent, amount_total=self.amount_to_pay)
+        pay_diag = PayupCashDialog(parent=self.parent,
+                                   amount_total=self.amount_to_pay, cfg=self.cfg)
         ok = bool(pay_diag.exec_())
         paid_amount = pay_diag.getPaidAmount()
         self.amount_paid = paid_amount  # TODO add amount_returned

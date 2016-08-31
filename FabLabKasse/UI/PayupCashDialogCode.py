@@ -21,12 +21,16 @@ from .uic_generated.PayupCashDialog import Ui_PayupCashDialog
 import functools
 import logging
 from decimal import Decimal
+from ConfigParser import Error as ConfigParserError
 
 
 class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
 
-    def __init__(self, parent, amount_total):
-        """payment method dialog for automatic cash payin and payout"""
+    def __init__(self, parent, amount_total, cfg):
+        """
+        payment method dialog for automatic cash payin and payout
+        :param cfg: config from ScriptHelper.getConfig()
+        """
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
         # maximize window - WORKAROUND because showMaximized() doesn't work
@@ -51,6 +55,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
         self.centsReceived = None
         self.centsPaidOut = None
         self.returnDonated = False
+        self.cfg = cfg
         # The finish button doesn't print a receipt, only the "print receipt and finish" one.
         # Sometimes the later logic still forces receipt printing  (e.g. payment aborted, not everything paid back)
         self.receipt_wanted = False
@@ -271,14 +276,20 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
                 text = text + u" <p>Ein Rest von {0} konnte leider nicht zurückgezahlt werden.</p>".format(PayupCashDialog.formatCent(self.centsToPayOut - self.centsPaidOut))
             if self.centsToPay > 0:  # payment not aborted
                 text += u"<p>Bitte das Aufräumen nicht vergessen!</p>"
-            text = text + u'<p style="font-size:14px"> Sollte etwas nicht stimmen, benachrichtige bitte sofort einen Betreuer und melde dich bei kasse@fablab.fau.de.</p></html>'
+            text += u'<p style="font-size:14px"> Sollte etwas nicht stimmen, ' + \
+                u'benachrichtige bitte sofort einen Betreuer'
+            try:
+                email = self.cfg.get('general', 'support_mail')
+                text += u' und melde dich bei {}.</p></html>'.format(email)
+            except ConfigParserError:
+                text += '.</p></html>'
             self.label_status.setText(text)
             self.pushButton_finish.setVisible(True)
             # only ask for receipt if something was paid
             # and we are not in the special case where receipt printing is enforced by the backend
             if self.centsReceived > self.centsPaidOut and self.centsToPay > 0:
                 self.pushButton_receipt.setVisible(True)
-                self.pushButton_finish.setText(u"Ich brauche keine Rechnung")
+                self.pushButton_finish.setText(u"Ich brauche keine Quittung")
         else:
             raise Exception("Unknown state")
 

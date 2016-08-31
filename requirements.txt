@@ -10,11 +10,20 @@ simplejson
 Sphinx
 natsort
 monotonic
-oerplib
-portalocker
+oerplib  # only for connection to OpenERP/odoo
+portalocker==0.5.6
+
 # dependency of escpos
 Pillow
-#testing
+
+# testing
 hypothesis<=1.19.0
 #faucardpayment
 enum
+
+# clis (kassenbuch.py)
+argparse
+argcomplete
+
+# doc
+sphinx_rtd_theme

@@ -31,4 +31,3 @@ while True:
                 sys.stdout.write(char)
             else:
                 sys.stdout.write(u"�")
-                

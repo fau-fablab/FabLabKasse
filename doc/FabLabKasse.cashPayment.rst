@@ -27,7 +27,7 @@ This module also has a command-line interface that can be accessed as ``./cash``
     :undoc-members:
     :show-inheritance:
 
-    
+
 FabLabKasse.cashPayment.listSerialPorts module
 ----------------------------------------------
 

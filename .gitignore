@@ -17,3 +17,6 @@
 # python-coverage
 .coverage
 htmlcov
+
+# virtual environment
+.*env*

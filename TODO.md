@@ -19,7 +19,7 @@ edit config.ini:
     - Bargeldzahlung (manuell)
 
   - dabei jeweils die Fälle:
-    - zuwenig eingezahlt  
+    - zuwenig eingezahlt
     - Spende (Überzahlung)
     - zuwenig Wechselgeld
     - abgebrochene Zahlung

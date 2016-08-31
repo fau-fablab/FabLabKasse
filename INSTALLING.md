@@ -22,9 +22,7 @@ If you have a standalone PC or VM only for FabLabKasse, you can also use `FabLab
  - needed debian packages:
 
         apt-get install python-pip python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort python-qrcode python-docopt python-requests python-simplejson python-sphinx
-        pip install monotonic
-        pip install oerplib # only for connection to OpenERP/odoo
-        pip install portalocker
+        pip install -r requirements.txt
 
  - for the real terminal implementation: xserver-xorg git nodm ssh x11-apps xterm
  - for the style: kde-style-oxygen kde-workspace-bin
@@ -42,13 +40,13 @@ Modem-Manager interferes with the serial port. It is highly recommended to remov
  - Qt: http://qt-project.org/downloads
  - SIP: http://www.riverbankcomputing.com/software/sip/download (entpacken, `configure`, `make`, `make install`)
  - PyQt4: http://www.riverbankcomputing.com/software/pyqt/download (entpacken, `configure`, `make`, `make install`)
- - lxml: 
+ - lxml:
 
         cd /tmp
         wget http://lxml.de/files/lxml-2.2.2.tgz
-        tar -xzvf lxml-2.2.2.tgz 
+        tar -xzvf lxml-2.2.2.tgz
         cd lxml-2.2.2
-        python setup.py build --static-deps --libxml2-version=2.7.3  --libxslt-version=1.1.24 
+        python setup.py build --static-deps --libxml2-version=2.7.3  --libxslt-version=1.1.24
         sudo python setup.py install
 
 
@@ -57,8 +55,7 @@ Modem-Manager interferes with the serial port. It is highly recommended to remov
  - needed fedora packages:
 
         dnf install python python-qt4 python-qt4-devel python-dateutil python-lxml python-crypto python-termcolor python-natsort python-qrcode python-docopt python-requests python-simplejson python-monotonic
-        pip install oerplib # only for connection to OpenERP/odoo
-        pip install portalocker
+        pip install -r requirements
 
  - for development: qt4-designer
  - for documentation: dnf: doxygen python-pygraphviz; pip: doxypy
@@ -67,6 +64,20 @@ Modem-Manager interferes with the serial port. It is highly recommended to remov
 
  TODO
 
+### 1e. Virtualenv
+
+ - install system packages for your OS, and python-virtualenv
+
+        virtualenv --system-site-packages .env  # create virtualenv and use system python packages
+        source .env/bin/activate                # enter the environment
+        pip install -r requirements.txt         # install python requirements using pip
+
+ - you have to be "in" the virtual environment to run FabLabKasse and other programs (see your shell prompt):
+
+        source .env/bin/activate                # enter the environment
+        ./run.py                                # run programs
+        ./FabLabKasse/kassenbuch.py
+        # [...]
 
 2.  Configuration
 -----------------
@@ -124,6 +135,7 @@ recommended setup firewall:
 
 TODO....
 
-GUI for normal users
-administrative tasks: `ssh kasse@terminal; cd FabLabKasse; ./kassenbuch.py`
--> see help output
+ - GUI for normal users
+ - administrative tasks: `ssh kasse@terminal; cd FabLabKasse; ./kassenbuch.py -h`
+    - see help output
+    - run `activate-global-python-argcomplete` to enable tab completion

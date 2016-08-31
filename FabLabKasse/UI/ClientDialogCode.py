@@ -27,7 +27,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
 
     def __init__(self, parent, shopping_backend):
         """ constructor for the ClientDialog
-        
+
         :param parent: parent GUI dialog
         :type parent: QtGui.QDialog
         :param shopping_backend: current instance of ShoppingBackend

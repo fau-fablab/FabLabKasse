@@ -14,6 +14,7 @@
 
 import sys
 import os
+on_rtd = os.getenv('READTHEDOCS') == 'True'
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -101,8 +102,16 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'nature'
-# TODO sphinx_rtd_theme is nicer, but add a fallback for older sphinx versions that don't have it
+if on_rtd:
+    html_theme = 'default'
+else:
+    try:
+        import sphinx_rtd_theme
+        html_theme = 'sphinx_rtd_theme'
+        html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+    except ImportError:
+        print("no sphinx_rtd_theme found, switching to nature")
+        html_theme = 'nature'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -126,7 +135,7 @@ html_theme = 'nature'
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-# html_favicon = None
+html_favicon = 'fablab_favicon.ico'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -187,7 +196,7 @@ htmlhelp_basename = 'FabLabKassedoc'
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
-    #'papersize': 'letterpaper',
+    'papersize': 'a4paper',
 
     # The font size ('10pt', '11pt' or '12pt').
     #'pointsize': '10pt',
@@ -201,7 +210,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     ('index', 'FabLabKasse.tex', u'FabLabKasse Documentation',
-     u'Author', 'manual'),
+     u'FAU FabLab team and others', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -231,7 +240,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'fablabkasse', u'FabLabKasse Documentation',
-     [u'Author'], 1)
+     [u'FAU FabLab team and others'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -245,7 +254,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     ('index', 'FabLabKasse', u'FabLabKasse Documentation',
-     u'Author', 'FabLabKasse', 'One line description of project.',
+     u'FAU FabLab team and others', 'FabLabKasse', 'A self-service checkout terminal written in Python.',
      'Miscellaneous'),
 ]
 
@@ -266,9 +275,9 @@ texinfo_documents = [
 
 # Bibliographic Dublin Core info.
 epub_title = u'FabLabKasse'
-epub_author = u'Author'
-epub_publisher = u'Author'
-epub_copyright = u'2015, Author'
+epub_author = u'FAU FabLab team and others'
+epub_publisher = u'FAU FabLab'
+epub_copyright = u'2015, FAU FabLab team and others'
 
 # The basename for the epub file. It defaults to the project name.
 # epub_basename = u'FabLabKasse'

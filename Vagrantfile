@@ -41,14 +41,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  
+
   # Sicherheit / Kapselung
   # TODO insecure private key
-  
+
   # Achtung, per default kann die VM auf den kompletten Einstellungsordner inkl. vagrantfile zugreifen, bietet also keine Kapselung!
   config.vm.synced_folder ".", "/vagrant", disabled: false
-  
-  
+
+
   # config.vm.synced_folder "./share", "/vagrant_data"
 
   # Provider-specific configuration so you can fine-tune various
@@ -66,7 +66,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # View the documentation for the provider you're using for more
   # information on available options.
 
-  
+
   config.vm.provision "shell" do |foobar|
     foobar.path = "./install_debian.sh"
   end

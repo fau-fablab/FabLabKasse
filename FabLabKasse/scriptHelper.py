@@ -26,6 +26,7 @@ import sys
 import portalocker
 import sqlite3
 from ConfigParser import ConfigParser
+from ConfigParser import Error as ConfigParserError
 import codecs
 from PyQt4 import QtGui
 import traceback
@@ -64,11 +65,16 @@ def setupGraphicalExceptHook():
         import datetime
         # logging.exception()
         try:
+            cfg = getConfig()
+            try:
+                email = cfg.get('general', 'support_mail')
+            except ConfigParserError:
+                logging.warning("could not read mail address from config in graphical except-hook.")
+                email = "den Verantwortlichen"
             msgbox = QtGui.QMessageBox()
             txt = u"Entschuldigung, das Programm wird wegen eines Fehlers beendet."
-            infotxt = u"Wenn dir Rückgeld entgangen ist, melde dich bei kasse@fablab.fau.de und gebe " + \
-                u"neben einer Fehlerbeschreibung folgende Uhrzeit an: "
-            infotxt += u"\n{0}.".format(str(datetime.datetime.today()))
+            infotxt = u"""Wenn dir Rückgeld entgangen ist, melde dich bei {0} und gebe neben einer
+             Fehlerbeschreibung folgende Uhrzeit an:{1}.""".format(email, str(datetime.datetime.today()))
             detailtxt = u"{0}\n{1}".format(str(datetime.datetime.today()), "".join(
                 traceback.format_exception(exctype, value, tb, limit=10)))
             logging.fatal(txt)

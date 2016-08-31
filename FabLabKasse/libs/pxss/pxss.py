@@ -159,7 +159,7 @@ if normalmode:
     _p_display = libXss.XOpenDisplay('')
     try:
         display = _p_display.contents
-    
+
         # Get DefaultRootWindow(display), which is a macro
         # Xlib.h
         # define DefaultRootWindow(dpy)  (ScreenOfDisplay(dpy,DefaultScreen(dpy))->root)
