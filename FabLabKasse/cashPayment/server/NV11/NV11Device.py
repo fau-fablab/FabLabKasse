@@ -557,6 +557,16 @@ class NV11Device(ESSPDevice):
     #
 
     def setEnabledChannels(self, enabledChannels=None, upTo=0):
+        """
+        enable cash input for certain channels (denominations).
+        Use either of the two parameters. If both are used, the result will be
+        combined with logical ``or``.
+
+        :param list[int] enabledChannels:
+            IDs of channels to explicitly enable, even if their denominaion is
+            below the value of ``upTo``.
+        :param int upTo: maximum allowed denomination, or 0
+        """
         # channel numbers are counted from 1 on
         bitmask = 0
         enabledChannels = set(enabledChannels or [])
@@ -659,7 +669,7 @@ class NV11Device(ESSPDevice):
         if len(l) == 0 or l[-1] > value:
             return False
         # payout seems possible
-        self.log("trying payout")
+        self.log("trying payout of note {0}".format(l[-1]))
         r = self.command([0x42], allowSoftFail=True)  # payout last stored note
         if not r.isOkay():
             self.log("could not payout (busy if data==3, otherwise error):" + str(r))
@@ -845,6 +855,7 @@ class NV11Device(ESSPDevice):
                     remainingData.append(eventData.readByte())
                 self.error("event decode error: " + hex(fullData) + ", trouble at " + hex(ev) + ", remaining unparsed data:" + hex(remainingData))
                 raise Exception("unknown event - probably decode error")
+        logging.debug("event parsing finished.")
         if r["received"]:
             # a banknote has been received.
             # Do not allow further notes before explicit reactivation.

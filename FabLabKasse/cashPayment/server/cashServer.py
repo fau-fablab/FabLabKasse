@@ -41,7 +41,7 @@ class CashServer:
         s = "COMMAND ANSWER:" + str(s)
         print s
         sys.stdout.flush()  # necessary if not run from console
-        logging.info(s)
+        self.logger.debug("cashServer " + s)
 
     def __init__(self):
         # load options, PaymentDevicesManager encoded these
@@ -58,6 +58,14 @@ class CashServer:
         self.currentMode = "idle"
         self.busy = None
 
+        # setup SIGINT handler
+        scriptHelper.setupSigInt()
+        # setup logging
+        logfile = "cash-" + deviceName + ".log"
+        scriptHelper.setupLogging(logfile)
+        self.logger = logging.getLogger("cashServer")
+
+        # start queued reader for stdin
         def readStdinThread():
             global stdinQueue
             while True:
@@ -68,9 +76,6 @@ class CashServer:
         thread = threading.Thread(target=readStdinThread, name="stdinReader")
         thread.daemon = True
         thread.start()
-        scriptHelper.setupSigInt()
-        logfile = "cash-" + deviceName + ".log"
-        scriptHelper.setupLogging(logfile)
 
     def readlineStdinNonblocking(self):
         global stdinQueue
@@ -80,12 +85,12 @@ class CashServer:
             return None
 
     def run(self):
-        logging.info("starting up")
+        self.logger.info("starting up")
 
         try:
             self._run()
         except Exception:
-            logging.exception("Stopping because of exception")
+            self.logger.exception("Stopping because of exception")
 
     def _run(self):
         idleCounter = 9999
@@ -107,7 +112,7 @@ class CashServer:
             command = self.readlineStdinNonblocking()
             if command is not None:
                 command = command.strip()
-                logging.info("cmd: " + command + "\n")
+                self.logger.debug("cashServer COMMAND: " + command + "\n")
                 acceptCommandMatch = re.match("^ACCEPT ([0-9]+)$", command)
                 updateAcceptCommandMatch = re.match("^UPDATE-ACCEPT ([0-9]+)$", command)
                 dispenseCommandMatch = re.match("^DISPENSE ([0-9]+)$", command)
@@ -163,7 +168,7 @@ class CashServer:
                         self.reply("wait")
                 elif command == "":
                     # if readline() returns an empty string, the input was closed or EOF was received
-                    logging.info("Exiting (stdin closed)")
+                    self.logger.info("Exiting (stdin closed)")
                     sys.exit(0)
                 else:
                     raise Exception("unknown network command {0}".format(repr(command)))
@@ -212,7 +217,7 @@ class CashServer:
             time.sleep(self.getSleepTime())
 
     def event_receivedMoney(self, count, denomination, storage="main", comment="accept"):
-        logging.info("event_receivedMoney {0}*{1}".format(count, denomination))
+        self.logger.info("event_receivedMoney {0}*{1}".format(count, denomination))
         assert count > 0
         assert denomination > 0
         self.cash.addToState(storage, CashState({denomination: count}), comment=comment)
@@ -224,7 +229,7 @@ class CashServer:
         self.__moneyReceivedTotal += count * denomination
 
     def event_dispensedMoney(self, count, denomination, storage="main", comment="dispense"):
-        logging.info("event_dispensedMoney {0}*{1}".format(count, denomination))
+        self.logger.info("event_dispensedMoney {0}*{1}".format(count, denomination))
         assert count > 0
         assert denomination > 0
         self.cash.addToState(storage, CashState({denomination: -count}), comment=comment)
