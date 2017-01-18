@@ -801,8 +801,7 @@ class NV11Device(ESSPDevice):
                 self.printDebug(message + " - channel " + str(channel), logSeverity)
                 if ev == 0xEE:  # credit note
                     r["received"] += [self.getChannelValue(channel)]  # TODO we can't easily tell if the note was stacked or put into the cashbox
-                    self.setEnabledChannels()  # do not allow further notes before explicit reactivation
-                    # self.setEnabled(False)
+                    # self.setEnabledChannels() will be called after parsing of all events has been completed
             elif ev in eventsWithValueReporting.keys():
                 message = eventsWithValueReporting[ev][0]
                 if eventsWithValueReporting[ev][1]:  # needs ACK
@@ -846,6 +845,11 @@ class NV11Device(ESSPDevice):
                     remainingData.append(eventData.readByte())
                 self.error("event decode error: " + hex(fullData) + ", trouble at " + hex(ev) + ", remaining unparsed data:" + hex(remainingData))
                 raise Exception("unknown event - probably decode error")
+        if r["received"]:
+            # a banknote has been received.
+            # Do not allow further notes before explicit reactivation.
+            self.log("disabling channels after a banknote was received")
+            self.setEnabledChannels()
         if eventNeedsACK and USE_POLL_WITH_ACK:
             # when using poll-with-ACK, certain events need to be confirmed via ACK, otherwise they will reappear in the next poll response.
             # because of strange bugs, we have a extra safety delay added here.
