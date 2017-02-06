@@ -1,23 +1,23 @@
 language: python
 python:
-  - "2.7"
-# command to install dependencies
+  - "3.4"
+    # command to install dependencies
 sudo: false
 cache: pip
 addons:
-    apt:
-        packages:
-            - python-qt4
-            - python-qt4-dev
-            - pyqt4-dev-tools
+  apt:
+    packages:
+      - python-qt4
+      - python-qt4-dev
+      - pyqt4-dev-tools
 # load system_site_packages into virtualenv to make PyQt4 available
 virtualenv:
-    system_site_packages: true
+  system_site_packages: true
 before_install:
-    - pip install codecov
+  - pip install codecov
 after_success:
-    - codecov
+  - codecov
 # command to run tests
 script:
-    - cd FabLabKasse/UI/ && ./compile_all.py
-    - cd ../../ && coverage run run_unittests.py
+  - cd FabLabKasse/UI/ && ./compile_all.py
+  - cd ../../ && coverage run run_unittests.py

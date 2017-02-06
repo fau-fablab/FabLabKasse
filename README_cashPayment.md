@@ -150,7 +150,7 @@ Troubleshooting
 Logging will be output in cash-<name>.log
 If you want to launch a driver without the GUI, look for a line in gui.log like
 
-    starting cashPayment server: PYTHONPATH=.. /usr/bin/env python2.7 -m FabLabKasse.cashPayment.server.mdbCoinChanger KGRwMApWbmFtZQpwMQpWbXVlbnoKcDIKc1Zwb3J0CnAzClZod2dyZXA6Ly9VU0JcdTAwNWMgVklEXHUwMDVjOlBJRFx1MDA1Yz0wNDAzXHUwMDVjOjYwMDFcdTAwNWMgU05SXHUwMDVjPUExMDBRT0YyCnA0CnMu
+    starting cashPayment server: PYTHONPATH=.. /usr/bin/env python3 -m FabLabKasse.cashPayment.server.mdbCoinChanger KGRwMApWbmFtZQpwMQpWbXVlbnoKcDIKc1Zwb3J0CnAzClZod2dyZXA6Ly9VU0JcdTAwNWMgVklEXHUwMDVjOlBJRFx1MDA1Yz0wNDAzXHUwMDVjOjYwMDFcdTAwNWMgU05SXHUwMDVjPUExMDBRT0YyCnA0CnMu
 
 and run (in FabLabKasse/) the specified command starting with PYTHONPATH=../
 The argument is a base64 encoded pickled dictionary of the per-deivce options specified in config.ini

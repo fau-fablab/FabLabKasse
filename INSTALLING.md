@@ -19,16 +19,16 @@ This software was mainly developed for Debian "jessie", but should also work on 
 
 If you have a standalone PC or VM only for FabLabKasse, you can also use `FabLabKasse/scripts/install_debian.sh`, which sets up a kiosk system that autostarts FabLabKasse.
 
- - needed debian packages:
+- needed debian packages:
 
-        apt-get install python-pip python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort python-qrcode python-docopt python-requests python-simplejson python-sphinx
-        pip install -r requirements.txt
+        apt-get install python3-pip python3-qt4-dev python3 python-qt4 python3-dateutil python3-lxml pyqt4-dev-tools python3-crypto python3-termcolor python3-serial python3-natsort python3-qrcode python3-docopt python3-requests python3-simplejson python3-sphinx
+        pip3 install -r requirements.txt
 
- - for the real terminal implementation: xserver-xorg git nodm ssh x11-apps xterm
- - for the style: kde-style-oxygen kde-workspace-bin
- - for font: fonts-crosextra-carlito # or download Carlito-Regular.ttf from http://openfontlibrary.org/de/font/carlito#Carlito-Regular to ~/.fonts/
- - for development: qt4-designer
- - for graphical debugging: winpdb
+- for the real terminal implementation: xserver-xorg git nodm ssh x11-apps xterm
+- for the style: kde-style-oxygen kde-workspace-bin
+- for font: fonts-crosextra-carlito # or download Carlito-Regular.ttf from http://openfontlibrary.org/de/font/carlito#Carlito-Regular to ~/.fonts/
+- for development: qt4-designer
+- for graphical debugging: winpdb
 
 
 Modem-Manager interferes with the serial port. It is highly recommended to remove it:
@@ -36,26 +36,26 @@ Modem-Manager interferes with the serial port. It is highly recommended to remov
 
 ### 1b. Mac OS
 
- - python 2.7  installieren
- - Qt: http://qt-project.org/downloads
- - SIP: http://www.riverbankcomputing.com/software/sip/download (entpacken, `configure`, `make`, `make install`)
- - PyQt4: http://www.riverbankcomputing.com/software/pyqt/download (entpacken, `configure`, `make`, `make install`)
- - lxml:
+- python3  installieren
+- Qt: http://qt-project.org/downloads
+- SIP: http://www.riverbankcomputing.com/software/sip/download (entpacken, `configure`, `make`, `make install`)
+- PyQt4: http://www.riverbankcomputing.com/software/pyqt/download (entpacken, `configure`, `make`, `make install`)
+- lxml:
 
         cd /tmp
         wget http://lxml.de/files/lxml-2.2.2.tgz
         tar -xzvf lxml-2.2.2.tgz
         cd lxml-2.2.2
-        python setup.py build --static-deps --libxml2-version=2.7.3  --libxslt-version=1.1.24
-        sudo python setup.py install
+        python3 setup.py build --static-deps --libxml2-version=2.7.3  --libxslt-version=1.1.24
+        sudo python3 setup.py install
 
 
 ### 1c. Fedora
 
  - needed fedora packages:
 
-        dnf install python python-qt4 python-qt4-devel python-dateutil python-lxml python-crypto python-termcolor python-natsort python-qrcode python-docopt python-requests python-simplejson python-monotonic
-        pip install -r requirements
+        dnf install python3 python3-PyQt4 python3-PyQt4-devel python3-PyQt4-webkit python3-dateutil python3-lxml python3-crypto python3-termcolor python3-natsort python3-qrcode python3-docopt python3-requests python3-simplejson python3-monotonic
+        pip3 install -r requirements
 
  - for development: qt4-designer
  - for documentation: dnf: doxygen python-pygraphviz; pip: doxypy
@@ -68,9 +68,9 @@ Modem-Manager interferes with the serial port. It is highly recommended to remov
 
  - install system packages for your OS, and python-virtualenv
 
-        virtualenv --system-site-packages .env  # create virtualenv and use system python packages
+        python3 -m virtualenv -p python3 --system-site-packages .env  # create virtualenv and use system python packages
         source .env/bin/activate                # enter the environment
-        pip install -r requirements.txt         # install python requirements using pip
+        pip3 install -r requirements.txt         # install python requirements using pip
 
  - you have to be "in" the virtual environment to run FabLabKasse and other programs (see your shell prompt):
 

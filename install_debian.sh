@@ -9,8 +9,8 @@ read
 # Install dependencies
 sudo apt-get update
 sudo apt-get -y install git
-sudo apt-get -y install python-pip python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-qrcode python-docopt python-requests python-simplejson python-sphinx
-sudo pip install -r requirements.txt
+sudo apt-get -y install python-pip python-qt4-dev python3 python3-qt4 python3-dateutil python3-lxml pyqt4-dev-tools python3-crypto python3-termcolor python3-serial python3-qrcode python3-docopt python3-requests python3-simplejson python3-sphinx
+sudo pip3 install -r requirements.txt
 sudo apt-get -y install xserver-xorg git nodm ssh x11-apps xterm kde-style-oxygen kde-workspace-bin fonts-crosextra-carlito
 
 # Setup user and 'kiosk mode' desktop manager that autostarts FabLabKasse

@@ -1,8 +1,6 @@
-TODO
-====
+# TODO
 
-Needed testing for FAU FabLab
------------------------------
+## Needed testing for FAU FabLab
 
     cp config.ini.example config.ini
 
@@ -31,8 +29,7 @@ edit config.ini:
     - der Kassenzettel sinnvoll rauskommt # lokaler Server: nc -l -p 4242 | strings
 
 
-Showstoppers before going public
---------------------------------
+## Showstoppers before going public
 
  - (not so important) kassenbuch scripts directly in first folder
  - (not so important) no working non-FAU-specific backend [except dummy, which works except for receipt printing]
@@ -66,5 +63,3 @@ Features Frontend:
 -   Temporäre Produkte unterstützen z.B: "Nachzahlung von ...", "Mitbestellung ..."
 -   Mehrere Warenkörbe (z.B. via Tabs)
 -   Import von Warenkörben (online, qr code, oder ähnliches)
-
-- Umstellung auf python3 wäre gut, das erspart viele hässliche Unicode-Schmerzen. Geht nicht wegen oerplib
