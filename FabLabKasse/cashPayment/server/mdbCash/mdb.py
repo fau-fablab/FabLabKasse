@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # connection to MDB interface hardware, which is connected to a MDB cash changer
@@ -88,7 +88,7 @@ class MdbCashDevice(object):
         self.buffer = ""
         self.extensionConfig = extensionConfig
 
-        assert self.extensionConfig.get("hopper", False) in [False] + range(1, 9999),  "invalid extensionConfig for hopper"
+        assert self.extensionConfig.get("hopper", False) in [False] + list(range(1, 9999)),  "invalid extensionConfig for hopper"
 
         self.reset()
 
@@ -265,7 +265,7 @@ class MdbCashDevice(object):
                     self.getTubeStatus()
                     self.setAcceptCoins(False, manualDispenseEnabled=False)
                     return
-            except (InterfaceHardwareError, BusError, MissingResetEventError),  e:
+            except (InterfaceHardwareError, BusError, MissingResetEventError) as  e:
                 logging.debug("reset failed with exception: " + e.__repr__())
                 continue
         raise Exception("Device did not respond to reset attempts for 10 seconds")

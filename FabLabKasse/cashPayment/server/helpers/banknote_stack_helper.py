@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # (C) 2015 Max Gaukler <development@maxgaukler.de>
@@ -18,7 +18,6 @@
 
 """helper for stack-based banknote payout systems. see :class:`BanknoteStackHelper`"""
 
-from __future__ import print_function
 import copy
 import random
 import unittest
@@ -304,7 +303,7 @@ class BanknoteStackHelperTest(unittest.TestCase):
         # test random values and, especially hard, accepted_rest=999
         for accepted_rest in random_lists.random_integer_list(random_generator, (1, 123456), 42) + [999] * 10:
             test = BanknoteStackHelperTester(accepted_rest)
-            for _ in xrange(2345):
+            for _ in range(2345):
                 test.unittest_payout(random_generator)
                 test.unittest_payout_forced_stacking(random_generator)
 

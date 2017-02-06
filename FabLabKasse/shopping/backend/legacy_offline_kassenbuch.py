@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -17,19 +17,19 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-"""adapter to legacy offline sqlite code ("Kasssenbuch", partly in german)
-"""
+"""Adapter to legacy offline sqlite code ("Kasssenbuch", partly in german)."""
 
-import logging
-from abstract import Product, Category, PrinterError
-from offline_base import AbstractOfflineShoppingBackend, Client
-from decimal import Decimal
-from ..payment_methods import ManualCashPayment, AutoCashPayment
-from ... import scriptHelper
-from ...kassenbuch import Kasse, Rechnung, Buchung, Kunde
-from ...produkt import Produkt
-import socket
 import itertools
+import logging
+import socket
+from decimal import Decimal
+
+from ... import scriptHelper
+from ...kassenbuch import Buchung, Kasse, Kunde, Rechnung
+from ...produkt import Produkt
+from ..payment_methods import AutoCashPayment, ManualCashPayment
+from .abstract import Category, PrinterError, Product
+from .offline_base import AbstractOfflineShoppingBackend, Client
 
 
 class ShoppingBackend(AbstractOfflineShoppingBackend):
@@ -69,12 +69,12 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
             # 2. the contained products
             convert_products(data[1], current_category)
             # 3. recurse: contained subcategories
-            for (sub_name, sub_data) in data[0].iteritems():  # walk through dict of subcategories
+            for (sub_name, sub_data) in data[0].items():  # walk through dict of subcategories
                 recursively_add_categories(sub_name, sub_data, current_category)
 
         root = Category(categ_id=0, name="root pseudocategory, not used later", parent_id=None)
         categories.append(root)
-        for (name, data) in produkte_wald.iteritems():
+        for (name, data) in produkte_wald.items():
             recursively_add_categories(name, data, root)
 
         assert cfg.getint('payup_methods', 'overpayment_product_id') == 9999, "for this payment method you need to configure overpayment_product_id = 9999"
@@ -95,11 +95,11 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         return clients
 
     def _store_payment(self, method):
-        origin = u"Besucher"
+        origin = "Besucher"
         if isinstance(method, ManualCashPayment):
-            destination = u"Handkasse"
+            destination = "Handkasse"
         elif isinstance(method, AutoCashPayment):
-            destination = u"Automatenkasse"
+            destination = "Automatenkasse"
         else:
             raise Exception("unsupported payment method")
         rechnung = self._rechnung_from_order_lines()
@@ -107,8 +107,8 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         rechnung.store(self._kasse.cur)
         logging.info("stored payment in Rechnung#{0}".format(rechnung.id))
 
-        b1 = Buchung(unicode(destination), rechnung.summe, rechnung=rechnung.id)
-        b2 = Buchung(unicode(origin), -rechnung.summe, rechnung=rechnung.id, datum=b1.datum)
+        b1 = Buchung(str(destination), rechnung.summe, rechnung=rechnung.id)
+        b2 = Buchung(str(origin), -rechnung.summe, rechnung=rechnung.id, datum=b1.datum)
         self._kasse.buchen([b1, b2])  # implies database commit
 
         self._get_current_order_obj().rechnung_for_receipt = rechnung
@@ -128,7 +128,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
             # TODO hardcoded product id
             rechnung.add_position("Rundung", Decimal(1), anzahl=(total - rechnung.summe), einheit="Euro", produkt_ref="9996")
         assert rechnung.summe == total
-        print rechnung.positionen
+        print(rechnung.positionen)
         return rechnung
 
     def print_receipt(self, order_id):
@@ -136,7 +136,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         assert hasattr(order, "rechnung_for_receipt"), "given order is not ready for printing the receipt"
         try:
             order.rechnung_for_receipt.print_receipt(cfg=scriptHelper.getConfig())
-        except socket.error, e:
+        except socket.error as e:
             raise PrinterError("Socket error: " + str(e))
 
     def get_orders(self):

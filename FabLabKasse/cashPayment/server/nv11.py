@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # (C) 2013 Max Gaukler <development@maxgaukler.de>
@@ -16,17 +16,18 @@
 #  The text of the license conditions can be read at
 #  <http://www.gnu.org/licenses/>.
 
-import time
 import logging
-import NV11.NV11Device as NV11
-from helpers.banknote_stack_helper import BanknoteStackHelper
+import time
+
+from .NV11 import NV11Device as NV11
+from .cashServer import CashServer
+from .helpers.banknote_stack_helper import BanknoteStackHelper
+
 
 # Device driver (CashServer) for NV11 banknote acceptor-and-dispenser device.
 # config options:
 # deviceN_name
 # deviceN_port
-
-from cashServer import CashServer
 
 
 class NV11CashServer(CashServer):

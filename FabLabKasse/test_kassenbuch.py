@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -50,15 +50,15 @@ class KassenbuchTestCase(unittest.TestCase):
                           '--from', '2016-12-31 13:37:42'])
         self.assertEqual(args.action, 'show')
         self.assertTrue(args.hide_receipts)
-        self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31 13:37:42"))
+        self.assertEqual(args.from_date, dateutil.parser.parse("2016-12-31 13:37:42"))
         self.assertIsNone(args.until_date)
         args = parse_args("show --hide-receipts "
                           "--from 2016-12-31 "
                           "--until 2017-1-23".split(' '))
         self.assertEqual(args.action, 'show')
         self.assertTrue(args.hide_receipts)
-        self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31"))
-        self.assertEquals(args.until_date, dateutil.parser.parse("2017-1-23"))
+        self.assertEqual(args.from_date, dateutil.parser.parse("2016-12-31"))
+        self.assertEqual(args.until_date, dateutil.parser.parse("2017-1-23"))
         # TODO more tests: Everytime you fix a bug in argparser, add a test
 
     def test_parsing(self):

@@ -10,7 +10,7 @@ import sys
 import os
 import oerplib
 import locale
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 import codecs
 
 
@@ -51,14 +51,14 @@ def categ_id_to_list_of_names(c_id, oerp, cfg):
 
 
 def importProdukteOERP(data, oerp, cfg):
-    print "OERP Import"
+    print("OERP Import")
     prod_ids = oerp.search('product.product', [('default_code', '!=', False)])
-    print "reading {0} products from OERP, this may take some minutes...".format(len(prod_ids))
+    print("reading {0} products from OERP, this may take some minutes...".format(len(prod_ids)))
     prods = oerp.read('product.product', prod_ids, ['code', 'name', 'uom_id', 'lst_price', 'categ_id', 'active', 'sale_ok'],
                       context=oerp.context)
 
     # Only consider things with numerical PLUs in code field
-    prods = filter(lambda p: str_to_int(p['code']) is not None, prods)
+    prods = [p for p in prods if str_to_int(p['code']) is not None]
 
     # which units are only possible in integer amounts? (e.g. pieces, pages of paper)
     integer_uoms = oerp.search('product.uom', [('rounding', '=', 1)])
@@ -89,7 +89,7 @@ def saveToDir(data, outputdir):
     for g in data.keys():
         filename = g.replace("/", "__") + ".txt"
         files_written.append(filename)
-        print filename
+        print(filename)
         with open(outputdir + filename, 'w') as f:
             # In Datei schreiben
             def formatiereOutput(d):
@@ -100,12 +100,12 @@ def saveToDir(data, outputdir):
                         s += '\t%s;%s;%s;%s\n' % einheit
                 return s
 
-            for l in map(lambda d: formatiereOutput(d), data[g]):
+            for l in [formatiereOutput(d) for d in data[g]]:
                 f.write(l.encode('utf-8'))
 
     for f in os.listdir(outputdir):
         if f.endswith(".txt") and f not in files_written:
-            print "removing stale file {0}".format(f)
+            print("removing stale file {0}".format(f))
             os.unlink(outputdir + f)
 
 
@@ -115,8 +115,8 @@ def main():
     reload(sys).setdefaultencoding('UTF-8')  # somehow doesn't work
 
     if (sys.stdout.encoding != "UTF-8"):
-        print sys.stdout.encoding
-        print >> sys.stderr, "please use a UTF-8 locale, e.g. LANG=en_US.UTF-8"
+        print(sys.stdout.encoding)
+        print("please use a UTF-8 locale, e.g. LANG=en_US.UTF-8", file=sys.stderr)
         exit(1)
 
     cfg = ConfigParser({'db_file': 'production.sqlite3', 'request_backup': 'off',

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # combine multiple physical payment devices (coin/banknote pay-in and pay-out)
@@ -18,16 +18,16 @@
 #
 #  The text of the license conditions can be read at
 #  <http://www.gnu.org/licenses/>.
-import random
-import unittest
-from PaymentDeviceClient import PaymentDeviceClient
-import logging
-import time
-from ConfigParser import NoOptionError
 
-# for unittest
-from ConfigParser import ConfigParser
 import codecs
+import configparser
+import logging
+import random
+import time
+import unittest
+
+from .PaymentDeviceClient import PaymentDeviceClient
+
 
 class PaymentDevicesManager(object):
 
@@ -39,7 +39,7 @@ class PaymentDevicesManager(object):
                 prefix = "device" + str(n) + "_"
                 try:
                     cmd = cfg.get("cash_payment", "device" + str(n))
-                except NoOptionError:
+                except configparser.NoOptionError:
                     break
                 options = {}
                 for (key, value) in cfg.items("cash_payment"):
@@ -275,7 +275,7 @@ class PaymentDevicesManager(object):
 
     def statusText(self):
         def formatCent(x):
-            return u"{:.2f}\u2009€".format(float(x) / 100).replace(".", ",")
+            return "{:.2f}\u2009€".format(float(x) / 100).replace(".", ",")
         totalSum = self.getCurrentAmount()
         if self.mode.startswith("payout"):
             totalSum = -totalSum
@@ -283,13 +283,13 @@ class PaymentDevicesManager(object):
                  "payinStop": "Bezahlung wird abgeschlossen...",
                  "stopped": "Bitte warten, Daten werden gespeichert",
                  "idle": "Bereit",
-                 "payout": u"Zahle Rückgeld...",
+                 "payout": "Zahle Rückgeld...",
                  "start": "Bitte warten, initialisiere...",
-                 "canPayout": u"Bitte warten, prüfe Wechselgeldvorrat...",
-                 "empty": u"Service Ausleeren aktiv: Geldscheinspeicher->Cashbox (automatisch), Münzauswurf (manuell: Knopf drücken),\n zum Beenden Abbrechen drücken",
-                 "emptyingStop": u"Service: beende automatisches/manuelles Ausleeren..."}
-        text = u""
-        if self.mode in modes.keys():
+                 "canPayout": "Bitte warten, prüfe Wechselgeldvorrat...",
+                 "empty": "Service Ausleeren aktiv: Geldscheinspeicher->Cashbox (automatisch), Münzauswurf (manuell: Knopf drücken),\n zum Beenden Abbrechen drücken",
+                 "emptyingStop": "Service: beende automatisches/manuelles Ausleeren..."}
+        text = ""
+        if self.mode in list(modes.keys()):
             text += modes[self.mode]
         else:
             text += "bitte warten (Modus {0})".format(self.mode)
@@ -299,7 +299,7 @@ class PaymentDevicesManager(object):
         elif self.mode.startswith("payout"):
             requested = self.requestedPayout
         if requested is not None:
-            text += u":\n{0} von {1} ".format(formatCent(totalSum), formatCent(requested))
+            text += ":\n{0} von {1} ".format(formatCent(totalSum), formatCent(requested))
         if self.mode.startswith("payin"):
             text += "bezahlt (maximal " + formatCent(self.maximumPayin) + ")"
         elif self.mode.startswith("payout"):
@@ -354,7 +354,7 @@ class PaymentDevicesManagerTest(unittest.TestCase):
         test the _canPayout_total() function with 10 random datapoints and the exampleserver (from example config)
         """
         # probably hacky, should be improved
-        cfg = ConfigParser()
+        cfg = configparser.ConfigParser()
         cfg.readfp(codecs.open('./FabLabKasse/config.ini.example', 'r', 'utf8'))
 
         for _ in range(0, 9):
@@ -413,7 +413,7 @@ def demo():
 
     def wait():
         p.poll()
-        print p.statusText()
+        print(p.statusText())
         time.sleep(0.3)
     while p.startingUp():
         wait()
@@ -421,15 +421,15 @@ def demo():
     while pay is None:
         wait()
         pay = p.canPayout()
-    print pay
-    print "Es dürfen maximal {0} Cent gezahlt werden. Ein Rest-Rückgeld von unter {1} Cent wird nicht zurückgegeben!".format(pay[0], pay[1])
+    print(pay)
+    print("Es dürfen maximal {0} Cent gezahlt werden. Ein Rest-Rückgeld von unter {1} Cent wird nicht zurückgegeben!".format(pay[0], pay[1]))
     shouldPay = 4213
     p.payin(shouldPay, shouldPay + pay[0])
     received = None
     while received is None:
         received = p.getFinalAmount()
         wait()
-    print "Geld erhalten: {0}".format(received)
+    print("Geld erhalten: {0}".format(received))
     p.poll()
     if received > shouldPay:
         p.payout(received - shouldPay)
@@ -438,8 +438,8 @@ def demo():
         paidOut = p.getFinalAmount()
         wait()
     paidOut = -paidOut
-    print "Rückgeld gezahlt: {0}".format(paidOut)
-    print "nicht ausgezahltes Rückgeld: {0}".format(received - shouldPay - paidOut)
+    print("Rückgeld gezahlt: {0}".format(paidOut))
+    print("nicht ausgezahltes Rückgeld: {0}".format(received - shouldPay - paidOut))
 
 
 if __name__ == "__main__":

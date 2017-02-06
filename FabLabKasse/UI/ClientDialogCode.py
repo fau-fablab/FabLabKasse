@@ -16,9 +16,11 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-from PyQt4 import QtGui, QtCore
-from .uic_generated.SelectClientDialog import Ui_SelectClientDialog
 import re
+
+from PyQt4 import QtCore, QtGui
+
+from .uic_generated.SelectClientDialog import Ui_SelectClientDialog
 
 
 class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
@@ -61,8 +63,8 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
         self._clients = shopping_backend.list_clients()
         # NOTE: clients are never updated between this call and closing the dialog
         self.comboBox_client.clear()
-        self.comboBox_client.addItem(u'')
-        for c in self._clients.itervalues():
+        self.comboBox_client.addItem('')
+        for c in self._clients.values():
             self.comboBox_client.addItem(c.name)
 
         self.lineEdit_client.setFocus()
@@ -90,7 +92,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
     def lineEditClientUpdate(self):
         input = self.lineEdit_client.text()
         # Getting rid of all special characters (everything but numbers)
-        newString = re.sub(r'[^0-9]', '', unicode(input))
+        newString = re.sub(r'[^0-9]', '', input)
 
         # remove leading zeros:
         newString = newString.lstrip('0')
@@ -105,7 +107,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
             self.comboBox_client.setCurrentIndex(0)
             return
 
-        if unicode(self.comboBox_client.currentText()) == client.name:
+        if self.comboBox_client.currentText() == client.name:
             # client is already selected in combo box
             return
 
@@ -116,21 +118,21 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
             self.comboBox_client.setCurrentIndex(0)
 
     def comboBoxClientUpdate(self):
-        name = unicode(self.comboBox_client.currentText())
+        name = self.comboBox_client.currentText()
 
         # TODO is there a nicer solution than get-by-name, e.g. storing indices somewhere?
-        client = filter(lambda c: c.name == name, self._clients.itervalues())
+        client = [c for c in self._clients.values() if c.name == name]
 
         if client:
             # set lineEdit_client to client id
             self.lineEdit_client.setText(str(client[0].client_id))
         else:
-            self.lineEdit_client.setText(u'')
+            self.lineEdit_client.setText('')
 
     def lineEditPINUpdate(self):
         input = self.lineEdit_pin.text()
         # Getting rid of all special characters (everything but numbers)
-        newString = re.sub(r'[^0-9]', '', unicode(input))
+        newString = re.sub(r'[^0-9]', '', input)
 
         # Set correctly formated text, if anything changed (preserves cursor position)
         if newString != input:
@@ -149,27 +151,27 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
             return None
 
     def getPIN(self):
-        return str(self.lineEdit_pin.text())
+        return self.lineEdit_pin.text()
 
     def accept(self):
         # Check client number
         kunde = self.getClient()
         if kunde is None:
             msgBox = QtGui.QMessageBox(self)
-            msgBox.setText(u"Unter der Kundennummer konnte leider nichts gefunden werden.")
+            msgBox.setText("Unter der Kundennummer konnte leider nichts gefunden werden.")
             msgBox.exec_()
             return
 
         # Check PIN
-        if kunde.test_pin(str(self.lineEdit_pin.text())):
+        if kunde.test_pin(self.lineEdit_pin.text()):
             QtGui.QDialog.accept(self)
         else:
             msgBox = QtGui.QMessageBox(self)
-            msgBox.setText(u"Falscher PIN oder Kundennummer.")
+            msgBox.setText("Falscher PIN oder Kundennummer.")
             msgBox.exec_()
 
     def reject(self):
         msgBox = QtGui.QMessageBox(self)
-        msgBox.setText(u"Bezahlung abgebrochen.")
+        msgBox.setText("Bezahlung abgebrochen.")
         msgBox.exec_()
         QtGui.QDialog.reject(self)

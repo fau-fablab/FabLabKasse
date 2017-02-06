@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -46,10 +46,10 @@ class InvalidCartJSONError(Exception):
         :param value: see property_name
         """
         if not text:
-            text = u""
-        text = u"Invalid Cart: " + text
+            text = ""
+        text = "Invalid Cart: " + text
         if property_name:
-            text += u"Property {0} has unexpected value: {1}".format(property_name, repr(value))
+            text += "Property {0} has unexpected value: {1}".format(property_name, repr(value))
         Exception.__init__(self, text)
 
 
@@ -83,7 +83,7 @@ class MobileAppCartModel(QObject):
 
     """loads a cart from a mobile application"""
 
-    cart_id_changed = pyqtSignal(unicode)
+    cart_id_changed = pyqtSignal(str)
 
     def __init__(self, config):
         """
@@ -158,7 +158,7 @@ class MobileAppCartModel(QObject):
                 self._timeout = self.cfg.getint('mobile_app', 'timeout')
             else:
                 self._timeout = 10
-                logging.info(u"using default timeout value '10' as it wasn't set in the config")
+                logging.info("using default timeout value '10' as it wasn't set in the config")
         return self._timeout
 
     @property
@@ -172,7 +172,7 @@ class MobileAppCartModel(QObject):
     @cart_id.setter
     def cart_id(self, value):
         """update cart_id"""
-        assert isinstance(value, basestring)
+        assert isinstance(value, str)
         self._cart_id = value
         self.cart_id_changed.emit(value)
 
@@ -184,7 +184,7 @@ class MobileAppCartModel(QObject):
                 self._num_retries = self.cfg.getint('mobile_app', 'num_retries')
             else:
                 self._num_retries = 10
-                logging.info(u"using default number of retries '10' as it wasn't set in the config")
+                logging.info("using default number of retries '10' as it wasn't set in the config")
         return self._num_retries
 
     def _tick_error_counter(self):
@@ -224,13 +224,13 @@ class MobileAppCartModel(QObject):
             req = requests.get(self.server_url + self.cart_id, timeout=self.timeout, verify=self._ssl_cert)
             req.raise_for_status()
         except requests.exceptions.HTTPError as exc:
-            logging.debug(u"app-checkout: app server responded with HTTP error {0}".format(exc))
+            logging.debug("app-checkout: app server responded with HTTP error {0}".format(exc))
             self._tick_error_counter()
             return False
         except requests.exceptions.RequestException as exc:
             # WORKAROUND: SSLError is somehow broken, sometimes its __str__()  method does not return a string
             # therefore we use repr()
-            logging.debug(u"app-checkout: general error in HTTP request: {0}".format(repr(exc)))
+            logging.debug("app-checkout: general error in HTTP request: {0}".format(repr(exc)))
             self._tick_error_counter()
             return False
         if req.text == "":
@@ -242,7 +242,7 @@ class MobileAppCartModel(QObject):
             cart = self._decode_json_cart(req.text)
             self._reset_error_counter()
             return cart
-        except InvalidCartJSONError, exception:
+        except InvalidCartJSONError as exception:
             logging.warning("Cannot decode Cart JSON: {0}".format(exception))
             raise
 
@@ -250,18 +250,18 @@ class MobileAppCartModel(QObject):
         """decode JSON data containing the cart
 
         :param json: JSON encoded data
-        :type json: unicode
+        :type json: str
         :raise: InvalidCartJSONError
         """
         try:
             data = simplejson.loads(json)
         except simplejson.JSONDecodeError:
             raise InvalidCartJSONError("app-checkout: JSONDecodeError")
-        logging.debug(u"received cart: {0}".format(repr(data)))
+        logging.debug("received cart: {0}".format(repr(data)))
         try:
             if data["status"] != "PENDING":
                 raise InvalidCartJSONError(property_name="status", value=data["status"])
-            if unicode(data["cartCode"]) != self.cart_id:
+            if str(data["cartCode"]) != self.cart_id:
                 raise InvalidCartJSONError(property_name="cartCode", value=data["cartCode"])
             cart = []
             for entry in data["items"]:
@@ -318,7 +318,7 @@ class MobileAppCartModelTest(unittest.TestCase):
             - valid_data: data for json encoding
             - valid_cart: decoded cart like it should be output by _decode_json_cart()
             """
-            from ConfigParser import ConfigParser
+            from configparser import ConfigParser
             model = MobileAppCartModel(ConfigParser())
             model._cart_id = "FAU15596984"
 
@@ -397,12 +397,12 @@ class MobileAppCartModelTest(unittest.TestCase):
         naughtyfile = abspath(dirname(__file__) + "/../../libs/naughtystrings/blns.txt")
         with codecs.open(naughtyfile, 'r', "utf-8") as f:
             naughtystrings = f.readlines()
-            naughtystrings.insert(0, u"")
+            naughtystrings.insert(0, "")
         [model, data1, _] = prepare()
         data2 = data1.copy()
         for nstring in naughtystrings:
-            nstring = nstring.strip(u'\n')
-            if not nstring.startswith(u'#'):
+            nstring = nstring.strip('\n')
+            if not nstring.startswith('#'):
                 data1["status"] = nstring
                 data2["items"][0]["productId"] = nstring
                 with self.assertRaises(InvalidCartJSONError):

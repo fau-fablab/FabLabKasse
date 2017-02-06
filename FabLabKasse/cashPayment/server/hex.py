@@ -13,14 +13,16 @@
 #  The text of the license conditions can be read at
 #  <http://www.gnu.org/licenses/>.
 
+from collections import Iterable
+
 
 def hex(x):
-    if type(x) in [int, long]:
+    if isinstance(x, int):
         if x < 0:
             return str(x)
         else:
             return '0x%02X' % (x)
-    elif type(x) == list:
+    elif isinstance(x, Iterable):
         return "[" + ", ".join([hex(val) for val in x]) + "]"
     else:
         return str(x)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os
@@ -97,7 +97,7 @@ class Produkt(object):
             if fnmatch.fnmatch(l, '*.txt'):
                 p, baum = cls.load_from_file(path + '/' + l)
 
-                for element in p.iterkeys():
+                for element in p.keys():
                     assert element not in produkte, \
                         "Duplicate product ID {} when loading file {} \n" \
                         "[already present in a file loaded earlier.]\n Do you have stale files in produkte/ ?".format(

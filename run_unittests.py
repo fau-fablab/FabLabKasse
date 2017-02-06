@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # (C) 2015 Patrick Kanzler <patrick.kanzler@fablab.fau.de>

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -34,7 +34,7 @@ class ExampleTest(unittest.TestCase):
         self.assertTrue(True)
 
         with self.assertRaises(ZeroDivisionError):
-            print 4/0
+            print(4/0)
 
 
 if __name__ == "__main__":

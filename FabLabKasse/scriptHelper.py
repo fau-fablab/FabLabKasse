@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -25,8 +25,7 @@ import logging.handlers
 import sys
 import portalocker
 import sqlite3
-from ConfigParser import ConfigParser
-from ConfigParser import Error as ConfigParserError
+import configparser
 import codecs
 from PyQt4 import QtGui
 import traceback
@@ -68,17 +67,17 @@ def setupGraphicalExceptHook():
             cfg = getConfig()
             try:
                 email = cfg.get('general', 'support_mail')
-            except ConfigParserError:
+            except configparser.Error:
                 logging.warning("could not read mail address from config in graphical except-hook.")
                 email = "den Verantwortlichen"
             msgbox = QtGui.QMessageBox()
-            txt = u"Entschuldigung, das Programm wird wegen eines Fehlers beendet."
-            infotxt = u"""Wenn dir Rückgeld entgangen ist, melde dich bei {0} und gebe neben einer
+            txt = "Entschuldigung, das Programm wird wegen eines Fehlers beendet."
+            infotxt = """Wenn dir Rückgeld entgangen ist, melde dich bei {0} und gebe neben einer
              Fehlerbeschreibung folgende Uhrzeit an:{1}.""".format(email, str(datetime.datetime.today()))
-            detailtxt = u"{0}\n{1}".format(str(datetime.datetime.today()), "".join(
+            detailtxt = "{0}\n{1}".format(str(datetime.datetime.today()), "".join(
                 traceback.format_exception(exctype, value, tb, limit=10)))
             logging.fatal(txt)
-            logging.fatal(u"Full exception details (stack limit 50):\n" + u"".join(
+            logging.fatal("Full exception details (stack limit 50):\n" + "".join(
                 traceback.format_exception(exctype, value, tb, limit=50)))
             msgbox.setText(txt)
             msgbox.setInformativeText(infotxt)
@@ -96,7 +95,7 @@ def setupGraphicalExceptHook():
 
 
 def getConfig(path="./"):
-    cfg = ConfigParser()
+    cfg = configparser.ConfigParser()
     try:
         cfg.readfp(codecs.open(path + 'config.ini', 'r', 'utf8'))
     except IOError:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -17,10 +17,12 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-from PyQt4 import QtGui
-from .uic_generated.PayupManualDialog import Ui_PayupManualDialog
 import re
 from decimal import Decimal
+
+from PyQt4 import QtGui
+
+from .uic_generated.PayupManualDialog import Ui_PayupManualDialog
 
 
 class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
@@ -52,7 +54,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
         self.pushButton_done.clicked.connect(self.accept)
 
         # Display amount to be payed to user
-        self.label_amount.setText(u'{:.2f} €'.format(self.amount_total).replace('.', ','))
+        self.label_amount.setText('{:.2f} €'.format(self.amount_total).replace('.', ','))
 
         self.lineEdit.setText("0")
         self.lineEditUpdated()
@@ -60,7 +62,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
     def insertIntoLineEdit(self, char):
         self.lineEdit.setFocus()
         text = self.lineEdit.text()[:-2]
-        self.lineEdit.setText(text + char + u" €")
+        self.lineEdit.setText(text + char + " €")
         self.lineEditUpdated()
 
     def backspaceLineEdit(self):
@@ -78,7 +80,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
             input = input[:-1]
 
         # Getting rid of all special characters (everything but numbers)
-        newString = re.sub(r'[^0-9,]', '', unicode(input))
+        newString = re.sub(r'[^0-9,]', '', input)
 
         if (not re.match("[0-9]", newString)) and ("," in newString):  # convert ,24 -> 0,24
             newString = "0" + newString
@@ -92,7 +94,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
             newString = newString[:-1]
 
         # re-add euro sign
-        newString += u' €'
+        newString += ' €'
 
         # Set correctly formated text, if anything changed (preserves cursor position)
         if newString != input:
@@ -103,10 +105,10 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
 
     def getPaidAmount(self):
         t = self.lineEdit.text()[:-2]
-        return Decimal(unicode(t).replace(',', '.'))
+        return Decimal(t.replace(',', '.'))
 
     def reject(self):
-        self.lineEdit.setText(u"0,00 €")  # make sure that getPaidAmount() returns 0 on abort
+        self.lineEdit.setText("0,00 €")  # make sure that getPaidAmount() returns 0 on abort
         QtGui.QDialog.reject(self)
 
     def accept(self):
@@ -117,12 +119,12 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
 
         if diff < -0.009:
             reply = QtGui.QMessageBox.warning(self, 'Message',
-                                              u'Bitte zahle mindestens den geforderten Betrag.',
+                                              'Bitte zahle mindestens den geforderten Betrag.',
                                               QtGui.QMessageBox.Ok)
             return
         elif diff > min(5, self.amount_total * 2):
             reply = QtGui.QMessageBox.question(self, 'Message',
-                                               u'<html>Willst du wirklich <span style="color:#006600; font-weight:bold;">{0:.02f} € spenden</span>?</html>'.format(float(diff)),
+                                               '<html>Willst du wirklich <span style="color:#006600; font-weight:bold;">{0:.02f} € spenden</span>?</html>'.format(float(diff)),
                                                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                                                QtGui.QMessageBox.No)
 

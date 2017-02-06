@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # base class for cash-acceptor server
@@ -26,20 +26,19 @@ import re
 import logging
 from abc import ABCMeta, abstractmethod  # abstract base class support
 import threading
-import Queue
+import queue
 from ... import scriptHelper
 from ..cashState import CashStorage, CashState
 import pickle
 import base64
 
 
-class CashServer:
-    __metaclass__ = ABCMeta
+class CashServer(metaclass=ABCMeta):
     MAXIMUM_DISPENSE = 200 * 100
 
     def reply(self, s):
         s = "COMMAND ANSWER:" + str(s)
-        print s
+        print(s)
         sys.stdout.flush()  # necessary if not run from console
         logging.info(s)
 
@@ -64,7 +63,7 @@ class CashServer:
                 stdinQueue.put(sys.stdin.readline())
 
         global stdinQueue
-        stdinQueue = Queue.Queue()
+        stdinQueue = queue.Queue()
         thread = threading.Thread(target=readStdinThread, name="stdinReader")
         thread.daemon = True
         thread.start()
@@ -76,7 +75,7 @@ class CashServer:
         global stdinQueue
         try:
             return stdinQueue.get(block=False)
-        except Queue.Empty:
+        except queue.Empty:
             return None
 
     def run(self):

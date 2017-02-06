@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # (C) 2015 Max Gaukler <development@maxgaukler.de>
@@ -17,11 +17,15 @@
 #  <http://www.gnu.org/licenses/>.
 
 """tests for :mod:`coin_payout_helper`"""
-from __future__ import division
+
 import unittest
-import FabLabKasse.cashPayment.server.helpers.coin_payout_helper as coin_payout_helper
-from hypothesis import given, example, Settings, strategies as st
+
+from hypothesis import strategies as st
+from hypothesis import example, given, settings
 from hypothesis.strategies import composite
+
+import FabLabKasse.cashPayment.server.helpers.coin_payout_helper as coin_payout_helper
+
 
 def simulate_payout(coins, requested):
     """
@@ -52,7 +56,7 @@ def st_coins(draw):
 
 class CoinPayoutHelperTestcase(unittest.TestCase):
     """ Tests for :mod:`coin_payout_helper`"""
-    @given(st_coins(), st.floats(0, 1), st.floats(0, 1), settings=Settings(max_examples=1000))
+    @given(st_coins(), st.floats(0, 1), st.floats(0, 1), settings=settings(max_examples=1000))
     # the following two fixed testcases are already enough for full code coverage
     @example([], 1, .2)
     @example([(100, 1), (50, 2), (20, 3), (10, 1), (5, 0), (2, 0), (1, 0)], 1, 0.01)

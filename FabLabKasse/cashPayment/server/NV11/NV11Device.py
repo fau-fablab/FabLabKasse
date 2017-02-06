@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Interface client for Innovative Technology NV11 banknote validator/changer with eSSP Protocol
@@ -23,7 +23,7 @@ import serial
 import copy
 import time
 import traceback
-from crc_algorithms import Crc
+from .crc_algorithms import Crc
 import Crypto.Cipher.AES
 import Crypto.Random.random
 import logging
@@ -792,7 +792,7 @@ class NV11Device(ESSPDevice):
             elif ev == 0xB5:
                 self.debug("accept-shutdown (all inputs disabled)")
                 r["acceptActive"] = False
-            elif ev in eventsWithChannelInfo.keys():
+            elif ev in list(eventsWithChannelInfo.keys()):
                 message = eventsWithChannelInfo[ev][0]
                 if eventsWithChannelInfo[ev][1]:
                     eventNeedsACK = True
@@ -803,7 +803,7 @@ class NV11Device(ESSPDevice):
                     r["received"] += [self.getChannelValue(channel)]  # TODO we can't easily tell if the note was stacked or put into the cashbox
                     self.setEnabledChannels()  # do not allow further notes before explicit reactivation
                     # self.setEnabled(False)
-            elif ev in eventsWithValueReporting.keys():
+            elif ev in list(eventsWithValueReporting.keys()):
                 message = eventsWithValueReporting[ev][0]
                 if eventsWithValueReporting[ev][1]:  # needs ACK
                     eventNeedsACK = True

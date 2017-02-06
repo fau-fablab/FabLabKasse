@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -18,7 +18,8 @@
 # see <http://www.gnu.org/licenses/>.
 
 from PyQt4 import QtGui
-from uic_generated.KeyboardDialog import Ui_KeyboardDialog
+
+from .uic_generated.KeyboardDialog import Ui_KeyboardDialog
 
 
 class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
@@ -62,7 +63,7 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
         self.pushButton_shift.clicked.connect(self.shift)
 
     def text(self):
-        return unicode(self.lineEdit.text())
+        return self.lineEdit.text()
 
     def charKey(self):
         pos = self.lineEdit.cursorPosition()
@@ -90,6 +91,6 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
         for c in list('abcdefghijklmnopqrstuvwxyz0123456789') + ['ue', 'ae', 'oe']:
             btn = getattr(self, "pushButton_" + c)
             if self.caps:
-                btn.setText(unicode(btn.text()).upper())
+                btn.setText(btn.text().upper())
             else:
-                btn.setText(unicode(btn.text()).lower())
+                btn.setText(btn.text().lower())

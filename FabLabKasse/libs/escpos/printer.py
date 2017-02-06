@@ -11,9 +11,9 @@
 # import serial
 import socket
 
-from escpos import *
-from constants import *
-from exceptions import *
+from .escpos import *
+from .constants import *
+from .exceptions import *
 
 # class Usb(Escpos):
 #    """ Define USB printer """
@@ -124,7 +124,7 @@ class Network(Escpos):
         self.device.connect((self.host, self.port))
 
         if self.device is None:
-            print "Could not open socket for %s" % self.host
+            print("Could not open socket for %s" % self.host)
 
     def _raw(self, msg):
         """ Print any command sent in raw format """
@@ -151,7 +151,7 @@ class File(Escpos):
         self.device = open(self.devfile, "wb")
 
         if self.device is None:
-            print "Could not open the specified file %s" % self.devfile
+            print("Could not open the specified file %s" % self.devfile)
 
     def _raw(self, msg):
         """ Print any command sent in raw format """

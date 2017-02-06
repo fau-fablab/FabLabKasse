@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -127,8 +127,8 @@ class ShoppingBackend(AbstractShoppingBackend):
     def create_order(self):
         partner_id = self.cfg.getint('openerp', 'anonymous_partner_id')
         order_data = self.oerp.execute('sale.order', 'onchange_partner_id', [], partner_id)
-        print order_data
-        assert 'warning' not in order_data, u"failed getting default values for sale.order: {0}".format(order_data['warning'])
+        print(order_data)
+        assert 'warning' not in order_data, "failed getting default values for sale.order: {0}".format(order_data['warning'])
         order_data = order_data['value']
         order_data.update({'partner_id': partner_id,
                            'order_policy': 'manual',
@@ -241,7 +241,7 @@ class ShoppingBackend(AbstractShoppingBackend):
         self.set_current_order(None)
 
     def search_product_from_code(self, code):
-        code = unicode(code)
+        code = str(code)
         code = re.sub(r'[^0-9]', '', code)
         code = int(code)
 
@@ -258,7 +258,7 @@ class ShoppingBackend(AbstractShoppingBackend):
         # Build search pattern
         searchstr = searchstr.lower().strip()
         searchpattern = searchstr.split(' ')
-        searchpattern = map(lambda s: ('name', 'ilike', u'%' + s + u'%'), searchpattern)
+        searchpattern = [('name', 'ilike', '%' + s + '%') for s in searchpattern]
 
         # We don't do empty (full) searches
         if not searchstr:
@@ -307,7 +307,7 @@ class ShoppingBackend(AbstractShoppingBackend):
         product_prices = self.oerp_jcnt.proxy.web.dataset.call(
             model='product.pricelist', method='price_get_multi',
             args=[[pricelist_id],
-                  map(lambda i: (i, 1, None), product_ids),
+                  [(i, 1, None) for i in product_ids],
                   oerp.context])
 
         if 'error' in product_prices:
@@ -326,7 +326,7 @@ class ShoppingBackend(AbstractShoppingBackend):
             else:
                 # TODO only if product is in this category :(
                 location = category_default_location
-            location = unicode(location)
+            location = str(location)
             data = Product(prod_id=p['id'], name=p['name'], price=float_to_decimal(p['lst_price'], 3), unit=unit, location=location, categ_id=None)
             products_preprocessed.append(data)
         return products_preprocessed
@@ -343,7 +343,7 @@ class ShoppingBackend(AbstractShoppingBackend):
         result = []
         for line in lines:
             data = OrderLine(order_line_id=line['id'],
-                             qty=unicode(line['product_uom_qty']),
+                             qty=str(line['product_uom_qty']),
                              unit=line['product_uom'][1],
                              name=line['product_id'][1],
                              price_per_unit=float_to_decimal(line['price_unit'], 3),
@@ -358,7 +358,7 @@ class ShoppingBackend(AbstractShoppingBackend):
         # Retrieve current order
         if self.get_current_order() is None:
             return []
-        print self.get_current_order()
+        print(self.get_current_order())
         order = oerp.read('sale.order', self.get_current_order(), ['order_line', 'amount_total'],
                           context=oerp.context)
         if not 'order_line' in order or not order['order_line']:

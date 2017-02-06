@@ -6,7 +6,7 @@ use case:
 """
 
 from abc import ABCMeta, abstractmethod  # abstract base class support
-from abstract import AbstractShoppingBackend, AbstractClient, Category, OrderLine, ProductNotFound, PrinterError
+from .abstract import AbstractShoppingBackend, AbstractClient, Category, OrderLine, ProductNotFound, PrinterError
 from decimal import Decimal
 from ... import scriptHelper
 from natsort import natsorted
@@ -24,7 +24,7 @@ class ProductBasedOrderLine(OrderLine):
         if comment is None:
             comment = ""
         if comment:
-            comment = u": " + comment
+            comment = ": " + comment
         self.product = product
         self.price_per_unit = product.price  # duplicate because otherwise we get crashes from OrderLine.__init__ accessing qty.setter
         OrderLine.__init__(self, order_line_id=None, qty=0, unit=product.unit,
@@ -98,15 +98,15 @@ class OfflineCategoryTree(object):
         return self.categories[self.root_category_id]
 
     def get_subcategories(self, categ_id):
-        return self._sort_categories(filter(lambda categ: categ.parent_id == categ_id, self.categories.itervalues()))
+        return self._sort_categories([categ for categ in iter(self.categories.values()) if categ.parent_id == categ_id])
 
     @staticmethod
     def simplify_searchstring(string):
         # remove silly BOM
-        string = string.replace(u"\ufeff", "")
+        string = string.replace("\ufeff", "")
         # all whitespace is treated equal
-        string = re.sub(r'(\s+)', ' ', string, flags=re.UNICODE)
-        string = string.replace(u'\u2010', '-')  # unicode dash
+        string = re.sub(r'(\s+)', ' ', string)
+        string = string.replace('\u2010', '-')  # unicode dash
         return string.lower().strip()
 
     def _sort_products(self, product_list):
@@ -116,7 +116,7 @@ class OfflineCategoryTree(object):
         return natsorted(categ_list, key=lambda cat: OfflineCategoryTree.simplify_searchstring(cat.name))
 
     def get_products(self, categ_id):
-        return self._sort_products(filter(lambda prod: prod.categ_id == categ_id, self.products.itervalues()))
+        return self._sort_products([prod for prod in iter(self.products.values()) if prod.categ_id == categ_id])
 
     def search_products(self, searchstr):
         searchlist = OfflineCategoryTree.simplify_searchstring(searchstr).split(" ")
@@ -129,7 +129,7 @@ class OfflineCategoryTree(object):
                     return False
             return True
 
-        return self._sort_products(filter(matches, self.products.itervalues()))
+        return self._sort_products(list(filter(matches, iter(self.products.values()))))
 
     def search_categories(self, searchstr):
         searchlist = OfflineCategoryTree.simplify_searchstring(searchstr).split(" ")
@@ -142,7 +142,7 @@ class OfflineCategoryTree(object):
                     return False
             return True
 
-        return self._sort_categories(filter(matches, self.categories.itervalues()))
+        return self._sort_categories(list(filter(matches, iter(self.categories.values()))))
 
     def get_product(self, prod_id):
         try:
@@ -195,7 +195,7 @@ class Order(object):
     def add_order_line(self, product, qty, comment=None):
         """ add a Product() object with specified quantity to the cart"""
         assert not self._finished, "finished orders may not be modified"
-        assert comment is None or isinstance(comment, basestring)
+        assert comment is None or isinstance(comment, str)
         self._lines.append(ProductBasedOrderLine(product, qty, comment))
         # call update_quantity so that qty_rounding is checked
         self.update_quantity(self._lines[-1].order_line_id, qty)
@@ -211,10 +211,9 @@ class Order(object):
         raise PrinterError("not yet implemented")
 
 
-class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
+class AbstractOfflineShoppingBackend(AbstractShoppingBackend, metaclass=ABCMeta):
 
     """manages products, categories and orders (cart)"""
-    __metaclass__ = ABCMeta
 
     def __init__(self, cfg, categories, products, generate_root_category=False):
         super(AbstractOfflineShoppingBackend, self).__init__(cfg)

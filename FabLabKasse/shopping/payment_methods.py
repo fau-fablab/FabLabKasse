@@ -45,7 +45,7 @@ from .. import scriptHelper
 from FabLabKasse.shopping.backend.abstract import DebtLimitExceeded
 
 
-class AbstractPaymentMethod(object):
+class AbstractPaymentMethod(object, metaclass=ABCMeta):
 
     """interface for payment methods
 
@@ -54,7 +54,6 @@ class AbstractPaymentMethod(object):
     :param Decimal amount_to_pay: requested amount (rounded to cents)
     :param cfg: config object
     """
-    __metaclass__ = ABCMeta
 
     def __init__(self, parent, shopping_backend, amount_to_pay, cfg):
 
@@ -133,7 +132,7 @@ class AbstractPaymentMethod(object):
         You can safely override this with an empty method if you don't want
         this extra thank-you dialog.
         """
-        QtGui.QMessageBox.information(self.parent, "", u"Vielen Dank für deine Zahlung von {0}.\nBitte das Aufräumen nicht vergessen!".format(self.shopping_backend.format_money(self.amount_paid - self.amount_returned)))
+        QtGui.QMessageBox.information(self.parent, "", "Vielen Dank für deine Zahlung von {0}.\nBitte das Aufräumen nicht vergessen!".format(self.shopping_backend.format_money(self.amount_paid - self.amount_returned)))
 
     @staticmethod
     def is_enabled(cfg):
@@ -149,7 +148,7 @@ class AbstractPaymentMethod(object):
     def get_title():
         """human-readable name of payment method
 
-        :rtype: unicode"""
+        :rtype: str"""
         return "title not implemented"
 
     @staticmethod
@@ -209,13 +208,12 @@ class AbstractPaymentMethod(object):
         self._end_of_payment()
 
 
-class AbstractClientPaymentMethod(AbstractPaymentMethod):
+class AbstractClientPaymentMethod(AbstractPaymentMethod, metaclass=ABCMeta):
 
     """
     abstract base for virtual payment on client account (no real money is
     being) transfered, the client account balance just becomes lower)
     """
-    __metaclass__ = ABCMeta
 
     @staticmethod
     def is_charge_on_client():
@@ -259,9 +257,9 @@ class ClientPayment(AbstractClientPaymentMethod):
             self.amount_paid = self.amount_to_pay
             self.successful = True
             self._end_of_payment()
-            QtGui.QMessageBox.information(self.parent, "Information", u"Vielen Dank.\n Dein neuer Kontostand beträgt " +
-                                          u"{0}. \n(Positiv ist Guthaben)".format(self.shopping_backend.format_money(-new_debt)))
-        except DebtLimitExceeded, e:
+            QtGui.QMessageBox.information(self.parent, "Information", "Vielen Dank.\n Dein neuer Kontostand beträgt " +
+                                          "{0}. \n(Positiv ist Guthaben)".format(self.shopping_backend.format_money(-new_debt)))
+        except DebtLimitExceeded as e:
             self.successful = False
             self._end_of_payment()
             msgBox = QtGui.QMessageBox(self.parent)

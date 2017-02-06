@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -21,10 +21,12 @@
 """dialog for loading the cart from a mobile application.
 It shows a QR Code as one-time-token for authentication."""
 
-from PyQt4 import QtGui, QtCore
-from FabLabKasse.UI.uic_generated.LoadFromMobileAppDialog import Ui_LoadFromMobileAppDialog
+import io
+
 import qrcode
-import StringIO
+from PyQt4 import QtCore, QtGui
+
+from FabLabKasse.UI.uic_generated.LoadFromMobileAppDialog import Ui_LoadFromMobileAppDialog
 
 
 def set_layout_items_visible(layout, visible):
@@ -81,10 +83,9 @@ class LoadFromMobileAppDialog(QtGui.QDialog, Ui_LoadFromMobileAppDialog):
         :param label: QLabel
         :param text: text for the QR code
         """
-        buf = StringIO.StringIO()
-        img = qrcode.make(text)
-        img.save(buf, "PNG")
         label.setText("")
-        qt_pixmap = QtGui.QPixmap()
-        qt_pixmap.loadFromData(buf.getvalue(), "PNG")
+        qrcode_img = qrcode.make(text).get_image()
+        data = qrcode_img.convert("RGBA").tobytes("raw", "RGBA")
+        qim = QtGui.QImage(data, qrcode_img.size[0], qrcode_img.size[1], QtGui.QImage.Format_ARGB32)
+        qt_pixmap = QtGui.QPixmap.fromImage(qim)
         label.setPixmap(qt_pixmap)

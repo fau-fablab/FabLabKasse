@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -21,8 +21,8 @@
 """
 
 import logging
-from abstract import Product, Category
-from offline_base import AbstractOfflineShoppingBackend, Client
+from .abstract import Product, Category
+from .offline_base import AbstractOfflineShoppingBackend, Client
 from decimal import Decimal
 
 
@@ -38,9 +38,9 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         products = [Product(prod_id=1, name="Laser Time commercial", price=1, unit="minute", location="-", categ_id=43),
                     Product(prod_id=2, name="Laser Time noncommercial", price=Decimal(".5"), unit="minute", location="-", categ_id=43),
                     Product(prod_id=123, name="Acrylic 3mm", unit="Sheet 60x30cm", location="Shelf E3.1", price=Decimal("11.31"), categ_id=42),
-                    Product(prod_id=4212, name="Comment / enter price", unit=u"Euro", location="-", price=1, categ_id=44, text_entry_required=True),
-                    Product(prod_id=9999, name="Donation", unit=u"Euro", location="-", price=1, categ_id=44),
-                    Product(prod_id=9994, name="Rest that could not be paid out", unit=u"Euro", location="-", price=Decimal("1"), categ_id=None)]
+                    Product(prod_id=4212, name="Comment / enter price", unit="Euro", location="-", price=1, categ_id=44, text_entry_required=True),
+                    Product(prod_id=9999, name="Donation", unit="Euro", location="-", price=1, categ_id=44),
+                    Product(prod_id=9994, name="Rest that could not be paid out", unit="Euro", location="-", price=Decimal("1"), categ_id=None)]
 
         assert cfg.getint('payup_methods', 'overpayment_product_id') == 9999, "for this payment method you need to configure overpayment_product_id = 9999"
         assert cfg.getint('payup_methods', 'payout_impossible_product_id') == 9994, "for this payment method you need to configure 'payout_impossible_product_id == 9994"

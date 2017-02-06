@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
 
 import os
 import sys
@@ -26,21 +25,6 @@ import time
 from FabLabKasse import scriptHelper
 import shutil
 scriptHelper.setupSigInt()
-
-reallyPrint = print
-
-
-def print(x):
-    sys.stdout.write(x + "\n")
-    sys.stdout.flush()
-
-
-def file_exists(filename):
-    try:
-        os.stat(filename)
-        return True
-    except OSError:
-        return False
 
 
 def main():
@@ -52,7 +36,7 @@ def main():
     if "--example" in sys.argv:
         # load example config
         # test that there is no config.ini yet
-        if file_exists("config.ini"):
+        if os.path.isfile("config.ini"):
             print("Warning: Configuration FabLabKasse/config.ini already exists, will not overwrite it.")
             if "--only-load-config" not in sys.argv:
                 print("You can just start run.py without the --example argument to make this message disappear.")
@@ -118,7 +102,7 @@ def main():
     debug = ""
     if "--debug" in sys.argv:
         debug = "--debug"
-    gui = subprocess.Popen("python2.7 -m FabLabKasse.gui {}".format(debug).split(" "), env=myEnv)
+    gui = subprocess.Popen("python3 -m FabLabKasse.gui {}".format(debug).split(" "), env=myEnv)
     if debug:
         time.sleep(1)
         if not check_winpdb_version():

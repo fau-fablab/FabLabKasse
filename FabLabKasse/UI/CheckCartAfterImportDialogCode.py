@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -15,9 +15,10 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-from PyQt4 import QtGui, QtCore
-from FabLabKasse.UI.uic_generated.CheckCartAfterImportDialog import Ui_AppWarenkorb
+from PyQt4 import QtCore, QtGui
+
 from FabLabKasse.libs.flickcharm import FlickCharm
+from FabLabKasse.UI.uic_generated.CheckCartAfterImportDialog import Ui_AppWarenkorb
 
 
 class CheckCartAfterImportDialog(QtGui.QDialog, Ui_AppWarenkorb):
@@ -45,4 +46,4 @@ class CheckCartAfterImportDialog(QtGui.QDialog, Ui_AppWarenkorb):
         self.table_order.update_cart(self.shoppingBackend)
 
         sumText = self.shoppingBackend.format_money(self.shoppingBackend.get_current_total())
-        self.sumText.setText(u"Gesamtsumme {0}".format(sumText))
+        self.sumText.setText("Gesamtsumme {0}".format(sumText))

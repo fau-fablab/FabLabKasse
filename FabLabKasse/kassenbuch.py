@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
 
@@ -23,32 +23,30 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Kassenbuch Backend mit doppelter Buchführung.
-"""
+"""Kassenbuch Backend mit doppelter Buchführung."""
 
-from __future__ import print_function
-
-import sqlite3
 import argparse
-from datetime import datetime, timedelta
-from decimal import Decimal, InvalidOperation
-import dateutil.parser
-import csv
-import cStringIO
 import codecs
-import re
-import sys
+import csv
+import doctest
+import io
 import os
 import random
-import doctest
+import re
+import sqlite3
+import sys
+from datetime import datetime, timedelta
+from decimal import Decimal, InvalidOperation
+
+import dateutil.parser
+
+import scriptHelper
+from libs.escpos import printer as escpos_printer
+
 try:
     import argcomplete
 except ImportError:
     pass  # it's also working without argcomplete
-
-import libs.escpos.printer as escpos_printer
-import scriptHelper
 
 
 def moneyfmt(value, places=2, curr='', sep='.', dp=',',
@@ -82,7 +80,7 @@ def moneyfmt(value, places=2, curr='', sep='.', dp=',',
     q = Decimal(10) ** -places  # 2 places --> '0.01'
     sign, digits, exp = value.quantize(q).as_tuple()
     result = []
-    digits = map(str, digits)
+    digits = list(map(str, digits))
     build, next = result.append, digits.pop
     if sign:
         build(trailneg)
@@ -142,13 +140,13 @@ class Rechnung(object):
         return pos['anzahl'] * pos['einzelpreis']
 
     def to_string(self):
-        s = u'Rechnungsnr.: {0}\nDatum: {1:%Y-%m-%d %H:%M}\n'.format(self.id, self.datum)
+        s = 'Rechnungsnr.: {0}\nDatum: {1:%Y-%m-%d %H:%M}\n'.format(self.id, self.datum)
 
         for p in self.positionen:
-            s += u'    {anzahl:>7.2f} {einheit:<8} {artikel:<45} {einzelpreis:>8.3f} EUR {gesamtpreis:>8.2f} EUR\n'.format(
+            s += '    {anzahl:>7.2f} {einheit:<8} {artikel:<45} {einzelpreis:>8.3f} EUR {gesamtpreis:>8.2f} EUR\n'.format(
                 gesamtpreis=self.summe_position(p), **p)
 
-        s += u'Summe: ' + moneyfmt(self.summe) + ' EUR\n'
+        s += 'Summe: ' + moneyfmt(self.summe) + ' EUR\n'
 
         return s
 
@@ -158,7 +156,7 @@ class Rechnung(object):
             (self.id,))
         for row in cur:
             self.positionen.append({'id': row[0], 'rechnung': row[1],
-                                    'anzahl': Decimal(row[2]), 'einheit': unicode(row[3]), 'artikel': unicode(row[4]),
+                                    'anzahl': Decimal(row[2]), 'einheit': str(row[3]), 'artikel': str(row[4]),
                                     'einzelpreis': Decimal(row[5]), 'produkt_ref': row[6]})
 
         self.positionen.sort(key=lambda p: p['id'])
@@ -188,50 +186,50 @@ class Rechnung(object):
             pos['rechnung'] = self.id
             cur.execute("INSERT INTO position (rechnung, anzahl, einheit, artikel, einzelpreis, " +
                         "produkt_ref) VALUES (?, ?, ?, ?, ?, ?)",
-                        (pos['rechnung'], unicode(pos['anzahl']), pos['einheit'], pos['artikel'],
-                         unicode(pos['einzelpreis']), pos['produkt_ref']))
+                        (pos['rechnung'], str(pos['anzahl']), pos['einheit'], pos['artikel'],
+                         str(pos['einzelpreis']), pos['produkt_ref']))
             pos['id'] = cur.lastrowid
 
     def receipt(self, zahlungsart="BAR", header="", footer="", export=False):
-        r = u''
+        r = ''
         if export:
             separator = ' '
-            r += u'         Rechnnung Nr. {id}:\n         {datum:%Y-%m-%d}\n'.format(id=self.id, datum=self.datum)
+            r += '         Rechnnung Nr. {id}:\n         {datum:%Y-%m-%d}\n'.format(id=self.id, datum=self.datum)
 
         else:
             separator = '\n'
             for l in header.split('\n'):
-                r += u'{0:^42.42}\n'.format(l)
-            r += u'\n'
+                r += '{0:^42.42}\n'.format(l)
+            r += '\n'
 
-            r += u'{datum:%Y-%m-%d} {id:>31}\n'.format(id=self.id, datum=self.datum)
+            r += '{datum:%Y-%m-%d} {id:>31}\n'.format(id=self.id, datum=self.datum)
 
             # Insert Line
-            r += u'-' * 42 + '\n'
-            r += u'ANZAHL   EINHEIT               EINZELPREIS'
+            r += '-' * 42 + '\n'
+            r += 'ANZAHL   EINHEIT               EINZELPREIS'
             r += separator
             r += 'ARTIKEL                              PREIS\n'
-            r += u'-' * 42 + '\n'
+            r += '-' * 42 + '\n'
 
         for p in self.positionen:
             if not export:
                 r += '\n'
-            r += u'{anzahl_fmt:>8} {einheit:<14.14} {einzelpreis_fmt:>18}'.format(
+            r += '{anzahl_fmt:>8} {einheit:<14.14} {einzelpreis_fmt:>18}'.format(
                 einzelpreis_fmt=moneyfmt(p['einzelpreis'], places=3),
                 anzahl_fmt='{:.2f}'.format(p['anzahl']).replace('.', ','), **p)
             r += separator
-            r += u'{artikel:<29.29}  {gesamtpreis:>11}\n'.format(
+            r += '{artikel:<29.29}  {gesamtpreis:>11}\n'.format(
                 gesamtpreis=moneyfmt(self.summe_position(p), places=3), **p)
 
         if not export:
             # Insert double line
-            r += u'=' * 42 + '\n'
+            r += '=' * 42 + '\n'
 
-            r += u'{0:<28}  EUR {1:>7} \n\n'.format(zahlungsart, moneyfmt(self.summe))
+            r += '{0:<28}  EUR {1:>7} \n\n'.format(zahlungsart, moneyfmt(self.summe))
 
             # Add Footer
             for l in footer.split('\n'):
-                r += u'{0:^42.42}\n'.format(l)
+                r += '{0:^42.42}\n'.format(l)
 
         return r
 
@@ -279,20 +277,20 @@ class Buchung(object):
 
     def _store(self, cur):
         cur.execute("INSERT INTO buchung (datum, konto, rechnung, betrag, kommentar) VALUES " +
-                    "(?, ?, ?, ?, ?)", (self.datum, self.konto, self.rechnung, unicode(self.betrag), self.kommentar))
+                    "(?, ?, ?, ?, ?)", (self.datum, self.konto, self.rechnung, str(self.betrag), self.kommentar))
         self.id = cur.lastrowid
 
     @property
     def beschreibung(self):
-        s = u''
+        s = ''
         if self.rechnung:
-            s += 'Rechnung: ' + unicode(self.rechnung)
+            s += 'Rechnung: ' + str(self.rechnung)
             if self.kommentar:
                 s += '(' + self.kommentar + ')'
         elif self.kommentar:
             s += self.kommentar
         else:
-            s = u'KEINE BESCHREIBUNG'
+            s = 'KEINE BESCHREIBUNG'
         return s
 
     def to_string(self):
@@ -300,10 +298,10 @@ class Buchung(object):
 
         if self.betrag > 0:
             # Sollbuchung
-            formatstr = u'{datum:%Y-%m-%d %H:%M}              {konto:<13}       {betrag:>7.2f} {beschreibung}'
+            formatstr = '{datum:%Y-%m-%d %H:%M}              {konto:<13}       {betrag:>7.2f} {beschreibung}'
         else:
             # Habenbuchung
-            formatstr = u'{datum:%Y-%m-%d %H:%M} {konto:<13}            {betrag:>7.2f}         {beschreibung}'
+            formatstr = '{datum:%Y-%m-%d %H:%M} {konto:<13}            {betrag:>7.2f}         {beschreibung}'
 
         return formatstr.format(datum=self.datum, konto=self.konto, beschreibung=self.beschreibung,
                                 betrag=abs(self.betrag))
@@ -311,18 +309,18 @@ class Buchung(object):
     header = 'DATUM            SOLLKONTO    HABENKONTO    SOLL    HABEN   BESCHREIBUNG\n'
 
     def __repr__(self):
-        s = u'<%s(id=%s, datum=%s, konto=%s, rechnung=%s, betrag=%s, kommentar=%s)>' % (
+        return '<%s(id=%s, datum=%s, konto=%s, rechnung=%s, betrag=%s, kommentar=%s)>' % (
             self.__class__.__name__, self.id, self.datum.__repr__(), self.konto, self.rechnung,
-            self.betrag.__repr__(), self.kommentar)
-        return s.__repr__()  # workaround: python2.7 has trouble with __repr__ returning unicode strings - http://bugs.python.org/issue5876
+            self.betrag.__repr__(), self.kommentar
+        )
 
 
 class Kasse(object):
 
     def __init__(self, sqlite_file=':memory:'):
         self.con = sqlite3.connect(sqlite_file)
+        self.con.text_factory = str
         self.cur = self.con.cursor()
-        self.con.text_factory = unicode
 
         cur = self.cur
         cur.execute(
@@ -362,9 +360,6 @@ class Kasse(object):
         :type until_date: datetime.datetime | None
         :return: query string
         """
-        # TODO comparing against these strings might make problems with py3
-        # --> best import unicode_literals from future
-        # --> check whole file if this import is problematic
         known_tables = ["buchung", "rechnung"]
         if from_table not in known_tables:
             raise NotImplementedError("unimplemented table {0}".format(from_table))
@@ -480,7 +475,7 @@ class Kasse(object):
 
         if from_date:
             s += self.summary_to_string(from_date) + '\n\n\n'
-        s += u'Buchungen:\n'
+        s += 'Buchungen:\n'
         s += Buchung.header
         buchungen = self.get_buchungen(from_date, filter_until_date)
         for b in buchungen:
@@ -516,19 +511,19 @@ class Kasse(object):
 
         :type date: datetime.datetime | None
         :type snapshot_time: datetime.datetime | None
-        :rtype: unicode
+        :rtype: str
         """
-        string = ""
+        ret = ""
         date = date or snapshot_time or datetime.now()
 
         buchungen = self.get_buchungen(from_date=None, until_date=date)
 
-        string += "Kassenstand am {0}:\n".format(date)
+        ret += "Kassenstand am {0}:\n".format(date)
         if not buchungen:
-            string += "(noch keine Buchungen an diesem Datum -- 0 EUR)\n"
-            return string
+            ret += "(noch keine Buchungen an diesem Datum -- 0 EUR)\n"
+            return ret
         else:
-            string += u"(letzte darin enthaltene Buchung ist '{title}' vom {end})\n".format(title=buchungen[-1].beschreibung, end=buchungen[-1].datum)
+            ret += "(letzte darin enthaltene Buchung ist '{title}' vom {end})\n".format(title=buchungen[-1].beschreibung, end=buchungen[-1].datum)
 
         konto_haben = {}
         konto_soll = {}
@@ -541,14 +536,14 @@ class Kasse(object):
 
             konto_saldi[b.konto] = konto_saldi.get(b.konto, Decimal(0)) + b.betrag
 
-        string += u'{:<16} {:>10} {:>10} {:>10}\n'.format("KONTO", "HABEN", "SOLL", "SALDO").encode('utf-8')
-        for konto, saldo in konto_saldi.items():
-            string += u'{0:<16} {1:>10.2f} {2:>10.2f} {3:>10.2f} EUR\n'.format(
+        ret += '{:<16} {:>10} {:>10} {:>10}\n'.format("KONTO", "HABEN", "SOLL", "SALDO").encode('utf-8')
+        for konto, saldo in list(konto_saldi.items()):
+            ret += '{0:<16} {1:>10.2f} {2:>10.2f} {3:>10.2f} EUR\n'.format(
                 konto,
                 konto_haben.get(konto, Decimal(0)),
                 konto_soll.get(konto, Decimal(0)),
                 saldo)
-        return string
+        return ret
 
 
 class Kunde(object):
@@ -601,13 +596,13 @@ class Kunde(object):
         if self.id is None:
             cur.execute("INSERT INTO kunde (name, pin, schuldengrenze, email, telefon, adresse, " +
                         "kommentar) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        (self.name, self.pin, unicode(self.schuldengrenze), self.email,
+                        (self.name, self.pin, str(self.schuldengrenze), self.email,
                          self.telefon, self.adresse, self.kommentar))
             self.id = cur.lastrowid
         else:
             cur.execute("UPDATE kunde SET name=?, pin=?, schuldengrenze=?, email=?, telefon=?, " +
                         "adresse=?, kommentar=? WHERE id=?",
-                        (self.name, self.pin, unicode(self.schuldengrenze), self.email,
+                        (self.name, self.pin, str(self.schuldengrenze), self.email,
                          self.telefon, self.adresse, self.kommentar, self.id))
 
         for b in self.buchungen:
@@ -649,7 +644,7 @@ class Kunde(object):
         return summe
 
     def to_string(self, short=False):
-        summary = u"""Kunde: {name} (#{id}):
+        summary = """Kunde: {name} (#{id}):
     Schuldengrenze: {schuldengrenze:.2f} EUR
     Mail:           {email}
     Telefon:        {telefon}
@@ -668,19 +663,19 @@ class Kunde(object):
             return summary + '\n\n' + details
 
     def __repr__(self):
-        s = u'<%s(id=%s, name=%s, pin=%s' % (self.__class__.__name__, self.id, unicode(self.name), self.pin)
+        s = '<%s(id=%s, name=%s, pin=%s' % (self.__class__.__name__, self.id, str(self.name), self.pin)
         if self.schuldengrenze is not None:
-            s += u', schuldengrenze=%s' % self.schuldengrenze.__repr__()
+            s += ', schuldengrenze=%s' % self.schuldengrenze.__repr__()
         if self.email is not None:
-            s += u', email=%s' % self.email
+            s += ', email=%s' % self.email
         if self.telefon is not None:
-            s += u', telefon=%s' % self.telefon
+            s += ', telefon=%s' % self.telefon
         if self.adresse is not None:
-            s += u', adresse=%s' % self.adresse
+            s += ', adresse=%s' % self.adresse
         if self.kommentar is not None:
-            s += u', kommentar=%s' % self.kommentar
+            s += ', kommentar=%s' % self.kommentar
         s += ')>'
-        return s.__repr__()  # workaround: python2.7 has trouble with __repr__ returning unicode strings - http://bugs.python.org/issue5876
+        return s
 
 
 class Kundenbuchung(object):
@@ -721,32 +716,32 @@ class Kundenbuchung(object):
         if self.id is None:
             cur.execute("INSERT INTO kundenbuchung (datum, kunde, rechnung, betrag, kommentar) " +
                         "VALUES (?, ?, ?, ?, ?)", (self.datum, self.kunde, self.rechnung,
-                                                   unicode(self.betrag), self.kommentar))
+                                                   str(self.betrag), self.kommentar))
             self.id = cur.lastrowid
         else:
             cur.execute("UPDATE kundenbuchung SET datum=?, kunde=?, rechnung=?, betrag=?, " +
                         "kommentar=? WHERE id=?", (self.datum, self.kunde, self.rechnung,
-                                                   unicode(self.betrag), self.kommentar, self.id))
+                                                   str(self.betrag), self.kommentar, self.id))
 
         return self.id
 
     @property
     def beschreibung(self):
-        s = u''
+        s = ''
         if self.rechnung:
-            s += 'Rechnung: ' + unicode(self.rechnung)
+            s += 'Rechnung: ' + str(self.rechnung)
             if self.kommentar:
                 s += '(' + self.kommentar + ')'
         elif self.kommentar:
             s += self.kommentar
         else:
-            s = u'KEINE BESCHREIBUNG'
+            s = 'KEINE BESCHREIBUNG'
         return s
 
     def to_string(self):
         formatstr = ''
 
-        formatstr = u'{datum:%Y-%m-%d %H:%M}    {betrag:>8.2f}    {beschreibung}'
+        formatstr = '{datum:%Y-%m-%d %H:%M}    {betrag:>8.2f}    {beschreibung}'
 
         return formatstr.format(datum=self.datum, beschreibung=self.beschreibung,
                                 betrag=self.betrag)
@@ -754,40 +749,10 @@ class Kundenbuchung(object):
     header = 'DATUM              BETRAG       BESCHREIBUNG\n'
 
     def __repr__(self):
-        s = u'<%s(id=%s, datum=%s, kunde=%s, rechnung=%s, betrag=%s, kommentar=%s)>' % (
+        return '<%s(id=%s, datum=%s, kunde=%s, rechnung=%s, betrag=%s, kommentar=%s)>' % (
             self.__class__.__name__, self.id, self.datum.__repr__(), self.kunde, self.rechnung,
-            self.betrag.__repr__(), self.kommentar)
-        return s.__repr__()  # workaround: python2.7 has trouble with __repr__ returning unicode strings - http://bugs.python.org/issue5876
-
-
-class UnicodeWriter(object):
-    """
-    A CSV writer which will write rows to CSV file "f",
-    which is encoded in the given encoding.
-    """
-
-    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
-        # Redirect output to a queue
-        self.queue = cStringIO.StringIO()
-        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
-        self.stream = f
-        self.encoder = codecs.getincrementalencoder(encoding)()
-
-    def writerow(self, row):
-        self.writer.writerow([unicode(s).encode("utf-8") for s in row])
-        # Fetch UTF-8 output from the queue ...
-        data = self.queue.getvalue()
-        data = data.decode("utf-8")
-        # ... and reencode it into the target encoding
-        data = self.encoder.encode(data)
-        # write to the target stream
-        self.stream.write(data)
-        # empty queue
-        self.queue.truncate(0)
-
-    def writerows(self, rows):
-        for row in rows:
-            self.writerow(row)
+            self.betrag.__repr__(), self.kommentar
+        )
 
 
 def parse_date(value):
@@ -797,7 +762,7 @@ def parse_date(value):
     :type value: basestr | None
     :rtype: datetime.datetime | None
     """
-    if isinstance(value, basestring) and value != '':
+    if isinstance(value, str) and value != '':
         value = value.lower().strip()
         if value in ['now', 'today']:
             return datetime.today()
@@ -857,7 +822,7 @@ def argparse_parse_client(value):
         return Kunde.load_from_name(value, k.cur)
     except NoDataFound:
         raise argparse.ArgumentTypeError(
-            u"Konnte keinen Kunde unter '{0}' finden.".format(value))
+            "Konnte keinen Kunde unter '{0}' finden.".format(value))
 
 
 def client_argcomplete(prefix, **kwargs):
@@ -877,7 +842,7 @@ def argparse_parse_receipt(rid):
         return Rechnung.load_from_id(int(rid), k.cur)
     except (ValueError, NoDataFound):
         raise argparse.ArgumentTypeError(
-            u"Konnte keine Rechnung mit der ID '{0}' finden.".format(rid))
+            "Konnte keine Rechnung mit der ID '{0}' finden.".format(rid))
 
 
 def receipt_argcomplete(prefix, **kwargs):
@@ -1183,56 +1148,51 @@ def main():
         print(k.to_string(from_date=args.from_date,
                           until_date=args.until_date,
                           snapshot_time=startup_time,
-                          show_receipts=not args.hide_receipts).
-              encode('utf-8'))
+                          show_receipts=not args.hide_receipts))
     elif args.action == 'export':
         if args.what == 'book':
-            # TODO Use csv.DictWriter
-            writer = UnicodeWriter(args.outfile)
             # Header
-            writer.writerow(['DATUM',
-                             'KONTO',
-                             'BETRAG',
-                             'RECH.NR.',
-                             'KOMMENTAR'])
+            writer = csv.DictWriter(args.outfile, fieldnames=[
+                'DATUM', 'KONTO', 'BETRAG', 'RECH.NR.', 'KOMMENTAR'
+            ])
+            writer.writeheader()
             # Content
             for b in k.buchungen:
-                writer.writerow([unicode(b.datum),
-                                 unicode(b.konto),
-                                 u'{0:.2f}'.format(b.betrag),
-                                 unicode(b.rechnung),
-                                 unicode(b.kommentar)])
+                writer.writerow({
+                    'DATUM': b.datum,
+                    'KONTO': b.konto,
+                    'BETRAG': '{0:.2f}'.format(b.betrag),
+                    'RECH.NR.': b.rechnung,
+                    'KOMMENTAR': b.kommentar,
+                })
         elif args.what == 'invoices':
-            # TODO Use csv.DictWriter
-            writer = UnicodeWriter(args.outfile)
             # Header
-            writer.writerow(['RECH.NR.',
-                             'DATUM',
-                             'ARTIKEL',
-                             'ANZAHL',
-                             'EINHEIT',
-                             'EINZELPREIS',
-                             'SUMME',
-                             'PRODUKT NR.'])
+            writer = csv.DictWriter(args.outfile, fieldnames=[
+                'RECH.NR.',
+                'DATUM',
+                'ARTIKEL',
+                'ANZAHL',
+                'EINHEIT',
+                'EINZELPREIS',
+                'SUMME',
+                'PRODUKT NR.'
+            ])
+            writer.writeheader()
             # Content
             for r in k.rechnungen:
                 for p in r.positionen:
-                    writer.writerow(
-                        [
-                            str(r.id),
-                            str(r.datum),
-                            p['artikel'],
-                            str(p['anzahl']),
-                            p['einheit'],
-                            '{0:.2f}'.format(p['einzelpreis']),
-                            '{0:.2f}'.format(r.summe_position(p)),
-                            p['produkt_ref']
-                        ])
-                writer.writerow([])
+                    writer.writerow({
+                        'RECH.NR.': r.id,
+                        'DATUM': r.datum,
+                        'ARTIKEL': p['artikel'],
+                        'ANZAHL': p['anzahl'],
+                        'EINHEIT': p['einheit'],
+                        'EINZELPREIS': '{0:.2f}'.format(p['einzelpreis']),
+                        'SUMME': '{0:.2f}'.format(r.summe_position(p)),
+                        'PRODUKT.NR.': p['produkt_ref']
+                    })
     elif args.action == 'summary':
-        print(k.summary_to_string(date=args.until_date,
-                                  snapshot_time=startup_time).
-              encode('utf-8'))
+        print(k.summary_to_string(date=args.until_date, snapshot_time=startup_time))
     elif args.action == 'transfer':
 
         b1 = Buchung(args.source,
@@ -1277,16 +1237,15 @@ def main():
                 :type allowed_regexp: basestr | None
                 :type extra_checks: function | None
                 """
-                default_str = u" [{0}]".format(unicode(default_input)) if default_input is not None else u""
-                allowed_regexp = allowed_regexp if allowed_regexp is not None else ur".*"
+                default_str = " [{0}]".format(default_input) if default_input is not None else ""
+                allowed_regexp = allowed_regexp if allowed_regexp is not None else r".*"
                 extra_checks = extra_checks if extra_checks else lambda x: True
 
                 while True:
-                    input_str = raw_input(u"{e}{d}: ".format(
-                        e=explanation, d=default_str)).decode(sys.stdin.encoding)
+                    input_str = input("{e}{d}: ".format(
+                        e=explanation, d=default_str))
 
-                    if input_str == '' and default_input is not None:
-                        input_str = unicode(default_input)
+                    input_str = input_str or default_input or ''
 
                     if not re.match(allowed_regexp, input_str):
                         print(u'[!] Eingabe ungültig!', file=sys.stderr)
@@ -1314,9 +1273,9 @@ def main():
 
             default = kunde.name if edit else None
             kunde.name = fetch_input(
-                explanation=u'Name (ohne Leer- und Sonderzeichen!)',
+                explanation='Name (ohne Leer- und Sonderzeichen!)',
                 default_input=default,
-                allowed_regexp=ur'^[a-zA-Z0-9\/_-]{1,}$',
+                allowed_regexp=r'^[a-zA-Z0-9\/_-]{1,}$',
                 extra_checks=check_name_unique
             )
 
@@ -1328,9 +1287,9 @@ def main():
 
             default = kunde.pin if edit else None
             kunde.pin = fetch_input(
-                explanation=u'PIN (4 Ziffern, 0000: deaktiviert)',
+                explanation='PIN (4 Ziffern, 0000: deaktiviert)',
                 default_input=default,
-                allowed_regexp=ur'^[0-9]{4}$'
+                allowed_regexp=r'^[0-9]{4}$'
             )
 
             # Schuldengrenze
@@ -1338,14 +1297,14 @@ def main():
                 """
                 Check function for fetch_input; checks if n is a Decimal
                 :param n: the number to check
-                :type n: unicode, str
+                :type n: str
                 :rtype : bool
                 """
                 try:
                     Decimal(n)
                     return True
                 except InvalidOperation:
-                    print(u"[!] Formatierung ungültig.\n \
+                    print("[!] Formatierung ungültig.\n \
                                 Korrekt wäre z.B. '100.23' oder '-1'.",
                           file=sys.stderr)
                     return False
@@ -1354,7 +1313,7 @@ def main():
                 """
                 Check function for fetch_input; checks if n >= 0 or == -1
                 :param n: the number to check
-                :type n: unicode, str
+                :type n: str
                 :rtype : bool
                 """
                 if Decimal(n) >= Decimal('0') or Decimal(n) == Decimal('-1'):
@@ -1367,39 +1326,39 @@ def main():
             default = kunde.schuldengrenze if edit else None
             kunde.schuldengrenze = Decimal(
                 fetch_input(
-                    explanation=u'Schuldengrenze (>=0: beschraenkt oder -1: unbeschraenkt)',
+                    explanation='Schuldengrenze (>=0: beschraenkt oder -1: unbeschraenkt)',
                     default_input=default,
-                    allowed_regexp=ur'^[0-9-+,.]+$',
+                    allowed_regexp=r'^[0-9-+,.]+$',
                     extra_checks=lambda n: check_number_decimal(n) and check_number_greater_zero_or_minus_one(n))
             )
 
             # Email
             default = kunde.email if edit else None
             kunde.email = fetch_input(
-                explanation=u'Email',
+                explanation='Email',
                 default_input=default,
-                allowed_regexp=ur'^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$'
+                allowed_regexp=r'^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$'
             )
 
             # Telefon
             default = kunde.telefon if edit else None
             kunde.telefon = fetch_input(
-                explanation=u'Telefonnummer (optional; Ziffern, Leer, Raute, ... )',
+                explanation='Telefonnummer (optional; Ziffern, Leer, Raute, ... )',
                 default_input=default,
-                allowed_regexp=ur'^[0-9 \+\-#\*\(\)/]*$'
+                allowed_regexp=r'^[0-9 \+\-#\*\(\)/]*$'
             )
 
             # Adresse
             default = kunde.adresse if edit else None
             kunde.adresse = fetch_input(
-                explanation=u'Adresse (optional; nur eine Zeile)',
+                explanation='Adresse (optional; nur eine Zeile)',
                 default_input=default
             )
 
             # Kommentar
             default = kunde.kommentar if edit else None
             kunde.kommentar = fetch_input(
-                explanation=u'Kommentar (optional; nur eine Zeile)',
+                explanation='Kommentar (optional; nur eine Zeile)',
                 default_input=default
             )
 
@@ -1445,7 +1404,7 @@ KdNr|                     Name|  Kontostand|  Grenze| Letzte Zahlung | Letzte Bu
                 last_charge = sorted(
                     [b.datum for b in k.buchungen if b.betrag < 0], reverse=True
                 )[:1]
-                
+
                 # Using a skip flag, to allow overlapping filtering, where any filter will allow
                 # an entry to pass
                 skip = True
@@ -1460,7 +1419,7 @@ KdNr|                     Name|  Kontostand|  Grenze| Letzte Zahlung | Letzte Bu
                     # Let everything pass if not filters were given
                     skip = False
                 if args.remove_zeros and abs(k.summe) < 0.005:
-                    skip = True                
+                    skip = True
                 if skip: continue
 
                 if not last_payment:
@@ -1472,7 +1431,7 @@ KdNr|                     Name|  Kontostand|  Grenze| Letzte Zahlung | Letzte Bu
                 else:
                     last_charge = last_charge[0].strftime('%Y-%m-%d')
 
-                print(u'{0:>4}|{1:>25}|{2:>8} EUR|{3:>8}| {4:>14} | {5:>14}'.format(
+                print('{0:>4}|{1:>25}|{2:>8} EUR|{3:>8}| {4:>14} | {5:>14}'.format(
                     k.id, k.name, moneyfmt(k.summe), moneyfmt(k.schuldengrenze),
                     last_payment, last_charge))
 

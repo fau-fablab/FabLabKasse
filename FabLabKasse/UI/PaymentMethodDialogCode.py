@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -17,10 +17,12 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-from PyQt4 import Qt, QtGui
-from .uic_generated.PaymentMethodDialog import Ui_PaymentMethodDialog
-from ..shopping.payment_methods import PAYMENT_METHODS
 import functools
+
+from PyQt4 import Qt, QtGui
+
+from ..shopping.payment_methods import PAYMENT_METHODS
+from .uic_generated.PaymentMethodDialog import Ui_PaymentMethodDialog
 
 
 class PaymentMethodDialog(QtGui.QDialog, Ui_PaymentMethodDialog):

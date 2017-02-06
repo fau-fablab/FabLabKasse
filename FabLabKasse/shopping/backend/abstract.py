@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
 # Copyright (C) 2013-2015 Julian Hammer <julian.hammer@fablab.fau.de>
@@ -27,7 +27,7 @@ import itertools
 import locale
 import unittest
 import doctest
-from ConfigParser import Error as ConfigParserError
+from configparser import Error as ConfigParserError
 
 # counter for unique id values, use next(_id_counter) to get a new ID
 _id_counter = itertools.count()
@@ -70,12 +70,12 @@ def format_qty(qty):
 
     :param qty: quantity in numbers
     :return: string-representation of qty, decimal sep is dependent on locale
-    :rtype: unicode
+    :rtype: str
 
     >>> format_qty(5)
-    u'5'
+    '5'
     """
-    s = unicode(float(qty))
+    s = str(float(qty))
     if s.endswith(".0"):
         s = s[:-2]
     s = s.replace(".", locale.localeconv()['decimal_point'])
@@ -91,31 +91,31 @@ def format_money(amount):
     :param amount: amount of money
     :type amount: float|Decimal
     :return: amount formatted as string with Euro-Sign
-    :rtype: unicode
+    :rtype: str
 
     >>> format_money(1.23)
-    u'1,23 \u20ac'
+    '1,23 €'
     >>> format_money(3.741)
-    u'3,741 \u20ac'
+    '3,741 €'
     >>> format_money(42.4242)
-    u'42,424 \u20ac'
+    '42,424 €'
     >>> format_money(5.8899)
-    u'5,89 \u20ac'
+    '5,89 €'
     >>> format_money(Decimal('1.23'))
-    u'1,23 \u20ac'
+    '1,23 €'
     >>> format_money(Decimal('3.741'))
-    u'3,741 \u20ac'
+    '3,741 €'
     >>> format_money(Decimal('42.4242'))
-    u'42,424 \u20ac'
+    '42,424 €'
     >>> format_money(Decimal('5.8899'))
-    u'5,89 \u20ac'
+    '5,89 €'
     """
-    formatted = u'{0:.3f}'.format(amount)
+    formatted = '{0:.3f}'.format(amount)
 
     if formatted.endswith("0"):
         formatted = formatted[:-1]
 
-    return u'{0} €'.format(formatted).replace('.', ',')
+    return '{0} €'.format(formatted).replace('.', ',')
 
 
 class Category(object):
@@ -141,11 +141,11 @@ class Product(object):
                      TODO hide these products from search, or a more explicit solution
     :type categ_id: int | None
     :param name: Name of product
-    :type name: unicode
+    :type name: str
     :param location: Location of product (shown to the user)
-    :type location: unicode
+    :type location: str
     :param unit: Unit of sale for this product (e.g. piece, kilogram)
-    :type unit: unicode
+    :type unit: str
     :type price: Decimal
     :param price: price for one unit of this product
     :param qty_rounding: Product can only be bought in multiples of this quantity, user (GUI) input will be rounded/truncated to the next multiple of this.
@@ -183,9 +183,9 @@ class OrderLine(object):
 
     :param Decimal qty: amount ("unlimited" number of digits is okay)
 
-    :param unicode unit: product unit of sale
+    :param str unit: product unit of sale
 
-    :param unicode name: product name
+    :param str name: product name
 
     :param Decimal price_per_unit: price for one unit
 
@@ -211,8 +211,8 @@ class OrderLine(object):
         self.price_subtotal = price_subtotal
         self.delete_if_zero_qty = delete_if_zero_qty
 
-    def __unicode__(self):
-        return u"{0} {1} {2} = {3}".format(format_qty(self.qty), self.unit, self.name, format_money(self.price_subtotal))
+    def __str__(self):
+        return "{0} {1} {2} = {3}".format(format_qty(self.qty), self.unit, self.name, format_money(self.price_subtotal))
 
     def __repr__(self):
         return "<{0}(id={1}, qty={2}, unit={3}, name={4}, price_per_unit={5}, price_subtotal={6})>".format(self.__class__.__name__, repr(self.order_line_id), repr(self.qty), repr(self.unit), repr(self.name), repr(self.price_per_unit), repr(self.price_subtotal))
@@ -237,10 +237,9 @@ class PrinterError(Exception):
     pass
 
 
-class AbstractShoppingBackend(object):
+class AbstractShoppingBackend(object, metaclass=ABCMeta):
 
     """manages products, categories and orders (cart)"""
-    __metaclass__ = ABCMeta
 
     def __init__(self, cfg):
         """:param cfg: config from ScriptHelper.getConfig()"""
@@ -452,12 +451,12 @@ class AbstractShoppingBackend(object):
             try:
                 email = self.cfg.get('general', 'support_mail')
             except ConfigParserError:
-                email = u"einen zuständigen Betreuer"
+                email = "einen zuständigen Betreuer"
             raise DebtLimitExceeded(
-                u"Der Kontostand wäre mit dieser Buchung über seinem Limit.\n"
-                u"Aktuelles Guthaben: {0:.2f}\n"
-                u"Schuldengrenze für dieses Konto: {1:.2f}\n\n"
-                u"Bie Fragen wende dich bitte an {2}."
+                "Der Kontostand wäre mit dieser Buchung über seinem Limit.\n"
+                "Aktuelles Guthaben: {0:.2f}\n"
+                "Schuldengrenze für dieses Konto: {1:.2f}\n\n"
+                "Bie Fragen wende dich bitte an {2}."
                 .format(-debt, debt_limit, email))
 
         self._pay_order_on_client_unchecked(client)
@@ -487,10 +486,9 @@ class AbstractShoppingBackend(object):
         pass
 
 
-class AbstractClient(object):
+class AbstractClient(object, metaclass=ABCMeta):
 
     """ a client that can pay by pin """
-    __metaclass__ = ABCMeta
 
     @abstractmethod
     def __init__(self, client_id=None, name=""):
@@ -514,8 +512,8 @@ class AbstractClient(object):
 def basicUnitTests(shopping_backend):  # for implentations
     # TODO use these somewhere, integrate into unittest below
     shopping_backend.search_product("")
-    shopping_backend.search_product(u"öläöäl")
-    shopping_backend.search_product(u"       ")
+    shopping_backend.search_product("öläöäl")
+    shopping_backend.search_product("       ")
 
 def load_tests(loader, tests, ignore):
     """loader function to load the doctests in this module into unittest"""

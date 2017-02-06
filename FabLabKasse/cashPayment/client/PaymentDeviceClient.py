@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # generic cash-acceptor client
@@ -21,9 +21,7 @@
 #  <http://www.gnu.org/licenses/>.
 
 
-"""
-Client for accessing a cash device driver.
-"""
+"""Client for accessing a cash device driver."""
 
 import sys
 import logging
@@ -34,7 +32,6 @@ import monotonic as monotonic_time
 
 
 class PaymentDeviceClient(object):
-
     """
     Client for accessing a cash device driver. It starts a new python process
     ("server") for the specified device driver. It uses non-blocking
@@ -46,15 +43,15 @@ class PaymentDeviceClient(object):
         :param cmd: class name of the device driver
         :param options: dictionary of options (name (required), device, ...)
                         that were set in config.ini as deviceN_foo=value
-        :type options: dict(unicode, unicode)
+        :type options: dict(str, str)
         """
         self.stopped = False
         self.canAccept_cachedResponse = None
         self._reset()
         self.waitingForResponse = False
-        if (sys.version_info.major, sys.version_info.minor) != (2, 7):
-            raise Exception("not running in python2.7 - please update PaymentDeviceClient to use the right python version for the payment servers")
-        args = ["/usr/bin/env", "python2.7", "-m", "FabLabKasse.cashPayment.server." + cmd, base64.b64encode(pickle.dumps(options))]
+        if sys.version_info.major != 3 or sys.version_info.minor < 4:
+            raise Exception("not running in python 3.4 - please update PaymentDeviceClient to use the right python version for the payment servers")
+        args = ["/usr/bin/env", "python3", "-m", "FabLabKasse.cashPayment.server." + cmd, base64.b64encode(pickle.dumps(options)).decode('utf8')]
         logging.info("starting cashPayment server: PYTHONPATH=.. " + " ".join(args))
         self.process = nonblockingProcess(args, {"PYTHONPATH": ".."})
         self.commandline = cmd
@@ -66,7 +63,7 @@ class PaymentDeviceClient(object):
 
     def _reset(self):
         """
-        Initialise/Reset internal state to default values
+        Initialise/Reset internal state to default values.
 
         does not check for any condition!
 
@@ -84,7 +81,7 @@ class PaymentDeviceClient(object):
 
     def poll(self):
         """
-        update internal status
+        Update internal status.
 
         call this regularly
 
@@ -132,8 +129,8 @@ class PaymentDeviceClient(object):
                 raise Exception("unknown status")
             if cmd is None:
                 return
-            print "SEND CMD: " + cmd  # +"\n"
-            self.process.write(cmd + "\n")
+            print("SEND CMD: " + cmd)  # +"\n"
+            self.process.write(cmd.encode('utf8') + b"\n")
             self.lastCommand = cmd
             self.waitingForResponse = True
             self.lastResponseTime = monotonic_time.monotonic()  # get monotonic time. until python 3.3 we have to use this extra module because time.monotonic() is not available in older versions.
@@ -143,7 +140,8 @@ class PaymentDeviceClient(object):
                 and monotonic_time.monotonic() - self.lastResponseTime > 50:
             raise Exception("device {0} server timeout (>50sec)".format(self))
         if response is not None:
-            print "got response: '" + response + "'"
+            response = response.decode('utf8')
+            print("got response: '{}'".format(response))
             assert self.waitingForResponse
             self.waitingForResponse = False
 
@@ -201,7 +199,7 @@ class PaymentDeviceClient(object):
 
     def accept(self, maximumPayin):
         """
-        accept up to maximumPayin money, until stopAccepting() is called
+        Accept up to maximumPayin money, until stopAccepting() is called.
 
         poll() must be called before other actions are taken
         """
@@ -211,7 +209,7 @@ class PaymentDeviceClient(object):
 
     def updateAcceptValue(self, maximumPayin):
         """
-        lower the amount of money that is accepted at maximum
+        Lower the amount of money that is accepted at maximum.
 
         this can be called while accept is active
 
@@ -224,7 +222,7 @@ class PaymentDeviceClient(object):
 
     def stopAccepting(self):
         """
-        stop accepting (does not work immediately - some payins may be possible!)
+        Stop accepting (does not work immediately - some payins may be possible!).
 
         :rtype: None
         """
@@ -255,7 +253,7 @@ class PaymentDeviceClient(object):
 
     def possibleDispense(self):
         """
-        how much can be paid out?
+        How much can be paid out?
 
          (function may only be called while no operation is in progress, will raise Exception otherwise)
 
@@ -300,7 +298,7 @@ class PaymentDeviceClient(object):
 
     def canAccept(self):
         """
-        does the device support accept commands?
+        Does the device support accept commands?
 
         (If this function has not returned True/False once before, it may only
         be called while no operation is in progress and will raise an Exception
@@ -328,7 +326,7 @@ class PaymentDeviceClient(object):
 
     def empty(self):
         """
-        start service-mode emptying
+        Start service-mode emptying.
 
         The implementation of this modes is device specific:
 
@@ -351,7 +349,7 @@ class PaymentDeviceClient(object):
 
     def stopEmptying(self):
         """
-        end the mode that was started by empty()
+        End the mode that was started by empty()
 
         usage: see empty()
         """

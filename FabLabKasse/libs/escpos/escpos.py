@@ -15,8 +15,8 @@ except ImportError:
 import time
 import codecs
 
-from constants import *
-from exceptions import *
+from .constants import *
+from .exceptions import *
 
 
 class Escpos:

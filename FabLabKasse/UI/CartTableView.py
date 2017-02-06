@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -17,10 +17,13 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtGui import QTableView
-from PyQt4 import QtGui, QtCore
 import functools
+
+from PyQt4 import QtCore, QtGui
+from PyQt4.QtGui import QTableView
+
 from FabLabKasse.UI.GUIHelper import resize_table_columns
+
 
 class CartTableView(QTableView):
     """Extends the funxtionality of a normal QTableView in order to supply a cart-view

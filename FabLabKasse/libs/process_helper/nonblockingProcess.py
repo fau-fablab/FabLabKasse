@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # helper class for a nonblocking subprocess
@@ -18,9 +18,10 @@
 #  The text of the license conditions can be read at
 #  <http://www.gnu.org/licenses/>.
 
-import asyncproc
+from . import asyncproc
 import time
 import os
+import subprocess
 
 
 class nonblockingProcess(object):
@@ -28,7 +29,7 @@ class nonblockingProcess(object):
     """non-blocking subprocess, based on asyncproc"""
 
     def __init__(self, cmd, env=None):
-        self.process = asyncproc.Process(cmd, stderr=file("/dev/null", "w"),
+        self.process = asyncproc.Process(cmd, stderr=subprocess.DEVNULL,
                                          env=env or {})
         self._read_buffer = ""
 
@@ -64,13 +65,13 @@ def demo():
     k = nonblockingProcess("bc")
 
     for i in range(4):
-        print "read nothing:", k.readline()
+        print("read nothing:", k.readline())
         s = "{0}+{1}".format(i, i)
-        print "sending: " + s
+        print("sending: " + s)
         k.write(s + "\n")
         time.sleep(1)
-        print "read result:", k.readline()
-        print "still alive:", k.isAlive()
+        print("read result:", k.readline())
+        print("still alive:", k.isAlive())
 
 if __name__ == "__main__":
     demo()

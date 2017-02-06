@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and
@@ -154,7 +154,7 @@ class CashState(object):
         """
         Sum of all coins in all subdevices
         """
-        return sum([key * value for (key, value) in self._d.iteritems()])
+        return sum([key * value for (key, value) in self._d.items()])
 
     def sumStr(self):
         """
@@ -203,7 +203,7 @@ class CashState(object):
 
         :rtype: str"""
         s = "/"
-        for (key, val) in sorted(self._d.iteritems()):
+        for (key, val) in sorted(self._d.items()):
             if key >= 100 and key % 100 == 0:
                 s += "{0}x{1}E,".format(val, key / 100)
             else:
@@ -251,7 +251,6 @@ class CashState(object):
 
 
 class CashStorage(object):
-
     """
     cash storage (coins, banknotes) for vending machines
 
@@ -268,7 +267,7 @@ class CashStorage(object):
     def __init__(self, db, identifier, readonly=True):
         """
         :param db: sqlite database
-        :param unicode identifier: unique device name
+        :param str identifier: unique device name
         :param bool readonly: forbid write access
         """
         self.db = db
@@ -316,7 +315,7 @@ class CashStorage(object):
     def getStateVerbose(self, subindex):
         """:return: state formatted for two-column printing by :meth:`CashState.toVerboseString`
         :param str subindex: subdevice name
-        :rtype: unicode"""
+        :rtype: str"""
         state = self.getState(subindex)
         return state.toVerboseString()
 
@@ -353,7 +352,7 @@ class CashStorage(object):
             user interaction (e.g. inserting a coin), True if the change was
             forced by an administrator by calling ``./cash add ...`` or
             similar.
-        :param unicode comment: comment that is stored to the DB and visible in the cash log
+        :param str comment: comment that is stored to the DB and visible in the cash log
         :param _isLogMessage: internal, only to be used by log()
         """
         assert type(stateDelta) == CashState
@@ -444,7 +443,7 @@ class CashStorageList(object):
         s = "States per subindex:\n"
         totalState = CashState()
 
-        for (dev, state) in sorted(self.states.iteritems()):
+        for (dev, state) in sorted(self.states.items()):
             if dev.endswith(".log"):
                 # skip empty "log" subindex used for logging
                 assert state == CashState()
@@ -456,7 +455,7 @@ class CashStorageList(object):
         # sum over all subindices of one device
         currentDev = None
         perDeviceSum = None
-        for (dev, state) in sorted(self.states.iteritems()) + [(".", CashState())]:
+        for (dev, state) in sorted(self.states.items()) + [(".", CashState())]:
             [device, _] = dev.split(".")
             if device != currentDev:
                 if currentDev is not None:
@@ -517,12 +516,12 @@ def verifySum(db, printMessage=False, date=None):
 
     if summeKasse == summeKassenbuch:
         if printMessage:
-            print coloredGood("check OK") + ": cash=accounting(Kassenbuch)={0}".format(summeKasse)
+            print(coloredGood("check OK") + ": cash=accounting(Kassenbuch)={0}".format(summeKasse))
         return True
     else:
         if printMessage:
-            print coloredError("Attention, mismatch:") + " cash: {0}, accounting (Kassenbuch): {1}, too much in cash state: {2}".format(summeKasse, summeKassenbuch, summeKasse - summeKassenbuch)
-            print "use 'cash verify-search' to find out when the error started"
+            print(coloredError("Attention, mismatch:") + " cash: {0}, accounting (Kassenbuch): {1}, too much in cash state: {2}".format(summeKasse, summeKassenbuch, summeKasse - summeKassenbuch))
+            print("use 'cash verify-search' to find out when the error started")
         return False
 
 def verifySearch(db, step):
@@ -536,13 +535,13 @@ def verifySearch(db, step):
     :param timedelta step: time interval for going backwards
     :rtype: None
     """
-    print "searching backwards in time in steps of {0}. ".format(step)
-    print "The wrong entry is usually the one after which the status is bad for a long time, maybe with some short good interruptions."
-    print "False error reports, and also rare false negatives, may occur in the timespan between inserting the first coin and getting the receipt."
-    print "output format:"
-    print "   {0} or {1} = status is good/bad for one step".format(coloredGood('+'), coloredError('-'))
-    print "   <date> <status> = date of status change"
-    print ""
+    print("searching backwards in time in steps of {0}. ".format(step))
+    print("The wrong entry is usually the one after which the status is bad for a long time, maybe with some short good interruptions.")
+    print("False error reports, and also rare false negatives, may occur in the timespan between inserting the first coin and getting the receipt.")
+    print("output format:")
+    print("   {0} or {1} = status is good/bad for one step".format(coloredGood('+'), coloredError('-')))
+    print("   <date> <status> = date of status change")
+    print("")
     last_date = None
     date = datetime.today()
     # round date up to the hour
@@ -554,10 +553,10 @@ def verifySearch(db, step):
         if result != last_result:
             sys.stdout.write("\n")
             if last_date:
-                print "      from {0} (included)".format(last_date)
-                print ""
+                print("      from {0} (included)".format(last_date))
+                print("")
             status = "good" if result else "FAIL"
-            print "{0} until {1} (included) ".format(status, date)
+            print("{0} until {1} (included) ".format(status, date))
             last_result = result
         if result:
             sys.stdout.write(coloredGood('+'))
@@ -565,7 +564,7 @@ def verifySearch(db, step):
             sys.stdout.write(coloredError('-'))
         last_date = date
         date -= step # go back 1h
-    print "End of database."
+    print("End of database.")
 
 def dateFromString(s, default=None):
     """
@@ -597,7 +596,7 @@ def printLog(db, date_from=None, date_to=None):
     fromDate = dateFromString(date_from, "1900-01-01")
     untilDate = dateFromString(date_to, "3456-01-01") + timedelta(days=1, microseconds=-1)
     if date_from:
-        print "showing from {0}".format(fromDate)
+        print("showing from {0}".format(fromDate))
     columnTitles = ["device.sub", "date", "manual?", "type", "comment", "delta", "delta", "dev.total", "dev.total"]
     # column width -1 is infinite width, but without padding
     # -- may only be used for the last column
@@ -605,13 +604,13 @@ def printLog(db, date_from=None, date_to=None):
 
     def printFormatted(output):
         for i in range(len(output)):
-            output[i] = unicode(output[i])
+            output[i] = str(output[i])
             l = len(output[i])
             if columnWidths[i] > 0:
                 output[i] = output[i].ljust(columnWidths[i])
                 if l > columnWidths[i]:
                     output[i] = output[i][0:columnWidths[i] - 3] + "..."
-        print u"|".join(output)
+        print("|".join(output))
     printFormatted(columnTitles)
     previousStates = {}
     for row in cur:
@@ -641,7 +640,7 @@ def printLog(db, date_from=None, date_to=None):
 
         printFormatted(output)
     if date_to:
-        print "showing until {0}".format(untilDate)
+        print("showing until {0}".format(untilDate))
 
 
 def checkIfDeviceExists(db, identifier, subindex):
@@ -651,8 +650,8 @@ def checkIfDeviceExists(db, identifier, subindex):
         cash = CashStorage(db, identifier, readonly=True)
         cash.getState(subindex, allowEmpty=False)
     except NoDataFound:
-        print "Error: Given device or subindex  '{0}.{1}' does not exist in database.".format(identifier, subindex)
-        print "If this is not a typo and the device was never used yet, please use --force-new"
+        print("Error: Given device or subindex  '{0}.{1}' does not exist in database.".format(identifier, subindex))
+        print("If this is not a typo and the device was never used yet, please use --force-new")
         sys.exit(1)
 
 
@@ -667,18 +666,6 @@ def main():
     from docopt import docopt
     arguments = docopt(__doc__, version='cashState.py')
 
-    # Python2.7 fixup: decode UTF8 arguments
-    def decodeUtf8(x):
-        if type(x) == str:
-            return x.decode("utf-8")
-        elif type(x) == list:
-            return map(decodeUtf8, x)
-        else:
-            return x
-
-    for key in arguments.iterkeys():
-        arguments[key] = decodeUtf8(arguments[key])
-
     db = scriptHelper.getDB()
     CashStorage(db, "dummy")  # call constructor to create database if it doesnt exist
 
@@ -686,19 +673,19 @@ def main():
     if arguments['<device>']:
         [identifier, subindex] = splitDeviceName(arguments['<device>'])
         if subindex == "log":
-            print "Writing to the .log subindex is not supported. For adding comments, please add an empty state on another subindex."
+            print("Writing to the .log subindex is not supported. For adding comments, please add an empty state on another subindex.")
             sys.exit(1)
     if arguments['<fromDevice>']:
         [identifierFrom, subindexFrom] = splitDeviceName(arguments['<fromDevice>'])
     if arguments['<toDevice>']:
         [identifierTo, subindexTo] = splitDeviceName(arguments['<toDevice>'])
     if arguments['<comment>']:
-        comment = u" ".join(arguments['<comment>'])
+        comment = " ".join(arguments['<comment>'])
 
     if arguments['help']:
-        print __doc__
+        print(__doc__)
     elif arguments['show']:
-        print CashStorageList(db).statesStr()
+        print(CashStorageList(db).statesStr())
         verifySum(db, printMessage=True)
     elif arguments['set'] or arguments['add'] or arguments['check']:
         cash = CashStorage(db, identifier, readonly=arguments['check'])
@@ -716,17 +703,17 @@ def main():
             try:
                 oldState = cash.getState(subindex, allowEmpty=False)
                 if newState == oldState:
-                    print "Okay, state matches."
+                    print("Okay, state matches.")
                 else:
-                    print "States do not match!"
-                    print "Difference new-current is " + (newState - oldState).toVerboseString()
-                    print "current state: " + oldState.toVerboseString()
-                    print "new state:     " + newState.toVerboseString()
+                    print("States do not match!")
+                    print("Difference new-current is " + (newState - oldState).toVerboseString())
+                    print("current state: " + oldState.toVerboseString())
+                    print("new state:     " + newState.toVerboseString())
             except NoDataFound:
-                print "Error: Given device or subindex does not (yet?) exist in database."
+                print("Error: Given device or subindex does not (yet?) exist in database.")
                 sys.exit(1)
         if not arguments['check']:
-            print "new state is now: " + cash.getStateVerbose(subindex)
+            print("new state is now: " + cash.getStateVerbose(subindex))
             verifySum(db, printMessage=True)
     elif arguments['log']:
         printLog(db, arguments['<fromDate>'], arguments['<untilDate>'])
@@ -735,8 +722,8 @@ def main():
         stateDelta = CashState.fromHumanString(arguments['<stateDelta>'])
         stateDeltaDict = stateDelta.toDict()
         assert len(stateDeltaDict) == 1,  "move supports only exactly one coin type at once"
-        denomination = stateDeltaDict.keys()[0]
-        count = stateDeltaDict.values()[0]
+        denomination = list(stateDeltaDict.keys())[0]
+        count = list(stateDeltaDict.values())[0]
         if not arguments['--force-new']:
             checkIfDeviceExists(db, identifierFrom, subindexFrom)
             checkIfDeviceExists(db, identifierTo, subindexTo)
@@ -752,8 +739,8 @@ def main():
         step = timedelta(0, 3600)
         verifySearch(db, step)
     else:
-        print "option not implemented"
-        print arguments
+        print("option not implemented")
+        print(arguments)
         # if arguments['device']
 
 if __name__ == '__main__':

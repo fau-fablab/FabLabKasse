@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -66,8 +66,8 @@ class MobileAppCartGUI(object):
         if self.parent.shoppingBackend.get_current_order() != None:
             if self.parent.shoppingBackend.get_current_total() != 0:
                 QtGui.QMessageBox.warning(self.parent, "Fehler",
-                                          u"Im Warenkorb am Automat liegen Produkte.\n" +
-                                          u"Bitte zahle zuerst diese Produkte oder lösche sie aus dem Warenkorb.\n")
+                                          "Im Warenkorb am Automat liegen Produkte.\n" +
+                                          "Bitte zahle zuerst diese Produkte oder lösche sie aus dem Warenkorb.\n")
                 return
             self.parent.shoppingBackend.delete_current_order()
 
@@ -96,10 +96,10 @@ class MobileAppCartGUI(object):
             okay = self.checkdiag.exec_()
             okay = okay == 1
         except ProductNotFound:
-            logging.warning(u"error importing cart from app: product not found"
-                            u"Might be caused by outdated cache in the app, "
-                            u"the terminal or somewhere else.")
-            QtGui.QMessageBox.information(self.parent, "Warenkorb", u"Entschuldigung, beim Import ist leider ein Fehler aufgetreten.\n (Produkt nicht gefunden)")
+            logging.warning("error importing cart from app: product not found"
+                            "Might be caused by outdated cache in the app, "
+                            "the terminal or somewhere else.")
+            QtGui.QMessageBox.information(self.parent, "Warenkorb", "Entschuldigung, beim Import ist leider ein Fehler aufgetreten.\n (Produkt nicht gefunden)")
             okay = False
 
         if okay:
@@ -107,11 +107,11 @@ class MobileAppCartGUI(object):
             successful = (self.parent.payup() is True)
         else:
             successful = False
-        print "feedback successful = {0}".format(successful)
+        print("feedback successful = {0}".format(successful))
         self.cart.send_status_feedback(successful)
         if not successful:
             self.parent.shoppingBackend.delete_current_order()
-            QtGui.QMessageBox.information(self.parent, "Info", u"Die Zahlung wurde abgebrochen.")
+            QtGui.QMessageBox.information(self.parent, "Info", "Die Zahlung wurde abgebrochen.")
         return successful
 
     def poll(self):
@@ -119,19 +119,19 @@ class MobileAppCartGUI(object):
         if not self.diag.isVisible():
             # this should not happen, maybe a race-condition
             return
-        logging.debug(u"polling for cart {0}".format(self.cart.cart_id))
+        logging.debug("polling for cart {0}".format(self.cart.cart_id))
         try:
             response = self.cart.load()
         except InvalidCartJSONError:
-            QtGui.QMessageBox.warning(self.parent, "Warenkorb", u"Entschuldigung, beim Import ist leider ein Fehler aufgetreten.\n(Fehlerhafte Warenkorbdaten)")
+            QtGui.QMessageBox.warning(self.parent, "Warenkorb", "Entschuldigung, beim Import ist leider ein Fehler aufgetreten.\n(Fehlerhafte Warenkorbdaten)")
             self.diag.reject()
             return
         except MaximumNumRetriesException:
-            QtGui.QMessageBox.critical(self.parent, "Serverfehler", u"Entschuldigung, dieses Feature ist momentan nicht verfügbar.\n(Server nicht erreichbar oder Antwort fehlerhaft)")
+            QtGui.QMessageBox.critical(self.parent, "Serverfehler", "Entschuldigung, dieses Feature ist momentan nicht verfügbar.\n(Server nicht erreichbar oder Antwort fehlerhaft)")
             self.diag.reject()
             return
         except MissingAPIKeyError:
-            QtGui.QMessageBox.critical(self.parent, "Konfigurationsfehler", u"Entschuldigung, dieses Feature ist momentan nicht verfügbar.\n(API-Key fehlt.)")
+            QtGui.QMessageBox.critical(self.parent, "Konfigurationsfehler", "Entschuldigung, dieses Feature ist momentan nicht verfügbar.\n(API-Key fehlt.)")
             self.diag.reject()
             return
 

@@ -5,4 +5,4 @@
 
 cd "$(dirname $0)"
 cd ../..
-python2.7 -m FabLabKasse.scripts.logWatchAndCleanup
+python3 -m FabLabKasse.scripts.logWatchAndCleanup

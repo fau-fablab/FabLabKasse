@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # list usb-serial devices
@@ -22,11 +22,11 @@ import serial.tools.list_ports
 
 
 def main():
-    print "Listing all serial devices, pick the one you want and use the line in config.ini.\n"
+    print("Listing all serial devices, pick the one you want and use the line in config.ini.\n")
     for (port, name, hwid) in serial.tools.list_ports.comports():
-        print "\ndeviceN_port={0}".format(port)
+        print("\ndeviceN_port={0}".format(port))
         if hwid not in ["n/a", None]:
-            print "or use the permanent URL:\ndeviceN_port=hwgrep://{0}".format(re.escape(hwid))
+            print("or use the permanent URL:\ndeviceN_port=hwgrep://{0}".format(re.escape(hwid)))
 
 
 if __name__ == "__main__":
