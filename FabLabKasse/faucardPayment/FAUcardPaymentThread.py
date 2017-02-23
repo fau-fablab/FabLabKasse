@@ -457,7 +457,7 @@ class FAUcardThread(QtCore.QObject):
                 self.response_ready.emit([Info.con_error])
                 lost = True
 
-            # Abortion of the processs not allowed
+            # Abortion of the process not allowed
             # self.set_cancel_button_enabled.emit(False)
             # Clear cancel Flag if user tried to abort: no abortion allowed after this tep
             QtCore.QCoreApplication.processEvents()
