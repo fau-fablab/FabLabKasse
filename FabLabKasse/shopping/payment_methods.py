@@ -43,7 +43,7 @@ from ..UI.PayupCashDialogCode import PayupCashDialog
 from ..UI.PayupManualDialogCode import PayupManualDialog
 from .. import scriptHelper
 from FabLabKasse.shopping.backend.abstract import DebtLimitExceeded
-
+from FabLabKasse.faucardPayment.faucard import PayupFAUCard, finish_log
 
 class AbstractPaymentMethod(object):
 
@@ -320,6 +320,7 @@ class AutoCashPayment(AbstractPaymentMethod):
 
 
 class FAUCardPayment(AbstractPaymentMethod):
+    "Pay using the FAU-Magnacard using the FauCardPayment-Plugin which is not available to public."
 
     @staticmethod
     def get_title():
@@ -330,9 +331,22 @@ class FAUCardPayment(AbstractPaymentMethod):
         return cfg.getboolean('payup_methods', 'FAUcard')
 
     def _show_dialog(self):
-        QtGui.QMessageBox.warning(self.parent, "", "Not yet implemented")
-        self.amount_paid = 0
+        pay_func = PayupFAUCard(parent=self.parent, amount=self.amount_to_pay)
+
+        self.successful = pay_func.executePayment()
+        self.amount_paid= pay_func.getPaidAmount()
+        self.print_receipt = pay_func.getWantReceipt()
         self.amount_returned = 0
-        self.successful = False
+
+        pay_func.close()
+
+    def _end_of_payment(self):
+        """
+        Is required to complete the MagPosLog logging after the payment routine.
+        On a successful payment, the last log entry will be set to status.booking_done
+        """
+        if self.successful:
+            finish_log()
+
 
 PAYMENT_METHODS = [FAUCardPayment, AutoCashPayment, ManualCashPayment, ClientPayment]
