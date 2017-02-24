@@ -18,5 +18,3 @@
 # see <http://www.gnu.org/licenses/>.
 
 
-from dinterface import *
-

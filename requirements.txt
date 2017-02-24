@@ -25,3 +25,6 @@ argcomplete
 
 # doc
 sphinx_rtd_theme
+
+#faucardpayment
+enum
