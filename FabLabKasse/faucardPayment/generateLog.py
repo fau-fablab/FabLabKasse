@@ -33,6 +33,8 @@ def verify_sum(curKb, start, end, magposSum):
     try:
         curKb.execute("SELECT betrag FROM buchung WHERE konto = 'FAUKarte' AND datum BETWEEN ? AND ? ",(start, end));
         for row in curKb.fetchall():
+            if Decimal(row[0]) < 0: # STORNO can only be due to testing -> ignore
+                continue;
             kbSumme += Decimal(row[0]).quantize(Decimal('.01'));
 
         if kbSumme != magposSum:
