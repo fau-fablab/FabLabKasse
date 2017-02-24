@@ -16,6 +16,15 @@ def valid_date(s):
         msg = "Not a valid date: '{0}'.".format(s)
         raise argparse.ArgumentTypeError(msg)
 
+def dummy_cards(s):
+    ''' Returns a list of card numbers to ignore'''
+    try:
+        return s.split("|")
+    except ValueError:
+        msg = "Not valid card numbers: '{0}'.".format(s)
+        raise argparse.ArgumentTypeError(msg)
+
+
 def verify_sum(curKb, start, end, magposSum):
     ''' Checks wether the sum from the MagPosLog equals the Sum in Kassenbuch.
         Possible Failures are a missing transaction in the Kassenbuch if Kasse crashed
@@ -48,7 +57,8 @@ if __name__ == '__main__':
     parser.add_argument('-e', "--enddate", help = "The End Date - format YYYY-MM-DD_HH:MM:SS", required=False, type=valid_date)
     parser.add_argument('-o', "--outputpath", help="Output path of csv and summary, e.g. /usr/var/test -> test.csv, testsummary.txt", required=True)
     parser.add_argument('-k', "--kassenbuch", help="Kassenbuch to build log from", required=True)
-    parser.add_argument('-d', "--detail", help="Enables the output of an detailed CSV containing the single positions per Rechnung", const=True, default=False, nargs = '?' )
+    parser.add_argument('-i', "--ignore", help="Ingores the given card numbers", required = False, type=dummy_cards);
+    parser.add_argument('-d', "--detail", help="Enables the output of an detailed CSV containing the single positions per Rechnung", const=True, default=False, nargs = '?')
 
     try:
         args = parser.parse_args()
@@ -64,6 +74,12 @@ if __name__ == '__main__':
     startdate = args.startdate
     enddate = args.enddate
     summe = Decimal(0)
+    ignored = Decimal(0)
+
+    if args.ignore:
+        for card in args.ignore:
+            print "Ignoring card number: {}".format(card);
+
 
     #cfg = scriptHelper.getConfig()
 
@@ -123,7 +139,10 @@ if __name__ == '__main__':
             # Write CSV-Line
             line = u"{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}\n".format(seperator, timestamp.strftime("%d-%m-%Y %H:%M:%S"), row[1], row[2], row[3], row[4], rechnungsnr)
             # print "{0} - {1} - {2}".format(row[3], Decimal(row[3]), Decimal(row[3]).quantize(Decimal('.01')))
-            summe += Decimal(row[3]).quantize(Decimal('.01'))   # increment Sum for summary
+            if "{}".format(row[1]) in args.ignore:
+                ignored += Decimal(row[3]).quantize(Decimal('.01'))   # increment Sum for verify
+            else:
+                summe += Decimal(row[3]).quantize(Decimal('.01'))   # increment Sum for summary
             rechnungsliste += [rechnungsnr]                     # add rechnungs nr.
             outputfile.write(line.encode('utf-8'))
 
@@ -155,7 +174,8 @@ if __name__ == '__main__':
         outputfile.write(u"Abrechnungszeitraum: {0} bis {1}\n".format(firstdate.strftime("%d-%m-%Y %H:%M:%S"), lastdate.strftime("%d-%m-%Y %H:%M:%S")))
         outputfile.write(u"Seriennummer der MagnaBox: MB211475\n")#.format(cfg.get('magna_carta', 'serial')))
         outputfile.write(u"Der anfallende Betrag betraegt: {0}\n".format(summe))
-        if verify_sum(curKb, startdate, enddate, summe):
+        outputfile.write(u"Testkarten: {}\n".format(", ".join(args.ignore)))
+        if verify_sum(curKb, startdate, enddate, summe+ignored):
             outputfile.write(u"Der Betrag im MagposLog entspricht dem im Kassenbuch: JA\n");
         else:
             outputfile.write(u"Der Betrag im MagposLog entspricht dem im Kassenbuch: NEIN\n");
