@@ -31,7 +31,7 @@ def verify_sum(curKb, start, end, magposSum):
         after payment'''
     kbSumme = Decimal(0);
     try:
-        curKb.execute("SELECT betrag FROM buchung WHERE konto = 'MagnaCarta' AND datum BETWEEN ? AND ? ",(start, end));
+        curKb.execute("SELECT betrag FROM buchung WHERE konto = 'FAUKarte' AND datum BETWEEN ? AND ? ",(start, end));
         for row in curKb.fetchall():
             kbSumme += Decimal(row[0]).quantize(Decimal('.01'));
 
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     parser.add_argument('-e', "--enddate", help = "The End Date - format YYYY-MM-DD_HH:MM:SS", required=False, type=valid_date)
     parser.add_argument('-o', "--outputpath", help="Output path of csv and summary, e.g. /usr/var/test -> test.csv, testsummary.txt", required=True)
     parser.add_argument('-k', "--kassenbuch", help="Kassenbuch to build log from", required=True)
-    parser.add_argument('-i', "--ignore", help="Ingores the given card numbers", required = False, type=dummy_cards);
+    parser.add_argument('-i', "--ignore", help="Ingores the given card numbers", required = False, type=dummy_cards, default= []);
     parser.add_argument('-d', "--detail", help="Enables the output of an detailed CSV containing the single positions per Rechnung", const=True, default=False, nargs = '?')
 
     try:
@@ -124,7 +124,7 @@ if __name__ == '__main__':
                 lastdate = timestamp
 
             # Determine corresponding rechnung
-            curKb.execute("SELECT rechnung FROM buchung WHERE konto = 'MagnaCarta' AND (betrag = ? OR betrag = ?) AND datum BETWEEN ? AND ? ",(unicode(row[3]), "{:.3f}".format(row[3]), timestamp, timestamp + timedelta(seconds=20)))
+            curKb.execute("SELECT rechnung FROM buchung WHERE konto = 'FAUKarte' AND (betrag = ? OR betrag = ?) AND datum BETWEEN ? AND ? ",(unicode(row[3]), "{:.3f}".format(row[3]), timestamp, timestamp + timedelta(seconds=20)))
             safetyCounter = 0
             rechnungsnr = -1
 
@@ -171,7 +171,7 @@ if __name__ == '__main__':
 
         # Write Summary file
         outputfile.write(u"Abrechnung bargeldloser Umsaetze - Akzeptanzstelle FAU FabLab\n")
-        outputfile.write(u"Abrechnungszeitraum: {0} bis {1}\n".format(firstdate.strftime("%d-%m-%Y %H:%M:%S"), lastdate.strftime("%d-%m-%Y %H:%M:%S")))
+        outputfile.write(u"Abrechnungszeitraum: {0} bis {1}\n".format(startdate.strftime("%d-%m-%Y %H:%M:%S"), enddate.strftime("%d-%m-%Y %H:%M:%S")))
         outputfile.write(u"Seriennummer der MagnaBox: MB211475\n")#.format(cfg.get('magna_carta', 'serial')))
         outputfile.write(u"Der anfallende Betrag betraegt: {0}\n".format(summe))
         outputfile.write(u"Testkarten: {}\n".format(", ".join(args.ignore)))

@@ -300,16 +300,17 @@ class FAUcardThread(QtCore.QObject):
         :param con: database connection
         :type con: sqlite3.Connection
         """
+        cfg = scriptHelper.getConfig()
         value = [False]
         try:
-            pos = magpos.MagPOS(self.cfg.get('magna_carta', 'device_port'))
+            pos = magpos.MagPOS(cfg.get('magna_carta', 'device_port'))
             if pos.start_connection() is True:
                 value = pos.get_last_transaction_result()
                 pos.response_ack()
             pos.close()
         except (magpos.serial.SerialException, magpos.ConnectionTimeoutError):
             logging.error("CheckTransaction: Magnabox COM-Port '{}', serial malfunction".format(
-                          self.cfg.get('magna_carta', 'device_port')))
+                          cfg.get('magna_carta', 'device_port')))
             return False
         except magpos.ResponseError as e:
             logging.error("CheckTransaction: {}".format(e))
