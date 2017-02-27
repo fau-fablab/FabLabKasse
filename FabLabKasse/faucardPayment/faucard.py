@@ -12,7 +12,7 @@ from decimal import Decimal
 from PyQt4 import QtCore, Qt, QtGui
 
 from MagPosLog import MagPosLog
-from FAUcardPaymentDialogCode import FAUcardPaymentDialog
+from ..UI.FAUcardPaymentDialogCode import FAUcardPaymentDialog
 from FAUcardPaymentThread import FAUcardThread
 from faucardStates import Status, Info
 
@@ -51,9 +51,9 @@ class PayupFAUCard(QtCore.QObject):
         success = self.dialog.exec_()
 
         if success == Qt.QDialog.Accepted:
-            receipt = QtGui.QMessageBox.question(self.parent(), u'FaucardPayment', u'Brauchst du eine Rechnung?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-            if receipt == QtGui.QMessageBox.Yes:
-                self.want_receipt = True
+        #    receipt = QtGui.QMessageBox.question(self.parent(), u'FaucardPayment', u'Brauchst du eine Rechnung?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+        #    if receipt == QtGui.QMessageBox.Yes:
+        #        self.want_receipt = True
             return True
         else:
             # Wait for thread to finish cleanup

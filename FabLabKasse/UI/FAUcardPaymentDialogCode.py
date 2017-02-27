@@ -5,12 +5,12 @@
 
 import logging
 from PyQt4 import QtGui, QtCore, Qt
-import FAUcardPaymentDialog
+from .uic_generated.FAUcardPaymentDialog import Ui_FAUcardPaymentDialog
 
-from faucardStates import Status, Info
+from ..faucardPayment.faucardStates import Status, Info
 
 
-class FAUcardPaymentDialog(QtGui.QDialog, FAUcardPaymentDialog.Ui_FAUcardPaymentDialog):
+class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
     """
     The FAUcardPaymentDialog works as the GUI for the FAUcardThread. It informs the user about the current state
     of the payment process and gives the ability to hold and cancel the FAUcardThread. The process waits after each
