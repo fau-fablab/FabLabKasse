@@ -152,7 +152,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
             # Successfully decreased: Inform the user the payment is done and close after 2 seconds
             elif response[0] == Status.decreasing_done:
                 self.utimer.stop()
-                self.label_status.setText(u'Zahlung erfolgreich\n')
+                self.label_status.setText(u"Vielen Dank für deine Zahlung von {:.2f}.\nBitte das Aufräumen nicht vergessen!".format(self.amount))
                 self.utimer.singleShot(5000, self.accept)
                 self.response_ack.emit(False)
                 self.pushButton_abbrechen.hide()

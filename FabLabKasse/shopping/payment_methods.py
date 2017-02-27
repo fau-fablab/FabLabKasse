@@ -133,7 +133,8 @@ class AbstractPaymentMethod(object):
         You can safely override this with an empty method if you don't want
         this extra thank-you dialog.
         """
-        QtGui.QMessageBox.information(self.parent, "", u"Vielen Dank für deine Zahlung von {0}.\nBitte das Aufräumen nicht vergessen!".format(self.shopping_backend.format_money(self.amount_paid - self.amount_returned)))
+        pass
+        #QtGui.QMessageBox.information(self.parent, "", u"Vielen Dank für deine Zahlung von {0}.\nBitte das Aufräumen nicht vergessen!".format(self.shopping_backend.format_money(self.amount_paid - self.amount_returned)))
 
     @staticmethod
     def is_enabled(cfg):
