@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-from PyQt4 import Qt, QtGui
+from PyQt4 import Qt, QtGui, QtCore
 from .uic_generated.PaymentMethodDialog import Ui_PaymentMethodDialog
 from ..shopping.payment_methods import PAYMENT_METHODS
 import functools
@@ -38,11 +38,23 @@ class PaymentMethodDialog(QtGui.QDialog, Ui_PaymentMethodDialog):
             self.layout_methods.itemAt(i).widget().deleteLater()
 
         # select available methods (according to config file)
+        first_button = True
         for method in PAYMENT_METHODS:
             button = Qt.QPushButton(method.get_title())
             button.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-            button.clicked.connect(functools.partial(self.acceptAndSetMethod, method))  # cannot use lambda here because variable method will change in next iteration... python is counterintuitive here....
+            # cannot use lambda here because the variable 'method' will change
+            # in the next iteration... python is counterintuitive here....
+            button.clicked.connect(functools.partial(self.acceptAndSetMethod, method))
             button.setVisible(method.is_enabled(self.cfg))
+
+            # highlight the first choice with bold font
+            if first_button:
+                font = button.font()
+                font.setWeight(QtGui.QFont.Bold)
+                button.setFont(font)
+                button.setDefault(True)
+                first_button = False
+
             self.layout_methods.addWidget(button)
 
         self.label_betrag.setText(self.parent().shoppingBackend.format_money(amount))

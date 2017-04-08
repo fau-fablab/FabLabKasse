@@ -307,7 +307,7 @@ class AutoCashPayment(AbstractPaymentMethod):
 
     @staticmethod
     def get_title():
-        return "Bargeld (Automatenkasse)"
+        return "Bargeld"
 
     def _show_dialog(self):
         pay_diag = PayupCashDialog(parent=self.parent,
