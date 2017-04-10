@@ -192,7 +192,7 @@ class Rechnung(object):
                          unicode(pos['einzelpreis']), pos['produkt_ref']))
             pos['id'] = cur.lastrowid
 
-    def receipt(self, zahlungsart="BAR", header="", footer="", export=False):
+    def receipt(self, header="", footer="", export=False):
         r = u''
         if export:
             separator = ' '
@@ -227,7 +227,7 @@ class Rechnung(object):
             # Insert double line
             r += u'=' * 42 + '\n'
 
-            r += u'{0:<28}  EUR {1:>7} \n\n'.format(zahlungsart, moneyfmt(self.summe))
+            r += u'{0:<28}  EUR {1:>7} \n\n'.format("Gezahlt", moneyfmt(self.summe))
 
             # Add Footer
             for l in footer.split('\n'):
@@ -235,7 +235,7 @@ class Rechnung(object):
 
         return r
 
-    def print_receipt(self, cfg, zahlungsart="BAR"):
+    def print_receipt(self, cfg):
         printer = escpos_printer.Network(cfg.get('receipt', 'host'),
                                          cfg.getint('receipt', 'port'))
         printer.image(cfg.get('receipt', 'logo'))
