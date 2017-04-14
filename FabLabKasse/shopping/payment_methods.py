@@ -337,7 +337,6 @@ class FAUCardPayment(AbstractPaymentMethod):
         self.print_receipt = print_receipt == QtGui.QMessageBox.Yes;
         self.successful = pay_func.executePayment()
         self.amount_paid= pay_func.getPaidAmount()
-        self.print_receipt = False;
         self.amount_returned = 0
 
         pay_func.close()
