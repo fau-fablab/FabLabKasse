@@ -332,17 +332,9 @@ class FAUCardPayment(AbstractPaymentMethod):
         return cfg.getboolean('payup_methods', 'FAUcard')
 
     def _show_dialog(self):
-        isNoReceiptOk = QtGui.QMessageBox.question(self.parent, u"FAUCardPayment", u"Benötigst du eine Quittung?", QtGui.QMessageBox.Yes, QtGui.QMessageBox.No);
-        if isNoReceiptOk == QtGui.QMessageBox.Yes:
-            QtGui.QMessageBox.information(self.parent, u"FAUCardPayment", u"Leider ist eine Quittung bei Zahlung mit der FAU-Karte nicht möglich. Bitte weichen Sie auf Bargeldzahlung aus.");
-            self.successful = False;
-            self.amount_paid = Decimal(0);
-            self.amount_returned = Decimal(0);
-            self.print_receipt = False;
-            return;
-        
         pay_func = PayupFAUCard(parent=self.parent, amount=self.amount_to_pay)
-
+        print_receipt = QtGui.QMessageBox.question(self.parent, u"FAUCardPayment", u"Benötigst du eine Quittung?", QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+        self.print_receipt = print_receipt == QtGui.QMessageBox.Yes;
         self.successful = pay_func.executePayment()
         self.amount_paid= pay_func.getPaidAmount()
         self.print_receipt = False;
