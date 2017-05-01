@@ -29,6 +29,9 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
     def __init__(self, parent, amount_total, cfg):
         """
         payment method dialog for automatic cash payin and payout
+        :param parent: parent widget passed on to QtGui.QDialog
+        :param amount_total: amount to pay
+        :type amount_total: Decimal
         :param cfg: config from ScriptHelper.getConfig()
         """
         QtGui.QDialog.__init__(self, parent)
@@ -49,6 +52,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
         self.pushButton_acceptLowPayout.setVisible(False)
         self.pushButton_receipt.setVisible(False)
         self.pushButton_receipt.clicked.connect(self.accept_and_print_receipt)
+        assert isinstance(amount_total,  Decimal)
         assert amount_total % Decimal("0.01") == 0
         self.centsToPay = int(100 * amount_total)
         self.centsToPayOut = None

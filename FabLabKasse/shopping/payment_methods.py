@@ -57,10 +57,10 @@ class AbstractPaymentMethod(object):
     __metaclass__ = ABCMeta
 
     def __init__(self, parent, shopping_backend, amount_to_pay, cfg):
-
         self.parent = parent
         self.shopping_backend = shopping_backend
         self.amount_to_pay = amount_to_pay
+        assert isinstance(amount_to_pay,  Decimal)
         self.cfg = cfg
         self.successful = None
         self.amount_paid = None
@@ -172,6 +172,8 @@ class AbstractPaymentMethod(object):
           If possible, only override _show_dialog and not this method.
         """
         self._show_dialog()
+        assert isinstance(self.amount_paid,  (Decimal,  int))
+        assert isinstance(self.amount_returned,  (Decimal,  int))
         assert self.amount_paid >= self.amount_returned
         if self.successful:
             assert self.amount_paid >= self.amount_to_pay
