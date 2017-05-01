@@ -36,18 +36,15 @@ import re
 import subprocess
 import dateutil.parser
 import datetime
-from ..scriptHelper import FileLock
 
 
 def main():
-    runOnlyOnce = FileLock("./logWatchAndCleanup.lock")
-
     os.chdir(os.path.dirname(os.path.realpath(__file__)) + "/../")
 
     def isWarningLine(line):
-        return "ERROR" in line or "WARN" in line
+        return "CRITICAL" in line or "ERROR" in line or "WARN" in line
 
-    MAX_ERRORS_PER_LOG = 100
+    MAX_ERRORS_PER_LOG = 1000
     LOG_MAX_AGE = 14  # after how many days will the log be deleted
     errorLines = {}
     # gzip all old logfiles blafu.log.2014-12-24
@@ -61,7 +58,6 @@ def main():
                 # print("cleaning up: "+f)
                 os.unlink(f)
         if isOldUnzippedLog or isNewLog:
-            errorLinesCounter = 0
             for line in open(f, "r"):
                 if isWarningLine(line):
                     if f not in errorLines:
