@@ -34,13 +34,13 @@ class MagPosLog:
         self.payed = False
         self.cur = cur
         self.con = con
-        self.amount = float(amount)
+        self.amount = amount
         self.timestamp_payed = None
         self.oldbalance = 0
         self.newbalance = 0
 
         # Create table if it does not exist
-        self.cur.execute("CREATE TABLE IF NOT EXISTS MagPosLog(id INTEGER PRIMARY KEY AUTOINCREMENT, datum, cardnumber INT, amount FLOAT, oldbalance INT, newbalance INT, timestamp_payed, status INT, info INT, payed)")
+        self.cur.execute("CREATE TABLE IF NOT EXISTS MagPosLog(id INTEGER PRIMARY KEY AUTOINCREMENT, datum, cardnumber INT, amount TEXT, oldbalance INT, newbalance INT, timestamp_payed, status INT, info INT, payed)")
         con.commit()
 
     def set_status(self, new_status, new_info=Info.OK):
@@ -125,7 +125,7 @@ class MagPosLog:
         # Grab ID if instance has none
         if self.id is 0 or self.id is None:
             self.cur.execute("INSERT INTO MagPosLog (cardnumber, amount, datum, status, info, payed) VALUES (?,?,?,?,?,?)",
-                         (self.cardnumber, self.amount, datetime.now(), self.status, self.info, self.payed))
+                         (self.cardnumber, unicode(self.amount), datetime.now(), self.status, self.info, self.payed))
             self.cur.execute("SELECT id from MagPosLog ORDER BY id DESC LIMIT 1")
             temp = self.cur.fetchone()
 
@@ -135,7 +135,7 @@ class MagPosLog:
 
         # Update Database entry
         self.cur.execute("UPDATE MagPosLog SET cardnumber = ?, amount = ?, datum = ?, status = ?, info = ?, payed = ? WHERE id = ?",
-                         (self.cardnumber, self.amount, datetime.now(), self.status, self.info, self.payed, self.id))
+                         (self.cardnumber, unicode(self.amount), datetime.now(), self.status, self.info, self.payed, self.id))
         self.con.commit()
 
     @staticmethod
@@ -157,6 +157,6 @@ class MagPosLog:
             info = new_info.value
 
         cur.execute("INSERT INTO MagPosLog (cardnumber, amount, datum, status, info, payed) VALUES (?,?,?,?,?,?)",
-                    (kartennummer, betrag, datetime.now(),
+                    (kartennummer, unicode(betrag), datetime.now(),
                      Status.transaction_result.value, info, info == Info.transaction_ok.value))
         con.commit()

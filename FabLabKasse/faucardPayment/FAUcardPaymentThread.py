@@ -320,13 +320,13 @@ class FAUcardThread(QtCore.QObject):
 
         if value[0] is magpos.codes.OK:  # Last transaction was successful
             logging.warning("CheckTransaction: Kassenterminal vor erfolgreicher Buchung abgestürzt.")
-            MagPosLog.save_transaction_result(cur, con, value[1], float(value[2])/100, Info.transaction_ok.value)
-            logging.warning(u"CheckTransaction: Buchung für Karte {0} über Betrag {1:.2f}€ fehlt".format(value[1], float(value[2])/100))
+            MagPosLog.save_transaction_result(cur, con, value[1], Decimal(value[2])/100, Info.transaction_ok.value)
+            logging.warning(u"CheckTransaction: Buchung für Karte {0} über Betrag {1} EURCENT fehlt".format(value[1], value[2]) )
         elif value[0] is 0 and value[1] is 0 and value[2] is 0:  # Last transaction was acknowledged
             return True
         else:  # Failure during last transaction
             logging.warning("CheckTransaction: Letzter Bezahlvorgang nicht erfolgreich ausgeführt.")
-            MagPosLog.save_transaction_result(cur, con, value[1], float(value[2])/100, Info.transaction_error.value)
+            MagPosLog.save_transaction_result(cur, con, value[1], Decimal(value[2])/100, Info.transaction_error.value)
 
         return True
 
