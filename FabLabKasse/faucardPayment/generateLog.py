@@ -4,8 +4,22 @@ from datetime import datetime, timedelta
 import sqlite3
 import codecs
 from decimal import Decimal
-
 #from FabLabKasse import scriptHelper
+
+
+def query_yes_no():
+    """Ask a yes/no question via raw_input() and return the boolean representation.
+    
+    The return value is True for "yes" or False for "no".
+    """
+    truthtable = {"yes": True, "y": True, "no": False, "n": False}
+    while True:
+        choice = raw_input().lower()
+        if choice in truthtable:
+            return truthtable[choice]
+        else:
+            print("\nPlease respond with 'yes' or 'no' "
+                             "(or 'y' or 'n').\n")
 
 
 def valid_date(s):
@@ -73,8 +87,8 @@ if __name__ == '__main__':
         print "Please check if all arguments are valid"
         raise
 
-    startdate = args.startdate
-    enddate = args.enddate
+    startdate = args.startdate + timedelta(milliseconds=0)
+    enddate = args.enddate+ timedelta(microseconds=999999)	# Assure that the full second is being included
     summe = Decimal(0)
     ignored = Decimal(0)
 
@@ -91,7 +105,7 @@ if __name__ == '__main__':
         con = sqlite3.connect(args.file)
         cur = con.cursor()
         con.text_factory = unicode
-        cur.execute("SELECT timestamp_payed, cardnumber, oldbalance, amount, newbalance,  datum FROM MagPosLog WHERE timestamp_payed >= ? AND timestamp_payed <= ? ORDER BY timestamp_payed ASC",(startdate, enddate))
+        cur.execute("SELECT timestamp_payed, cardnumber, oldbalance, amount, newbalance,  datum, ID FROM MagPosLog WHERE timestamp_payed >= ? AND timestamp_payed <= ? ORDER BY timestamp_payed ASC",(startdate, enddate))
 
 
         conKb = sqlite3.connect(args.kassenbuch)
@@ -111,13 +125,17 @@ if __name__ == '__main__':
         outputfile.write(u",,,,,\n")
 
         firstdate = None
+        firstbooking = None
         lastdate = None
+        lastbooking = None
         rechnungsliste = []
+        nonbookedlist = []
 
         counter = 0
         # Write one row for each row in database
         for row in cur.fetchall():
             timestamp = datetime.strptime(row[0].split(".")[0],"%Y-%m-%d %H:%M:%S")
+            amount = Decimal(row[3]).quantize(Decimal('.01'))
 
             if counter == 0:
                 firstdate = timestamp
@@ -126,7 +144,7 @@ if __name__ == '__main__':
                 lastdate = timestamp
 
             # Determine corresponding rechnung
-            curKb.execute("SELECT rechnung FROM buchung WHERE konto = 'FAUKarte' AND (betrag = ? OR betrag = ?) AND datum BETWEEN ? AND ? ",(unicode(row[3]), "{:.3f}".format(row[3]), timestamp, timestamp + timedelta(seconds=20)))
+            curKb.execute("SELECT rechnung, datum FROM buchung WHERE konto = 'FAUKarte' AND (abs(betrag - ?) < 1e-4) AND datum BETWEEN ? AND ? ",(unicode(amount), timestamp, timestamp + timedelta(seconds=20)))
             safetyCounter = 0
             rechnungsnr = -1
 
@@ -135,19 +153,40 @@ if __name__ == '__main__':
                 rechnungsnr = rowKb[0]
 
             # There should only be one result. Otherwise throw exception.
-            assert safetyCounter == 1, \
-                "Query for amount {0} at timestamp {1} failed.".format(row[3], timestamp);
+            if safetyCounter == 0:
+                print "An Error occured: Query for amount {0} at timestamp {1} failed. Please verify that proceeding is ok! (y/n)\n".format(unicode(amount), timestamp);
+                if query_yes_no() == False:	# Abort if choice
+                    print "Cancled log generation";
+                    outputfile.close();
+                    con.close();
+                    quit();
+                nonbookedlist.append("ID: {0}, Card: {1}, timestamp: {2}, amount: {3}".format( row[6],row[1],timestamp,unicode(amount) ) ) # append log for this error
+                    
+
+            # Abort if multiple found
+            assert safetyCounter <= 1, \
+                "Query for amount {0} at timestamp {1} failed. Found multiple.".format(row[3], timestamp);
 
             # Write CSV-Line
             line = u"{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}\n".format(seperator, timestamp.strftime("%d-%m-%Y %H:%M:%S"), row[1], row[2], row[3], row[4], rechnungsnr)
             # print "{0} - {1} - {2}".format(row[3], Decimal(row[3]), Decimal(row[3]).quantize(Decimal('.01')))
-            if "{}".format(row[1]) in args.ignore:
-                ignored += Decimal(row[3]).quantize(Decimal('.01'))   # increment Sum for verify
+            if ("{}".format(row[1]) in args.ignore): # ignore the sum if testcard 
+                ignored += amount   # increment Sum for verify
+            elif  safetyCounter == 0:   # or as it will not show up in the booking
+                summe += amount   # add to summe as it needs to be in the invoice
+                ignored -= amount # remove from ignored to have it added to the KBsum to match up
             else:
-                summe += Decimal(row[3]).quantize(Decimal('.01'))   # increment Sum for summary
-            rechnungsliste += [rechnungsnr]                     # add rechnungs nr.
+                summe += amount   # increment Sum for summary
+            
             outputfile.write(line.encode('utf-8'))
-
+            
+            if safetyCounter == 0: 	# need to skip last action as no rechnungsnr found
+                continue
+            if firstbooking is None:
+                firstbooking = datetime.strptime(rowKb[1],"%Y-%m-%d %H:%M:%S.%f"); 
+            lastbooking = datetime.strptime(rowKb[1],"%Y-%m-%d %H:%M:%S.%f");
+            rechnungsliste += [rechnungsnr]                     # add rechnungs nr.
+            
         # Close magposlog csv file
         outputfile.close()
 
@@ -177,15 +216,22 @@ if __name__ == '__main__':
         outputfile.write(u"Seriennummer der MagnaBox: MB211475\n")#.format(cfg.get('magna_carta', 'serial')))
         outputfile.write(u"Der anfallende Betrag betraegt: {0}\n".format(summe))
         outputfile.write(u"Testkarten: {}\n".format(", ".join(args.ignore)))
-        if verify_sum(curKb, startdate, enddate, summe+ignored):
+        if verify_sum(curKb, firstbooking, lastbooking, summe+ignored):
             outputfile.write(u"Der Betrag im MagposLog entspricht dem im Kassenbuch: JA\n");
         else:
             outputfile.write(u"Der Betrag im MagposLog entspricht dem im Kassenbuch: NEIN\n");
             print "VERIFY SUM FAILED";
 
+        if nonbookedlist != []:
+            outputfile.write(u"Some Payments were not booked:\n");
+            nb_cnt = 1;
+            for payment in nonbookedlist:
+                outputfile.write(u"{0} {1}\n".format(nb_cnt, payment));
+                nb_cnt = nb_cnt+1; 
+        print u"Ignored {} EUR (negative means missing bookings)".format(unicode(ignored));
     except IOError as e:
         print "ERROR: Saving CSV and / or Summary failed"
         print "IOERROR: {0}".format(e)
         raise
 
-
+ 	
