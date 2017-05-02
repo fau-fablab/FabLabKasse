@@ -11,6 +11,7 @@ from datetime import datetime
 
 from faucardStates import Status, Info
 from MagPosLog import MagPosLog
+from ..shopping.backend.abstract import float_to_decimal
 
 
 try:                    # Test if interface is available
@@ -78,7 +79,8 @@ class FAUcardThread(QtCore.QObject):
         self.card_number = 0
         self.old_balance = 0
         self.new_balance = 0
-        self.amount = int(amount * 100)
+        self.amount = amount
+        self.amount_cents = int(float_to_decimal(amount * 100, 0))		# Floating point precision causes error -> round with float_to_decimal.
         self.cancel = False
         self.ack = False
         self.sleep_counter = 0
@@ -218,7 +220,7 @@ class FAUcardThread(QtCore.QObject):
         self.con = sqlite3.connect(self.cfg.get('magna_carta', 'log_file'))
         self.cur = self.con.cursor()
         self.con.text_factory = unicode
-        self.log = MagPosLog(float(self.amount)/100, self.cur, self.con)
+        self.log = MagPosLog(self.amount, self.cur, self.con)
 
         try:
             # 1. Check last Transaction
@@ -392,7 +394,7 @@ class FAUcardThread(QtCore.QObject):
                     raise e
 
         # 4. Check if enough balance on card
-        if old_balance < self.amount:
+        if old_balance < self.amount_cents:
             raise self.BalanceUnderflowError()
 
         # Update GUI and wait for response
@@ -403,7 +405,7 @@ class FAUcardThread(QtCore.QObject):
 
     def _decrease_balance(self):
         """
-        Decreases card balance by self.amount by following steps:
+        Decreases card balance by self.amount_cents by following steps:
         1. Try to decrease balance
          -> a: Successful
             2. Continue with step 5
@@ -440,7 +442,7 @@ class FAUcardThread(QtCore.QObject):
             # 1. Try to decrease balance
             try:
                 self.check_user_abort("decreasing balance: User Aborted")  # Will only be executed if decrease command has not yet been executed
-                value = self.pos.decrease_card_balance_and_token(self.amount, self.card_number)
+                value = self.pos.decrease_card_balance_and_token(self.amount_cents, self.card_number)
 
             # Catch ResponseError if not Card on Reader and retry
             except magpos.ResponseError as e:
@@ -492,12 +494,12 @@ class FAUcardThread(QtCore.QObject):
                 self.response_ready.emit([Info.con_back])
 
                 # 3. Check last payment details
-                if value[1] == self.card_number and value[2] == self.amount:
+                if value[1] == self.card_number and value[2] == self.amount_cents:
                     if value[0] == magpos.codes.OK:
                         # 3.a The payment was successfully executed
                         value[0] = value[1]
                         value[1] = self.old_balance
-                        value[2] = self.old_balance - self.amount
+                        value[2] = self.old_balance - self.amount_cents
                         break
                     else:
                         # 3.b The payment aborted on error
@@ -511,13 +513,13 @@ class FAUcardThread(QtCore.QObject):
                     continue
 
         # 5. Check if payment was correct and log it
-        if value[0] == self.card_number and value[1] == self.old_balance and (value[2]+self.amount) == self.old_balance:
+        if value[0] == self.card_number and value[1] == self.old_balance and (value[2]+self.amount_cents) == self.old_balance:
             self.status = Status.decreasing_done
             self.info = Info.OK
             self.log.set_status(self.status, self.info)
             new_balance = value[2]
         else:
-            raise magpos.TransactionError(value[0], value[1], value[2], self.amount)
+            raise magpos.TransactionError(value[0], value[1], value[2], self.amount_cents)
 
 
         self.timestamp_payed = datetime.now()

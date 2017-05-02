@@ -30,7 +30,7 @@ class PayupFAUCard(QtCore.QObject):
         assert isinstance(amount, (Decimal, float)), "PayupFAUCard: Amount to pay not Decimal or float"
         assert amount > 0, "PayupFAUCard: amount is negativ"
 
-        self.amount = float(amount)
+        self.amount = amount
         self.thread = QtCore.QThread()
         self.dialog = FAUcardPaymentDialog(parent=parent, amount=self.amount)
         self.dialog.request_termination.connect(self.threadTerminationRequested, type= QtCore.Qt.DirectConnection)
