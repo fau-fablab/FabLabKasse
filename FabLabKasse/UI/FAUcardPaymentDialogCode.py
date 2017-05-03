@@ -8,6 +8,8 @@ from PyQt4 import QtGui, QtCore, Qt
 from .uic_generated.FAUcardPaymentDialog import Ui_FAUcardPaymentDialog
 
 from ..faucardPayment.faucardStates import Status, Info
+from ..shopping.backend.abstract import float_to_decimal
+from decimal import Decimal
 
 
 class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
@@ -35,9 +37,11 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
         logging.info("FAUcardPayment: started")
         self.setupUi(self)
 
+        assert isinstance(amount, (Decimal,float)), "PayupFAUCard: Amount to pay not Decimal or float"
+        
         # Set up member variables and fill GUI
-        self.amount = amount
-        self.label_betrag.setText(u'{:.2f} €'.format(self.amount).replace('.', ','))
+        self.amount = float_to_decimal(amount,2)
+        self.label_betrag.setText(u'{} €'.format(unicode(self.amount)).replace('.', ','))
         self.label_status.setText(u'Starte FAUcard-Zahlung\n')
         self.counter = 0
         self.thread_aborted = False
@@ -132,7 +136,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
                 return
             # Inform the user about the reestablished connection to the MagnaBox
             elif response[0] == Info.con_back:
-                self.label_status.setText(u'Verbindung zum Terminal wieder da.\nBuche {:.2f}€ ab\n'.format(self.amount).replace('.', ','))
+                self.label_status.setText(u'Verbindung zum Terminal wieder da.\nBuche {}€ ab\n'.format(unicode(self.amount)).replace('.', ','))
                 logging.warning("FAUcardPayment: Verbindung zur MagnaBox wieder aufgebaut.")
                 return
 
@@ -147,12 +151,12 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
                 self.response_ack.emit(False)
             # Card and Balance read: Check if balance is enough and inform user the balance will be decreased
             elif response[0] == Status.decreasing_balance:  # Card and Balance recognized
-                self.label_status.setText(u'Buche {:.2f}€ ab\n'.format(self.amount).replace('.', ','))
+                self.label_status.setText(u'Buche {}€ ab\n'.format(unicode(self.amount)).replace('.', ','))
                 self.response_ack.emit(False)
             # Successfully decreased: Inform the user the payment is done and close after 2 seconds
             elif response[0] == Status.decreasing_done:
                 self.utimer.stop()
-                self.label_status.setText(u"Vielen Dank für deine Zahlung von {:.2f}.\nBitte das Aufräumen nicht vergessen!".format(self.amount))
+                self.label_status.setText(u"Vielen Dank für deine Zahlung von {}.\nBitte das Aufräumen nicht vergessen!".format(unicode(self.amount)))
                 self.utimer.singleShot(5000, self.accept)
                 self.response_ack.emit(False)
                 self.pushButton_abbrechen.hide()
