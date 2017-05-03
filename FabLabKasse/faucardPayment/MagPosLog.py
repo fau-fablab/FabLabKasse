@@ -8,6 +8,8 @@ from datetime import datetime
 from decimal import Decimal
 
 from faucardStates import Status, Info
+import logging
+from ..shopping.backend.abstract import float_to_decimal
 
 
 class MagPosLog:
@@ -160,3 +162,34 @@ class MagPosLog:
                     (kartennummer, unicode(betrag), datetime.now(),
                      Status.transaction_result.value, info, info == Info.transaction_ok.value))
         con.commit()
+
+    @staticmethod
+    def check_last_entry(cur, con):
+        """
+        Static function to check the last entry for errors
+        :param cur: Database cursor
+        :type cur: sqlite3.Cursor
+        :param con: Database connection
+        :type con: sqlite3.Connection
+        :return: True if nothing found, False otherwise
+        :rtype: Bool
+        """
+        
+        cur.execute("SELECT ID, Status,Info,Payed from MAGPOSLOG ORDER BY ID Desc LIMIT 1;")
+        for row in cur.fetchall(): # might be no entry yet
+            entry_id = row[0]
+            entry_payed = row[3] == 1
+            entry_status = None
+            entry_info = None
+            try:
+                entry_status = Status(row[1])
+                entry_info = Info(row[2]) 
+            except ValueError as e:
+                logging.error(u"MagPosLog: Last entry with ID {} has invalid Status or Info code".format(entry_id))
+                return False
+            
+            if entry_payed and entry_status == Status.decreasing_done:
+                logging.error(u"MagPosLog: Entry with ID{0} was not booked. Please review it for further action".format(entry_id))
+                return False
+        
+        return True

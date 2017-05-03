@@ -225,6 +225,9 @@ class FAUcardThread(QtCore.QObject):
         self.log = MagPosLog(self.amount, self.cur, self.con)
 
         try:
+            # 0. Check log file if last entry was not booked
+            MagPosLog.check_last_entry(self.cur, self.con)
+            
             # 1. Check last Transaction
             if not self.check_last_transaction(self.cur, self.con):
                 raise self.CheckLastTransactionFailed
@@ -321,9 +324,9 @@ class FAUcardThread(QtCore.QObject):
             return False
 
         if value[0] is magpos.codes.OK:  # Last transaction was successful
-            logging.warning("CheckTransaction: Kassenterminal vor erfolgreicher Buchung abgestürzt.")
+            logging.error("CheckTransaction: Kassenterminal vor erfolgreicher Buchung abgestürzt.")
             MagPosLog.save_transaction_result(cur, con, value[1], Decimal(value[2])/100, Info.transaction_ok.value)
-            logging.warning(u"CheckTransaction: Buchung für Karte {0} über Betrag {1} EURCENT fehlt".format(value[1], value[2]) )
+            logging.error(u"CheckTransaction: Buchung für Karte {0} über Betrag {1} EURCENT fehlt".format(value[1], value[2]) )
         elif value[0] is 0 and value[1] is 0 and value[2] is 0:  # Last transaction was acknowledged
             return True
         else:  # Failure during last transaction
