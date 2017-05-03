@@ -128,7 +128,8 @@ def finish_log(info = Info.OK):
     Part
     Finishes last MagPosLog Entry by setting its state to Status.booking_done after the internal booking was done
     """
-    con = sqlite3.connect("magposlog.sqlite3")
+    cfg = scriptHelper.getConfig()
+    con = sqlite3.connect(cfg.get('magna_carta', 'log_file'))
     cur = con.cursor()
     con.text_factory = unicode
 
