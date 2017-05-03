@@ -73,6 +73,8 @@ class FAUcardThread(QtCore.QObject):
         QtCore.QObject.__init__(self)
         logging.info("FAU-Terminal: thread is being initialized")
 
+        assert isinstance(amount, (Decimal)), "PayupFAUCard: Amount to pay not Decimal"
+        
         # Initialize class variables
         self.status = Status.initializing
         self.info = Info.OK
