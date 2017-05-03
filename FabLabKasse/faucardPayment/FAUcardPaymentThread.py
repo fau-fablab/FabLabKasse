@@ -65,7 +65,7 @@ class FAUcardThread(QtCore.QObject):
         :param dialog: GUI Dialog guiding the User
         :type dialog: FAUcardPaymentDialog
         :param amount: Amount to be paid
-        :type amount: float
+        :type amount: Decimal
         :param thread: Thread the process should work in
         :type thread: Qt.QThread
         """
@@ -300,7 +300,7 @@ class FAUcardThread(QtCore.QObject):
     def check_last_transaction(cur, con):
         """
         Prüfe auf Fehler bei Zahlung mit der FAU-Karte und speichere das Ergebnis in MagPosLog
-        :return: True on success, False otherwise
+        :return: True if the check could be performed, False otherwise (does not take result of check into account)
         :rtype: bool
         :param cur: database cursor
         :type cur: sqlite3.Cursor
@@ -323,12 +323,13 @@ class FAUcardThread(QtCore.QObject):
             logging.error("CheckTransaction: {}".format(e))
             return False
 
+        # Choose logging or nop based on check result
         if value[0] is magpos.codes.OK:  # Last transaction was successful
             logging.error("CheckTransaction: Kassenterminal vor erfolgreicher Buchung abgestürzt.")
             MagPosLog.save_transaction_result(cur, con, value[1], Decimal(value[2])/100, Info.transaction_ok.value)
             logging.error(u"CheckTransaction: Buchung für Karte {0} über Betrag {1} EURCENT fehlt".format(value[1], value[2]) )
         elif value[0] is 0 and value[1] is 0 and value[2] is 0:  # Last transaction was acknowledged
-            return True
+            pass
         else:  # Failure during last transaction
             logging.warning("CheckTransaction: Letzter Bezahlvorgang nicht erfolgreich ausgeführt.")
             MagPosLog.save_transaction_result(cur, con, value[1], Decimal(value[2])/100, Info.transaction_error.value)

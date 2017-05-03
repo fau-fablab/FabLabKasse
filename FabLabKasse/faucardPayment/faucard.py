@@ -24,10 +24,10 @@ class PayupFAUCard(QtCore.QObject):
         :param parent: Parent QObject
         :type parent: QtCore.QObject
         :param amount: amount to pay
-        :type amount: Decimal float
+        :type amount: Decimal
         """
         QtCore.QObject.__init__(self)
-        assert isinstance(amount, (Decimal)), "PayupFAUCard: Amount to pay not Decimal"
+        assert isinstance(amount, Decimal), "PayupFAUCard: Amount to pay not Decimal"
         assert amount > 0, "PayupFAUCard: amount is negativ"
 
         self.amount = amount

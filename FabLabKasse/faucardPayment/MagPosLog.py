@@ -9,8 +9,6 @@ from decimal import Decimal
 
 from faucardStates import Status, Info
 import logging
-from ..shopping.backend.abstract import float_to_decimal
-
 
 class MagPosLog:
     """ MagPosLog
@@ -21,12 +19,15 @@ class MagPosLog:
         """
         Initializes the MagPosLog by creating the sql table if it does not exist and setting the member variables.
         :param amount: Amount which the payment is about
-        :type amount: float
+        :type amount: Decimal
         :param cur: Cursor of the sql connection
         :type cur: sqlite3.Cursor
         :param con: Connection to the sql database
         :type con: sqlite3.Connection
         """
+
+        assert isinstance(amount, Decimal),  u"MagPosLog: Amount to pay not Decimal"
+
         # Set up member variables
         self.id = 0
         self.cardnumber = 0

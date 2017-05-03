@@ -8,7 +8,6 @@ from PyQt4 import QtGui, QtCore, Qt
 from .uic_generated.FAUcardPaymentDialog import Ui_FAUcardPaymentDialog
 
 from ..faucardPayment.faucardStates import Status, Info
-from ..shopping.backend.abstract import float_to_decimal
 from decimal import Decimal
 
 
@@ -31,16 +30,16 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
         :param parent: parent of the Dialog
         :type parent: QObject
         :param amount: Amount the user has to pay (only used to display)
-        :type amount: float
+        :type amount: Decimal
         """
         QtGui.QDialog.__init__(self, parent)
         logging.info("FAUcardPayment: started")
         self.setupUi(self)
 
-        assert isinstance(amount, (Decimal,float)), "PayupFAUCard: Amount to pay not Decimal or float"
+        assert isinstance(amount, Decimal), "PayupFAUCard: Amount to pay not Decimal or float"
         
         # Set up member variables and fill GUI
-        self.amount = float_to_decimal(amount,2)
+        self.amount = amount
         self.label_betrag.setText(u'{} €'.format(unicode(self.amount)).replace('.', ','))
         self.label_status.setText(u'Starte FAUcard-Zahlung\n')
         self.counter = 0
