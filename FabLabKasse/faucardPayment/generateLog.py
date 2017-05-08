@@ -45,10 +45,15 @@ def verify_sum(curKb, start, end, magposSum):
         after payment'''
     kbSumme = Decimal(0);
     try:
-        curKb.execute("SELECT betrag FROM buchung WHERE konto = 'FAUKarte' AND datum BETWEEN ? AND ? ",(start, end));
+        curKb.execute("SELECT betrag, kommentar, datum FROM buchung WHERE konto = 'FAUKarte' AND datum BETWEEN ? AND ?;",(start, end));
         for row in curKb.fetchall():
             if Decimal(row[0]) < 0: # STORNO can only be due to testing -> ignore
                 continue;
+            if isinstance(row[1],(str, unicode)) and "Nachtrag" in row[1]: # Found possible Manual Transfer to fix crash of Kassenterminal, ask to skip
+                print "Found possible Fix: Kassenbuch Entry: Amount {0} at time {1} contains comment \"{2}\". Ignore the amount in verification? (y/n)\n".format(unicode(row[0]), row[2], row[1]);
+                if query_yes_no() == True:	# Skip this
+                    continue;
+            
             kbSumme += Decimal(row[0]).quantize(Decimal('.01'));
 
         if kbSumme != magposSum:
@@ -190,6 +195,12 @@ if __name__ == '__main__':
         # Close magposlog csv file
         outputfile.close()
 
+        # Set Booking dates to start and enddate if nothing was found to check kassenbuch
+        if firstbooking is None: #Did not find any data 
+            firstbooking = startdate;
+        if lastbooking is None: #Did not find any data
+            lastbooking = enddate;
+        print "first: {}".format(firstbooking)
 
         if args.detail is True:
             # Open detailed positons csv file
