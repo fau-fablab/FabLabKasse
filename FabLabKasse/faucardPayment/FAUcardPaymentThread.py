@@ -11,6 +11,7 @@ from datetime import datetime
 
 from faucardStates import Status, Info
 from MagPosLog import MagPosLog
+from ..shopping.backend.abstract import float_to_decimal
 
 
 try:                    # Test if interface is available
@@ -64,7 +65,7 @@ class FAUcardThread(QtCore.QObject):
         :param dialog: GUI Dialog guiding the User
         :type dialog: FAUcardPaymentDialog
         :param amount: Amount to be paid
-        :type amount: float
+        :type amount: Decimal
         :param thread: Thread the process should work in
         :type thread: Qt.QThread
         """
@@ -72,13 +73,16 @@ class FAUcardThread(QtCore.QObject):
         QtCore.QObject.__init__(self)
         logging.info("FAU-Terminal: thread is being initialized")
 
+        assert isinstance(amount, (Decimal)), "PayupFAUCard: Amount to pay not Decimal"
+        
         # Initialize class variables
         self.status = Status.initializing
         self.info = Info.OK
         self.card_number = 0
         self.old_balance = 0
         self.new_balance = 0
-        self.amount = int(amount * 100)
+        self.amount = amount
+        self.amount_cents = int(float_to_decimal(amount * 100, 0))		# Floating point precision causes error -> round with float_to_decimal.
         self.cancel = False
         self.ack = False
         self.sleep_counter = 0
@@ -218,9 +222,12 @@ class FAUcardThread(QtCore.QObject):
         self.con = sqlite3.connect(self.cfg.get('magna_carta', 'log_file'))
         self.cur = self.con.cursor()
         self.con.text_factory = unicode
-        self.log = MagPosLog(float(self.amount)/100, self.cur, self.con)
+        self.log = MagPosLog(self.amount, self.cur, self.con)
 
         try:
+            # 0. Check log file if last entry was not booked
+            MagPosLog.check_last_entry(self.cur, self.con)
+            
             # 1. Check last Transaction
             if not self.check_last_transaction(self.cur, self.con):
                 raise self.CheckLastTransactionFailed
@@ -293,7 +300,7 @@ class FAUcardThread(QtCore.QObject):
     def check_last_transaction(cur, con):
         """
         Prüfe auf Fehler bei Zahlung mit der FAU-Karte und speichere das Ergebnis in MagPosLog
-        :return: True on success, False otherwise
+        :return: True if the check could be performed, False otherwise (does not take result of check into account)
         :rtype: bool
         :param cur: database cursor
         :type cur: sqlite3.Cursor
@@ -316,15 +323,16 @@ class FAUcardThread(QtCore.QObject):
             logging.error("CheckTransaction: {}".format(e))
             return False
 
+        # Choose logging or nop based on check result
         if value[0] is magpos.codes.OK:  # Last transaction was successful
-            logging.warning("CheckTransaction: Kassenterminal vor erfolgreicher Buchung abgestürzt.")
-            MagPosLog.save_transaction_result(cur, con, value[1], float(value[2])/100, Info.transaction_ok.value)
-            logging.warning(u"CheckTransaction: Buchung für Karte {0} über Betrag {1:.2f}€ fehlt".format(value[1], float(value[2])/100))
+            logging.error("CheckTransaction: Kassenterminal vor erfolgreicher Buchung abgestürzt.")
+            MagPosLog.save_transaction_result(cur, con, value[1], Decimal(value[2])/100, Info.transaction_ok.value)
+            logging.error(u"CheckTransaction: Buchung für Karte {0} über Betrag {1} EURCENT fehlt".format(value[1], value[2]) )
         elif value[0] is 0 and value[1] is 0 and value[2] is 0:  # Last transaction was acknowledged
-            return True
+            pass
         else:  # Failure during last transaction
             logging.warning("CheckTransaction: Letzter Bezahlvorgang nicht erfolgreich ausgeführt.")
-            MagPosLog.save_transaction_result(cur, con, value[1], float(value[2])/100, Info.transaction_error.value)
+            MagPosLog.save_transaction_result(cur, con, value[1], Decimal(value[2])/100, Info.transaction_error.value)
 
         return True
 
@@ -392,7 +400,7 @@ class FAUcardThread(QtCore.QObject):
                     raise e
 
         # 4. Check if enough balance on card
-        if old_balance < self.amount:
+        if old_balance < self.amount_cents:
             raise self.BalanceUnderflowError()
 
         # Update GUI and wait for response
@@ -403,7 +411,7 @@ class FAUcardThread(QtCore.QObject):
 
     def _decrease_balance(self):
         """
-        Decreases card balance by self.amount by following steps:
+        Decreases card balance by self.amount_cents by following steps:
         1. Try to decrease balance
          -> a: Successful
             2. Continue with step 5
@@ -440,7 +448,7 @@ class FAUcardThread(QtCore.QObject):
             # 1. Try to decrease balance
             try:
                 self.check_user_abort("decreasing balance: User Aborted")  # Will only be executed if decrease command has not yet been executed
-                value = self.pos.decrease_card_balance_and_token(self.amount, self.card_number)
+                value = self.pos.decrease_card_balance_and_token(self.amount_cents, self.card_number)
 
             # Catch ResponseError if not Card on Reader and retry
             except magpos.ResponseError as e:
@@ -492,12 +500,12 @@ class FAUcardThread(QtCore.QObject):
                 self.response_ready.emit([Info.con_back])
 
                 # 3. Check last payment details
-                if value[1] == self.card_number and value[2] == self.amount:
+                if value[1] == self.card_number and value[2] == self.amount_cents:
                     if value[0] == magpos.codes.OK:
                         # 3.a The payment was successfully executed
                         value[0] = value[1]
                         value[1] = self.old_balance
-                        value[2] = self.old_balance - self.amount
+                        value[2] = self.old_balance - self.amount_cents
                         break
                     else:
                         # 3.b The payment aborted on error
@@ -511,13 +519,13 @@ class FAUcardThread(QtCore.QObject):
                     continue
 
         # 5. Check if payment was correct and log it
-        if value[0] == self.card_number and value[1] == self.old_balance and (value[2]+self.amount) == self.old_balance:
+        if value[0] == self.card_number and value[1] == self.old_balance and (value[2]+self.amount_cents) == self.old_balance:
             self.status = Status.decreasing_done
             self.info = Info.OK
             self.log.set_status(self.status, self.info)
             new_balance = value[2]
         else:
-            raise magpos.TransactionError(value[0], value[1], value[2], self.amount)
+            raise magpos.TransactionError(value[0], value[1], value[2], self.amount_cents)
 
 
         self.timestamp_payed = datetime.now()

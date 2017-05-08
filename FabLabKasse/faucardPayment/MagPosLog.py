@@ -8,7 +8,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from faucardStates import Status, Info
-
+import logging
 
 class MagPosLog:
     """ MagPosLog
@@ -19,12 +19,15 @@ class MagPosLog:
         """
         Initializes the MagPosLog by creating the sql table if it does not exist and setting the member variables.
         :param amount: Amount which the payment is about
-        :type amount: float
+        :type amount: Decimal
         :param cur: Cursor of the sql connection
         :type cur: sqlite3.Cursor
         :param con: Connection to the sql database
         :type con: sqlite3.Connection
         """
+
+        assert isinstance(amount, Decimal),  u"MagPosLog: Amount to pay not Decimal"
+
         # Set up member variables
         self.id = 0
         self.cardnumber = 0
@@ -34,13 +37,13 @@ class MagPosLog:
         self.payed = False
         self.cur = cur
         self.con = con
-        self.amount = float(amount)
+        self.amount = amount
         self.timestamp_payed = None
         self.oldbalance = 0
         self.newbalance = 0
 
         # Create table if it does not exist
-        self.cur.execute("CREATE TABLE IF NOT EXISTS MagPosLog(id INTEGER PRIMARY KEY AUTOINCREMENT, datum, cardnumber INT, amount FLOAT, oldbalance INT, newbalance INT, timestamp_payed, status INT, info INT, payed)")
+        self.cur.execute("CREATE TABLE IF NOT EXISTS MagPosLog(id INTEGER PRIMARY KEY AUTOINCREMENT, datum, cardnumber INT, amount TEXT, oldbalance INT, newbalance INT, timestamp_payed, status INT, info INT, payed)")
         con.commit()
 
     def set_status(self, new_status, new_info=Info.OK):
@@ -125,7 +128,7 @@ class MagPosLog:
         # Grab ID if instance has none
         if self.id is 0 or self.id is None:
             self.cur.execute("INSERT INTO MagPosLog (cardnumber, amount, datum, status, info, payed) VALUES (?,?,?,?,?,?)",
-                         (self.cardnumber, self.amount, datetime.now(), self.status, self.info, self.payed))
+                         (self.cardnumber, unicode(self.amount), datetime.now(), self.status, self.info, self.payed))
             self.cur.execute("SELECT id from MagPosLog ORDER BY id DESC LIMIT 1")
             temp = self.cur.fetchone()
 
@@ -135,7 +138,7 @@ class MagPosLog:
 
         # Update Database entry
         self.cur.execute("UPDATE MagPosLog SET cardnumber = ?, amount = ?, datum = ?, status = ?, info = ?, payed = ? WHERE id = ?",
-                         (self.cardnumber, self.amount, datetime.now(), self.status, self.info, self.payed, self.id))
+                         (self.cardnumber, unicode(self.amount), datetime.now(), self.status, self.info, self.payed, self.id))
         self.con.commit()
 
     @staticmethod
@@ -157,6 +160,37 @@ class MagPosLog:
             info = new_info.value
 
         cur.execute("INSERT INTO MagPosLog (cardnumber, amount, datum, status, info, payed) VALUES (?,?,?,?,?,?)",
-                    (kartennummer, betrag, datetime.now(),
+                    (kartennummer, unicode(betrag), datetime.now(),
                      Status.transaction_result.value, info, info == Info.transaction_ok.value))
         con.commit()
+
+    @staticmethod
+    def check_last_entry(cur, con):
+        """
+        Static function to check the last entry for errors
+        :param cur: Database cursor
+        :type cur: sqlite3.Cursor
+        :param con: Database connection
+        :type con: sqlite3.Connection
+        :return: True if nothing found, False otherwise
+        :rtype: Bool
+        """
+        
+        cur.execute("SELECT ID, Status,Info,Payed from MAGPOSLOG ORDER BY ID Desc LIMIT 1;")
+        for row in cur.fetchall(): # might be no entry yet
+            entry_id = row[0]
+            entry_payed = row[3] == 1
+            entry_status = None
+            entry_info = None
+            try:
+                entry_status = Status(row[1])
+                entry_info = Info(row[2]) 
+            except ValueError as e:
+                logging.error(u"MagPosLog: Last entry with ID {} has invalid Status or Info code".format(entry_id))
+                return False
+            
+            if entry_payed and entry_status == Status.decreasing_done:
+                logging.error(u"MagPosLog: Entry with ID{0} was not booked. Please review it for further action".format(entry_id))
+                return False
+        
+        return True

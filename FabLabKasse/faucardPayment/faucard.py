@@ -24,13 +24,13 @@ class PayupFAUCard(QtCore.QObject):
         :param parent: Parent QObject
         :type parent: QtCore.QObject
         :param amount: amount to pay
-        :type amount: Decimal float
+        :type amount: Decimal
         """
         QtCore.QObject.__init__(self)
-        assert isinstance(amount, (Decimal, float)), "PayupFAUCard: Amount to pay not Decimal or float"
+        assert isinstance(amount, Decimal), "PayupFAUCard: Amount to pay not Decimal"
         assert amount > 0, "PayupFAUCard: amount is negativ"
 
-        self.amount = float(amount)
+        self.amount = amount
         self.thread = QtCore.QThread()
         self.dialog = FAUcardPaymentDialog(parent=parent, amount=self.amount)
         self.dialog.request_termination.connect(self.threadTerminationRequested, type= QtCore.Qt.DirectConnection)
@@ -128,7 +128,8 @@ def finish_log(info = Info.OK):
     Part
     Finishes last MagPosLog Entry by setting its state to Status.booking_done after the internal booking was done
     """
-    con = sqlite3.connect("magposlog.sqlite3")
+    cfg = scriptHelper.getConfig()
+    con = sqlite3.connect(cfg.get('magna_carta', 'log_file'))
     cur = con.cursor()
     con.text_factory = unicode
 
