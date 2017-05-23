@@ -345,7 +345,7 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
     # ==============================
 
     def pay_order(self, method):
-        assert method.amount_paid - method.amount_returned == self.get_current_total()
+        assert method.amount_paid - method.amount_returned == self.get_current_total(), "Paid amount does not match current total. Payment method returned: {}, expected total: {}, current order: {} ".format(method, repr(self.get_current_total()), repr(self.get_order_lines()))
         self._get_current_order_obj().set_finished()
         self._store_payment(method)
 
