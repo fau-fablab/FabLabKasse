@@ -73,7 +73,7 @@ class AbstractPaymentMethod(object):
 
     @abstractmethod
     def _show_dialog(self):
-        """show a GUI dialog and start payment. block until dialog has finished.
+        """show a GUI dialog and start payment. Return AFTER dialog has finished. The dialog MUST be modal, see ``QDialog.setModal()``.
 
         :rtype: None
 
