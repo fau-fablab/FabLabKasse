@@ -35,6 +35,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
         QtGui.QDialog.__init__(self, parent)
         logging.info("FAUcardPayment: started")
         self.setupUi(self)
+        self.setModal(True)
 
         assert isinstance(amount, Decimal), "PayupFAUCard: Amount to pay not Decimal or float"
         
