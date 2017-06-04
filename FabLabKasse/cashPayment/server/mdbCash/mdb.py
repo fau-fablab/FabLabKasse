@@ -532,20 +532,32 @@ class MdbCashDevice(object):
             coinsAvailable[coinValue] += tubeStatus[coinType]["count"]
 
         def shouldSplit(coinValue):
-            """determine if the payout of 1* coin X should be split into 2 pieces of (X/2)
-            so that the coin storage does not run short of often paid out coins (like 1€)
-            this will only happen if more than enough of the smaller coins (like 50c) are present
+            """determine if the payout of 1* coin X can be split into smaller pieces (X/2 or X/5),
+            without running out of smaller coins.
+            This is used so that the coin storage does not run short of often paid out coins (like 1€),
+            while the small ones keep overflowing.
+            
+            This function assumes a greedy payout strategy:
+            If 1*X is to be paid out, the maximum remaining payout amount is 2*X.
             """
+            splitFactor = 2
             if (coinValue / 2) not in coinsAvailable:
                 # there is no "half" coin of the currently used value
-                # TODO implement something for splitting 50c -> 20c+10c
-                return False
-            if coinsAvailable[coinValue / 2] < 20:
+                # Try splitting by factor 5 (50c -> 5*10c).
+                if (coinValue / 5) in coinsAvailable:
+                    splitFactor = 5
+                else:
+                    # cannot split by 5
+                    return False
+            # Check that more than enough smaller coins remain so that we don't run out of them.
+            # If we allow splitting (return True), the next smaller coin will be paid out,
+            # then dispenseValue() returns and will be called again.
+            if coinsAvailable[coinValue / splitFactor] < 20:
                 # too few of the smaller coins
                 return False
-            # only split if there are more smaller coins available
-            return coinsAvailable[coinValue / 2] > coinsAvailable[coinValue] + 5
-
+            # only split if there are significantly more smaller coins available than large coins
+            return coinsAvailable[coinValue / splitFactor] > coinsAvailable[coinValue] + 10
+        
         for [coinType, coinValue] in sortedCoinValues:
             # how many coins should be dispensed? maximum 15 at once
             assert isinstance(coinValue, int)
@@ -555,9 +567,11 @@ class MdbCashDevice(object):
                 number = numberAvailable
             if number == 0:
                 continue
-            if number == 1 and shouldSplit(coinValue):
-                logging.debug("splitting payout of 1x {0} into 2x smaller coin".format(coinValue))
-                continue
+            if shouldSplit(coinValue):
+                logging.debug("splitting payout: skipping 1x out of {number}x{coinValue}, will be paid as smaller coins".format(number=number,  coinValue=coinValue))
+                number = number - 1
+                if number == 0:
+                    continue
             if number > 15:
                 number = 15
             self.dispenseCoin(coinType, number)
