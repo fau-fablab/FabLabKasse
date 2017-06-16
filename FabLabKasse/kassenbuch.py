@@ -1282,8 +1282,9 @@ def main():
                 extra_checks = extra_checks if extra_checks else lambda x: True
 
                 while True:
-                    input_str = raw_input(u"{e}{d}: ".format(
-                        e=explanation, d=default_str)).decode(sys.stdin.encoding)
+                    question = u"{e}{d}: ".format(e=explanation, d=default_str)
+                    input_str = raw_input(question.encode(sys.stdout.encoding))
+                    input_str = input_str.decode(sys.stdin.encoding)
 
                     if input_str == '' and default_input is not None:
                         input_str = unicode(default_input)
