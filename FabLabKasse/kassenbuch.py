@@ -648,7 +648,7 @@ class Kunde(object):
 
         return summe
 
-    def to_string(self, short=False):
+    def to_string(self, short=False, cur=None):
         summary = u"""Kunde: {name} (#{id}):
     Schuldengrenze: {schuldengrenze:.2f} EUR
     Mail:           {email}
@@ -665,6 +665,10 @@ class Kunde(object):
         else:
             details = Kundenbuchung.header
             details += '\n'.join((b.to_string() for b in self.buchungen))
+            details += '\n\n'
+            # output receipts if a SQL cursor object is given
+            if cur:
+                details += '\n\n'.join(Rechnung.load_from_id(b.rechnung, cur).to_string() for b in self.buchungen if isinstance(b.rechnung, int))
             return summary + '\n\n' + details
 
     def __repr__(self):
@@ -1415,7 +1419,7 @@ def main():
 
         elif args.client_action == 'show':
 
-            print(kunde.to_string(short=not args.transactions))
+            print(kunde.to_string(short=not args.transactions, cur=k.cur))
 
             print("Kontostand: " + moneyfmt(kunde.summe) + ' EUR')
 
