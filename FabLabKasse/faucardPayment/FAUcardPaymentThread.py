@@ -78,9 +78,9 @@ class FAUcardThread(QtCore.QObject):
         # Initialize class variables
         self.status = Status.initializing
         self.info = Info.OK
-        self.card_number = 0
-        self.old_balance = 0
-        self.new_balance = 0
+        self.card_number = -1
+        self.old_balance = -1
+        self.new_balance = -1
         self.amount = amount
         self.amount_cents = int(float_to_decimal(amount * 100, 0))		# Floating point precision causes error -> round with float_to_decimal.
         self.cancel = False
@@ -561,7 +561,7 @@ class FAUcardThread(QtCore.QObject):
         :return: amount payed if transaction complete, 0 otherwise
         :rtype: decimal
         """
-        if self.card_number != 0 and self.new_balance != 0 and self.old_balance != 0:
+        if self.card_number != -1 and self.new_balance != -1 and self.old_balance != -1:
             payed = Decimal(self.old_balance-self.new_balance)
             payed = payed/100
             return payed
