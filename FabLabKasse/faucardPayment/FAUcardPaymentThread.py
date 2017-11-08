@@ -78,9 +78,9 @@ class FAUcardThread(QtCore.QObject):
         # Initialize class variables
         self.status = Status.initializing
         self.info = Info.OK
-        self.card_number = -1
-        self.old_balance = -1
-        self.new_balance = -1
+        self.card_number = None
+        self.old_balance = None
+        self.new_balance = None
         self.amount = amount
         self.amount_cents = int(float_to_decimal(amount * 100, 0))		# Floating point precision causes error -> round with float_to_decimal.
         self.cancel = False
@@ -225,6 +225,7 @@ class FAUcardThread(QtCore.QObject):
         self.log = MagPosLog(self.amount, self.cur, self.con)
 
         try:
+            logging.debug("FAUcardThread: Checking for unacknowledged transaction")
             # 0. Check log file if last entry was not booked
             MagPosLog.check_last_entry(self.cur, self.con)
             
@@ -232,25 +233,30 @@ class FAUcardThread(QtCore.QObject):
             if not self.check_last_transaction(self.cur, self.con):
                 raise self.CheckLastTransactionFailed
 
+            logging.debug("FAUcardThread: Starting Connection")
             # 2. start connection
             self._start_connection()
 
+            logging.debug("FAUcardThread: Reading Payment Card Information")
             # 3. read card
             value = self._read_card()
             self.card_number = value[0]
             self.log.set_cardnumber(self.card_number)
             self.old_balance = value[1]
             self.log.set_oldbalance(self.old_balance)
+            logging.debug("FAUcardThread: Card Number: {0} ; Old Balance: {1}".format(self.card_number, self.old_balance))
 
 
             # let user short time to stop transaction if wanted
             self.sleep(2)
             self.check_user_abort("Before decreasing")
 
+            logging.debug("FAUcardThread: Decreasing balance of Payment Card")
             # 4. decrease balance
             self.new_balance = self._decrease_balance()
             self.log.set_newbalance(self.new_balance)
             self.log.set_timestamp_payed(self.timestamp_payed)
+            logging.debug("FAUcardThread: New Balance: {}".format(self.new_balance))
 
             # 5. finish log entry
             self._wait_for_ack()
@@ -561,7 +567,7 @@ class FAUcardThread(QtCore.QObject):
         :return: amount payed if transaction complete, 0 otherwise
         :rtype: decimal
         """
-        if self.card_number != -1 and self.new_balance != -1 and self.old_balance != -1:
+        if self.card_number is not None and self.new_balance is not None and self.old_balance is not None:
             payed = Decimal(self.old_balance-self.new_balance)
             payed = payed/100
             return payed
