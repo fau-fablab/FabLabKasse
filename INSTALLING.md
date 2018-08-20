@@ -13,7 +13,9 @@ Please note that currently you need a github account and attach your public SSH 
 1.  Dependencies
 ----------------
 
-This software was mainly developed for Debian "jessie", but should also work on other OSes.
+This software was mainly developed for Debian stretch, but should also work on other OSes.
+
+If you just want to play, you can try Vagrant to automatically setup a VM (see notes in Vagrantfile).
 
 ### 1a. Debian
 
@@ -25,7 +27,7 @@ If you have a standalone PC or VM only for FabLabKasse, you can also use `FabLab
         pip install -r requirements.txt
 
  - for the real terminal implementation: xserver-xorg git nodm ssh x11-apps xterm
- - for the style: kde-style-oxygen kde-workspace-bin
+ - for the style: kde-style-oxygen
  - for font: fonts-crosextra-carlito # or download Carlito-Regular.ttf from http://openfontlibrary.org/de/font/carlito#Carlito-Regular to ~/.fonts/
  - for development: qt4-designer
  - for graphical debugging: winpdb
@@ -36,7 +38,7 @@ Modem-Manager interferes with the serial port. It is highly recommended to remov
 
 ### 1b. Mac OS
 
- - python 2.7  installieren
+ - python 2.7
  - Qt: http://qt-project.org/downloads
  - SIP: http://www.riverbankcomputing.com/software/sip/download (entpacken, `configure`, `make`, `make install`)
  - PyQt4: http://www.riverbankcomputing.com/software/pyqt/download (entpacken, `configure`, `make`, `make install`)
@@ -100,7 +102,7 @@ TODO ... importProdukte.py ...
 
 Please take a look at install_debian.sh, which does most of the tasks described in this section
 
-You need a touchscreen (preferably USB with 1280x1024 resolution).
+You need a touchscreen (preferably USB with 1280x1024 resolution, preferably a model which does not require special calibration).
 
     adduser kasse --disabled-password
 
@@ -109,9 +111,7 @@ cp tools/sudoers.d/kassenterm-reboot-shutdown /etc/sudoers.d/
 
 Setup nodm for autologin of the 'kasse' user.
 
-TODO touchscreen calibration: ssh kasse@terminal DISPLAY=:0 xinput_calibration, make permanent by copying output to /etc/X11/xorg.conf (or /etc/xorg.conf.d/someFile)
-
-    sudo -u kasse -i
+sudo -u kasse -i
     kasse@terminal:$ git clone  ...
     kasse@terminal:$ ln -s FabLabKasse/scripts/xsession.sh .xsession
 

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 # provisioning for Debian / Ubuntu
 echo "ONLY RUN THIS SCRIPT on a disposable VM or a PC specially for setting up kasse. It will change your xsession and uninstall some packages."
 echo "press ctrl-c to exit, Enter to continue (will continue automatically under Vagrant provisioner)"
@@ -6,12 +7,23 @@ read
 
 [ -d /home/vagrant ] && echo "Running under Vagrant, using the vagrant user" && RUNNING_IN_VAGRANT=true || RUNNING_IN_VAGRANT=false
 
+# change to the git directory
+if $RUNNING_IN_VAGRANT; then
+    cd /vagrant
+fi
+if [ ! -f requirements.txt ]; then
+    pwd
+    ls -l
+    echo "This script must be run in the FabLabKasse main git directory which contains requirements.txt"
+    exit 1
+fi
+
 # Install dependencies
 sudo apt-get update
 sudo apt-get -y install git
 sudo apt-get -y install python-pip python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-qrcode python-docopt python-requests python-simplejson python-sphinx
 sudo pip install -r requirements.txt
-sudo apt-get -y install xserver-xorg git nodm ssh x11-apps xterm kde-style-oxygen kde-workspace-bin fonts-crosextra-carlito
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install xserver-xorg git nodm ssh x11-apps xterm kde-style-oxygen fonts-crosextra-carlito
 
 # Setup user and 'kiosk mode' desktop manager that autostarts FabLabKasse
 $RUNNING_IN_VAGRANT && INSTALL_USER=vagrant || INSTALL_USER=kasse
@@ -24,10 +36,6 @@ echo "NODM_USER=$INSTALL_USER" | sudo tee -a /etc/default/nodm
 # modemmanager interferes with serial port devices:
 sudo apt-get -y remove modemmanager
 
-# TODO this is a test
-cd /home/$INSTALL_USER # does not work?
-pwd
-
 rm /home/$INSTALL_USER/.xsession || true
 if $RUNNING_IN_VAGRANT; then
 	[ -d /home/$INSTALL_USER/FabLabKasse ] || ln -s /vagrant /home/$INSTALL_USER/FabLabKasse
@@ -35,13 +43,13 @@ else
 	sudo -u $INSTALL_USER git clone --recursive https://github.com/fau-fablab/FabLabKasse /home/$INSTALL_USER/FabLabKasse
 fi
 
-echo "while [ ! -f /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh ]; do sleep 1; echo Waiting for git repo; done; /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh" > /home/$INSTALL_USER/.xsession
+#echo "while [ ! -f /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh ]; do sleep 1; echo Waiting for git repo; done; /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh" > /home/$INSTALL_USER/.xsession
 ln -s /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh /home/$INSTALL_USER/.xsession
 
-# the ubuntu cloud image doesn't include german locale, so the OpenERP import crashes -- add it.
+# the OpenERP import requires a german locale -- add it.
 echo 'de_DE.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen
-cd /usr/share/locales && sudo ./install-language-pack de_DE
-sudo dpkg-reconfigure locales
+# cd /usr/share/locales && sudo ./install-language-pack de_DE
+sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
 
 # allow shutdown/reboot for any user
 sudo cp /home/$INSTALL_USER/FabLabKasse/FabLabKasse/tools/sudoers.d/kassenterm-reboot-shutdown /etc/sudoers.d/
