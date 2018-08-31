@@ -24,10 +24,18 @@ export QT_PLUGIN_PATH=/usr/lib/kde4/plugins/
 xsetroot -solid blue
 xeyes -geometry 300x200+600+400 &
 
-echo "Start" >&2
-
 # terminal window showing log output
 xterm ~/FabLabKasse/FabLabKasse/scripts/xsession-tail-helper.sh &
+
+for i in $(seq 1 10); do
+    curl -q --max-time 1 google.de > /dev/null && break || true
+    echo "" >&2
+    date >&2
+    echo "Waiting for internet connection (max. 60 seconds)" >&2
+    sleep 5
+done
+echo "" >&2
+echo "Start" >&2
 
 # start GUI
 ~/FabLabKasse/run.py

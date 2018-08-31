@@ -26,7 +26,7 @@ If you have a standalone PC or VM only for FabLabKasse, you can also use `FabLab
         apt-get install python-pip python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort python-qrcode python-docopt python-requests python-simplejson python-sphinx
         pip install -r requirements.txt
 
- - for the real terminal implementation: xserver-xorg git nodm ssh x11-apps xterm
+ - for the real terminal implementation: xserver-xorg git nodm ssh x11-apps xterm curl
  - for the style: kde-style-oxygen
  - for font: fonts-crosextra-carlito # or download Carlito-Regular.ttf from http://openfontlibrary.org/de/font/carlito#Carlito-Regular to ~/.fonts/
  - for development: qt4-designer
