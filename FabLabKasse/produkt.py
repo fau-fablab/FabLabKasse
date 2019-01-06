@@ -6,7 +6,7 @@ from decimal import Decimal
 import fnmatch
 import ast
 import codecs
-
+import sys
 
 class Produkt(object):
 
@@ -95,6 +95,7 @@ class Produkt(object):
 
         for l in os.listdir(path):
             if fnmatch.fnmatch(l, '*.txt'):
+                l = l.decode(sys.getfilesystemencoding())
                 p, baum = cls.load_from_file(path + '/' + l)
 
                 for element in p.iterkeys():
