@@ -42,6 +42,7 @@ import sys
 import os
 import random
 import doctest
+import readline
 try:
     import argcomplete
 except ImportError:
