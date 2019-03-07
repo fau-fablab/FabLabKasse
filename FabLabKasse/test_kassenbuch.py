@@ -16,6 +16,7 @@
 # see <http://www.gnu.org/licenses/>.
 
 """unittests for kassenbuch.py"""
+from __future__ import unicode_literals
 
 import unittest
 from FabLabKasse.kassenbuch import Kasse, Kunde, Buchung, Rechnung, NoDataFound, parse_args

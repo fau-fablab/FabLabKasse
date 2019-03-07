@@ -69,15 +69,15 @@ def moneyfmt(value, places=2, curr='', sep='.', dp=',',
 
         >>> d = Decimal('-1234567.8901')
         >>> moneyfmt(d, curr='$')
-        '-$1.234.567,89'
+        u'-$1.234.567,89'
         >>> moneyfmt(d, places=0, sep=',', dp='', neg='', trailneg='-')
-        '1,234,568-'
+        u'1,234,568-'
         >>> moneyfmt(d, curr='$', neg='(', trailneg=')')
-        '($1.234.567,89)'
+        u'($1.234.567,89)'
         >>> moneyfmt(Decimal(123456789), sep=' ')
-        '123 456 789,00'
+        u'123 456 789,00'
         >>> moneyfmt(Decimal('-0.02'), neg='<', trailneg='>')
-        '<0,02>'
+        u'<0,02>'
 
         Based on https://docs.python.org/2/library/decimal.html
     """
