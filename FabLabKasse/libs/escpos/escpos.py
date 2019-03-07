@@ -5,18 +5,20 @@
 @copyright: Copyright (c) 2012 Bashlinux
 @license: GPL
 '''
+from __future__ import absolute_import
+from __future__ import print_function
+
+# import qrcode
+import time
+import codecs
 
 try:
     import Image
 except ImportError:
     from PIL import Image
 
-# import qrcode
-import time
-import codecs
-
-from constants import *
-from exceptions import *
+from .constants import *
+from .exceptions import *
 
 
 class Escpos:
@@ -66,7 +68,7 @@ class Escpos:
         img_size = [0, 0]
 
         if im.size[0] > 512:
-            print ("WARNING: Image is wider than 512 and could be truncated at print time ")
+            print("WARNING: Image is wider than 512 and could be truncated at print time ")
         if im.size[1] > 255:
             raise ImageSizeError()
 
