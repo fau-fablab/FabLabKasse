@@ -3,7 +3,6 @@
 
 
 # setup a VM using Vagrant which installs "kiosk mode" FabLabKasse setup.
-# Known bug: the display resolution is too small because Virtualbox guest extensions are missing.
 
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
@@ -15,7 +14,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # please see the online documentation at vagrantup.com.
 
   # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "debian/stretch64"
+  config.vm.box = "debian/buster64"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
