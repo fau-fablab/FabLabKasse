@@ -469,7 +469,7 @@ class FAUcardThread(QtCore.QObject):
             # 1.b Connection error
             except (magpos.serial.SerialException, magpos.ConnectionTimeoutError, IOError), e:
                 logging.warning("FAUcardThread: {0}".format(e))
-                self.Info = Info.con_error
+                self.info = Info.con_error
                 self.log.set_status(self.status, self.info)
                 self.response_ready.emit([Info.con_error])
                 lost = True
@@ -505,7 +505,7 @@ class FAUcardThread(QtCore.QObject):
                     except (magpos.serial.SerialException, magpos.ConnectionTimeoutError, IOError):
                         lost = True
 
-                self.Info = Info.con_back
+                self.info = Info.con_back
                 self.response_ready.emit([Info.con_back])
 
                 # 3. Check last payment details
