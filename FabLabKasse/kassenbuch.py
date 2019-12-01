@@ -36,7 +36,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 import dateutil.parser
 import csv
-from io import StringIO
+import StringIO # FIXME: this won't work for python3, where StringIO.StringIO seems to have moved to io.StringIO. For some reason, io.StringIO gives errors work under python2.7.
 import codecs
 import re
 import sys
