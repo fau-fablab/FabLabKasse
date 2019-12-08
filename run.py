@@ -44,6 +44,14 @@ def file_exists(filename):
 
 
 def main():
+    SHUTDOWN_LOCKFILE = "/tmp/fablabkasse-shutdown"
+    while file_exists(SHUTDOWN_LOCKFILE):
+        # This is a workaround for bug https://github.com/spanezz/nodm/issues/5 in the nodm display manager.
+        # The lockfile must be in /tmp and not in /run/user because is cleared early during shutdown.
+        # This is not a security issue because we don't change the contents of that file, we only touch it.
+        # If another user creates that file, this blocks FabLabKasse but is harmless otherwise.
+        print("Waiting for system to finish shutdown. Lockfile {} still exists.".format(SHUTDOWN_LOCKFILE))
+        time.sleep(1)
     currentDir = os.path.dirname(__file__) + "/"
     os.chdir(currentDir)
     currentDir = os.getcwd() + "/"
@@ -102,6 +110,7 @@ def main():
 
     def runShutdown(program):
         """run sudo <program> and wait forever until the system reboots / shuts down"""
+        open(SHUTDOWN_LOCKFILE, "a").close()
         print("calling {0}".format(program))
         time.sleep(1)
         if subprocess.call(["sudo", program]) != 0:
