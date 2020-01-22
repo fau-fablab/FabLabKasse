@@ -1380,7 +1380,7 @@ def main():
             )
 
             # PIN
-            print("[i] zufällige PIN-Vorschläge: {0:04} {1:04} {2:04}".format(
+            print("[i] zufaellige PIN-Vorschlaege: {0:04} {1:04} {2:04}".format(
                 random.randint(1, 9999),
                 random.randint(1, 9999),
                 random.randint(1, 9999)))
