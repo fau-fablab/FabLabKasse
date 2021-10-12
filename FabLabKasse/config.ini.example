@@ -81,6 +81,8 @@ client = on
 overpayment_product_id=9999
 ; "Payout impossible" (user wanted to abort, but some part could not be paid back)
 payout_impossible_product_id=9994
+; global admin PIN by which client accounts can be created and listed in the GUI. Remove the option completely to disable.
+client_admin_pin = 1234
 
 [cash_payment]
 ; only used when cash=on in [payup_methods]
