@@ -476,7 +476,12 @@ class AbstractShoppingBackend(object):
     def list_clients(self):
         """returns all selectable clients in a dict {id: Client(id), ...}"""
         pass
-
+    
+    @abstractmethod
+    def add_client(self, name, email, address, pin, comment, debt_limit):
+        """ creates new client and returns ID on success """
+        pass
+    
     @abstractmethod
     def print_receipt(self, order_id):
         """print the receipt for a given, already paid order_id

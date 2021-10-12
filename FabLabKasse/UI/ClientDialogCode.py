@@ -19,6 +19,10 @@
 from PyQt4 import QtGui, QtCore
 from .uic_generated.SelectClientDialog import Ui_SelectClientDialog
 import re
+from KeyboardDialogCode import KeyboardDialog
+from .. import scriptHelper
+import random
+from ConfigParser import Error as ConfigParserError
 
 
 class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
@@ -35,6 +39,8 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
         """
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
+        
+        self.shopping_backend = shopping_backend;
 
         self.lineEdit_client.textEdited.connect(self.lineEditClientUpdate)
         self.lineEdit_pin.textEdited.connect(self.lineEditPINUpdate)
@@ -56,14 +62,20 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
         self.pushButton_backspace.clicked.connect(self.backspaceLineEdit)
         self.pushButton_back.clicked.connect(self.reject)
         self.pushButton_done.clicked.connect(self.accept)
+        self.pushButton_register.clicked.connect(self.register)
+        self.comboBox_client.setVisible(False);
+        self.pushButton_showList.clicked.connect(self.showHideList)
+        self._reload_clients()
+        
 
+    def _reload_clients(self):
         # Load clients and populate comboBox_client
-        self._clients = shopping_backend.list_clients()
-        # NOTE: clients are never updated between this call and closing the dialog
+        self._clients = self.shopping_backend.list_clients()
         self.comboBox_client.clear()
         self.comboBox_client.addItem(u'')
-        for c in self._clients.itervalues():
-            self.comboBox_client.addItem(c.name)
+        clientNames_sorted = sorted([c.name for c in self._clients.itervalues()], key=lambda x: x.lower())
+        for name in clientNames_sorted:
+            self.comboBox_client.addItem(name)
 
         self.lineEdit_client.setFocus()
 
@@ -173,3 +185,81 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
         msgBox.setText(u"Bezahlung abgebrochen.")
         msgBox.exec_()
         QtGui.QDialog.reject(self)
+    
+    def ask_admin_pin(self):
+        cfg = scriptHelper.getConfig()
+        try:
+            pin = cfg.get('payup_methods', 'client_admin_pin');
+        except ConfigParserError:
+            msgBox = QtGui.QMessageBox(self)
+            msgBox.setText(u"fehlende Konfiguration")
+            msgBox.exec_()
+            return False
+        admin_pin = KeyboardDialog.askText("Admin PIN?", parent=self, hidden_input=True)
+        if admin_pin != "1234":
+            msgBox = QtGui.QMessageBox(self)
+            msgBox.setText(u"Falsche PIN.")
+            msgBox.exec_()
+            return False
+        return True
+        
+    def register(self):
+        if not self.ask_admin_pin():
+            return
+        username = KeyboardDialog.askText("Kundenkennung (nur a-z 0-9 -) (mind. 5 Zeichen): vorname-nachname oder firma", parent=self) or ""
+        username = username.replace("-", "_");
+        username = username.replace(" ", "_");
+        if not re.match(r'^[a-zA-Z0-9_]{5,}$', username):
+            msgBox = QtGui.QMessageBox(self)
+            msgBox.setText(u"Nicht gültig. Abbruch.")
+            msgBox.exec_()
+            return
+        email1 = KeyboardDialog.askText("Email Kunde - Teil VOR dem @", parent=self)
+        if email1 is None:
+            msgBox = QtGui.QMessageBox(self)
+            msgBox.setText(u"abgebrochen.")
+            msgBox.exec_()
+            return
+        email2 = KeyboardDialog.askText("Email Kunde - Teil NACH dem @", parent=self)
+        if email2 is None or len(email2) < 3 or ("." not in email2):
+            msgBox = QtGui.QMessageBox(self)
+            msgBox.setText(u"ungültige Mail. Abbruch.")
+            msgBox.exec_()
+            return
+        email = email1 + "@" + email2
+        address = [""] * 4
+        addressLabel = [u"Name/Firma", u"ggf Mitarbeiter/Addresszusatz", u"Strasse Hausnr", u"PLZ Ort"]
+        for i in [0, 1, 2, 3]:
+            address[i] = KeyboardDialog.askText("Anschrift Zeile " + str(i + 1) + "/4   " + addressLabel[i], parent=self);
+            if address[i] is None:
+                msgBox = QtGui.QMessageBox(self)
+                msgBox.setText(u"abgebrochen.")
+                msgBox.exec_()
+                return
+        address = "; ".join(address);
+        comment = KeyboardDialog.askText("Kommentar", parent=self)
+        if comment is None:
+            msgBox = QtGui.QMessageBox(self)
+            msgBox.setText(u"abgebrochen.")
+            msgBox.exec_()
+            return
+        
+        pin = random.randint(1, 9999);
+        DEFAULT_DEBT_LIMIT = 300;
+        try:
+            client_id = self.shopping_backend.add_client(username, email, address, pin, comment, DEFAULT_DEBT_LIMIT);
+        except Exception as e:
+            msgBox = QtGui.QMessageBox(self)
+            msgBox.setText(u"Fehler: " + str(e));
+            msgBox.exec_()
+            return
+        msgBox = QtGui.QMessageBox(self)
+        msgBox.setText(u"Bitte notieren: Kundennr " + str(client_id) + " PIN " + str(pin) + ". Fertig.");
+        msgBox.exec_()
+        self._reload_clients();
+        
+    def showHideList(self):
+        if not self.comboBox_client.isVisible():
+            if not self.ask_admin_pin():
+                return
+        self.comboBox_client.setVisible(not self.comboBox_client.isVisible())

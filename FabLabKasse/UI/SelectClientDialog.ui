@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>359</width>
-    <height>401</height>
+    <width>436</width>
+    <height>555</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <property name="spacing">
-      <number>-1</number>
+      <number>6</number>
      </property>
      <item>
       <layout class="QGridLayout" name="gridLayout_2">
@@ -441,6 +441,20 @@
       </layout>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButton_register">
+     <property name="text">
+      <string>Registrieren</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButton_showList">
+     <property name="text">
+      <string>Kundennamen anzeigen/verbergen</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

@@ -30,7 +30,7 @@ from ...kassenbuch import Kasse, Rechnung, Buchung, Kunde
 from ...produkt import Produkt
 import socket
 import itertools
-
+import sqlite3
 
 class ShoppingBackend(AbstractOfflineShoppingBackend):
 
@@ -93,6 +93,22 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
                 # payment will also be prevented by the check in AbstractOfflineShoppingBackend -> Client.check_pin
                 clients[k.id] = Client(client_id=k.id, name=k.name, pin=k.pin, debt_limit=debt_limit, debt=-k.summe)
         return clients
+    
+    def add_client(self, name, email, address, pin, comment, debt_limit):
+        kunde = Kunde('')
+        kunde.name = name;
+        kunde.email = email;
+        kunde.adresse = address;
+        kunde.pin = str(pin);
+        kunde.kommentar = comment;
+        kunde.schuldengrenze = Decimal(debt_limit);
+        kunde.telefon = "";
+        try:
+            kunde.store(self._kasse.cur)
+        except sqlite3.IntegrityError:
+            raise Exception("Name already exists")
+        self._kasse.con.commit()
+        return kunde.id
 
     def _store_payment(self, method):
         origin = u"Besucher"
