@@ -514,6 +514,10 @@ class AbstractClient(object):
     def get_debt_limit(self):
         """how much is the limit for the debt that may not be exceeded"""
         return 0
+    
+    def is_admin(self):
+        """may this user perform administrative tasks (add new clients)?"""
+        return False
 
 
 def basicUnitTests(shopping_backend):  # for implentations

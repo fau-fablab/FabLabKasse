@@ -23,7 +23,7 @@ from KeyboardDialogCode import KeyboardDialog
 from .. import scriptHelper
 import random
 from ConfigParser import Error as ConfigParserError
-
+import datetime
 
 class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
 
@@ -163,22 +163,43 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
     def getPIN(self):
         return str(self.lineEdit_pin.text())
 
-    def accept(self):
+    def check_client_and_pin(self, require_admin=False):
+        """ Check client number and PIN """
         # Check client number
         kunde = self.getClient()
         if kunde is None:
             msgBox = QtGui.QMessageBox(self)
             msgBox.setText(u"Unter der Kundennummer konnte leider nichts gefunden werden.")
             msgBox.exec_()
-            return
+            return False
 
         # Check PIN
-        if kunde.test_pin(str(self.lineEdit_pin.text())):
-            QtGui.QDialog.accept(self)
-        else:
+        if not kunde.test_pin(str(self.lineEdit_pin.text())):
             msgBox = QtGui.QMessageBox(self)
             msgBox.setText(u"Falscher PIN oder Kundennummer.")
             msgBox.exec_()
+            return False
+        
+        if require_admin and not kunde.is_admin():
+            msgBox = QtGui.QMessageBox(self)
+            msgBox.setText(u"Das angegebene Konto hat keine Administratorrechte.\n (Kommentar muss mit #admin# beginnen)")
+            msgBox.exec_()
+            return False
+        return kunde
+    
+    def accept(self):
+        kunde = self.check_client_and_pin()
+        if not kunde:
+            return
+        msgBox = QtGui.QMessageBox(self)
+        msgBox.setText(u"Willst du auf das Konto " + kunde.name + " bezahlen?")
+        msgBox.addButton(QtGui.QMessageBox.Cancel)
+        msgBox.addButton(QtGui.QMessageBox.Ok)
+        msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
+        msgBox.setEscapeButton(QtGui.QMessageBox.Cancel)
+        if msgBox.exec_() != QtGui.QMessageBox.Ok:
+            return
+        QtGui.QDialog.accept(self)
 
     def reject(self):
         msgBox = QtGui.QMessageBox(self)
@@ -187,24 +208,11 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
         QtGui.QDialog.reject(self)
     
     def ask_admin_pin(self):
-        cfg = scriptHelper.getConfig()
-        try:
-            pin = cfg.get('payup_methods', 'client_admin_pin');
-        except ConfigParserError:
-            msgBox = QtGui.QMessageBox(self)
-            msgBox.setText(u"fehlende Konfiguration")
-            msgBox.exec_()
-            return False
-        admin_pin = KeyboardDialog.askText("Admin PIN?", parent=self, hidden_input=True)
-        if admin_pin != "1234":
-            msgBox = QtGui.QMessageBox(self)
-            msgBox.setText(u"Falsche PIN.")
-            msgBox.exec_()
-            return False
-        return True
+        return self.check_client_and_pin(require_admin=True)
         
     def register(self):
-        if not self.ask_admin_pin():
+        admin = self.ask_admin_pin()
+        if not admin:
             return
         username = KeyboardDialog.askText("Kundenkennung (nur a-z 0-9 -) (mind. 5 Zeichen): vorname-nachname oder firma", parent=self) or ""
         username = username.replace("-", "_");
@@ -228,12 +236,17 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
             return
         email = email1 + "@" + email2
         address = [""] * 4
-        addressLabel = [u"Name/Firma", u"ggf Mitarbeiter/Addresszusatz", u"Strasse Hausnr", u"PLZ Ort"]
+        addressLabel = [u"Name/Firma", u"ggf Addresszusatz/Mitarbeiter", u"Strasse Hausnr", u"PLZ Ort"]
         for i in [0, 1, 2, 3]:
             address[i] = KeyboardDialog.askText("Anschrift Zeile " + str(i + 1) + "/4   " + addressLabel[i], parent=self);
             if address[i] is None:
                 msgBox = QtGui.QMessageBox(self)
                 msgBox.setText(u"abgebrochen.")
+                msgBox.exec_()
+                return
+            if i in [0, 2] and len(address[i]) < 2: # name and street are mandatory. Other lines may be empty depending on how the user arranges the input.
+                msgBox = QtGui.QMessageBox(self)
+                msgBox.setText(u"keine Anschrift angegeben. Abbruch.")
                 msgBox.exec_()
                 return
         address = "; ".join(address);
@@ -243,6 +256,8 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
             msgBox.setText(u"abgebrochen.")
             msgBox.exec_()
             return
+        comment.replace("#", ""); # remove special characters used for admin-check in legacy_offline_kassenbuch.py
+        comment = comment + ";  registered by " + admin.name + " at " + str(datetime.datetime.now())
         
         pin = random.randint(1, 9999);
         DEFAULT_DEBT_LIMIT = 300;
@@ -254,9 +269,12 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
             msgBox.exec_()
             return
         msgBox = QtGui.QMessageBox(self)
-        msgBox.setText(u"Bitte notieren: Kundennr " + str(client_id) + " PIN " + str(pin) + ". Fertig.");
+        msgBox.setText(u"Konto wurde angelegt. Bitte Kundenkarte ausfüllen: Konto " + str(username) + " Kundennr " + str(client_id) + " PIN " + str(pin) + ".");
         msgBox.exec_()
         self._reload_clients();
+        self.lineEdit_client.setText(str(client_id));
+        self.lineEdit_pin.setText(str(pin));
+        self.accept()
         
     def showHideList(self):
         if not self.comboBox_client.isVisible():

@@ -390,7 +390,7 @@
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="text">
-          <string>Fertig!</string>
+          <string>Bezahlen</string>
          </property>
         </widget>
        </item>

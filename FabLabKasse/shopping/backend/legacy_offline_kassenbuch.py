@@ -32,6 +32,7 @@ import socket
 import itertools
 import sqlite3
 
+
 class ShoppingBackend(AbstractOfflineShoppingBackend):
 
     def __init__(self, cfg):
@@ -91,7 +92,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
             if k.pin != '0000':
                 # do not add client when pin is 0000 (client disabled)
                 # payment will also be prevented by the check in AbstractOfflineShoppingBackend -> Client.check_pin
-                clients[k.id] = Client(client_id=k.id, name=k.name, pin=k.pin, debt_limit=debt_limit, debt=-k.summe)
+                clients[k.id] = Client(client_id=k.id, name=k.name, pin=k.pin, debt_limit=debt_limit, debt=-k.summe, is_admin=unicode(k.kommentar).startswith("#admin#"))
         return clients
     
     def add_client(self, name, email, address, pin, comment, debt_limit):
