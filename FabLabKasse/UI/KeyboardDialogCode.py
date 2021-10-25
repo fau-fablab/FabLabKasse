@@ -33,14 +33,14 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
     """
 
     @staticmethod
-    def askText(question, parent, hidden_input=False):
-        d = KeyboardDialog(parent, question, hidden_input)
+    def askText(question, parent):
+        d = KeyboardDialog(parent, question)
         if d.exec_():
             return d.text()
         else:
             return None
 
-    def __init__(self, parent, question='What: ', hidden_input=False):
+    def __init__(self, parent, question=u'What: '):
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
 
@@ -60,7 +60,6 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
         self.pushButton_backspace.clicked.connect(self.backspace)
         self.pushButton_abort.clicked.connect(self.reject)
         self.pushButton_shift.clicked.connect(self.shift)
-        self.lineEdit.setVisible(not hidden_input)
 
     def text(self):
         return unicode(self.lineEdit.text())

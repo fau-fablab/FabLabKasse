@@ -97,13 +97,13 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
     
     def add_client(self, name, email, address, pin, comment, debt_limit):
         kunde = Kunde('')
-        kunde.name = name;
-        kunde.email = email;
-        kunde.adresse = address;
-        kunde.pin = str(pin);
-        kunde.kommentar = comment;
-        kunde.schuldengrenze = Decimal(debt_limit);
-        kunde.telefon = "";
+        kunde.name = name
+        kunde.email = email
+        kunde.adresse = address
+        kunde.pin = str(pin)
+        kunde.kommentar = comment
+        kunde.schuldengrenze = Decimal(debt_limit)
+        kunde.telefon = ""
         try:
             kunde.store(self._kasse.cur)
         except sqlite3.IntegrityError:
