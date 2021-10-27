@@ -379,13 +379,14 @@ class Client(AbstractClient):
 
     """ a client that can pay by pin """
 
-    def __init__(self, client_id=None, name="", pin=None, debt=None, debt_limit=None):
+    def __init__(self, client_id=None, name="", pin=None, debt=None, debt_limit=None, is_admin=None):
         AbstractClient.__init__(self, client_id, name)
         if debt is not None:
             self._debt = debt
         self._pin = str(pin)
         if debt_limit is not None:
             self._debt_limit = debt_limit
+        self._admin = is_admin
 
     def test_pin(self, pin):
         return self._pin == pin and not pin == "0000"
@@ -395,3 +396,6 @@ class Client(AbstractClient):
 
     def get_debt_limit(self):
         return self._debt_limit
+    
+    def is_admin(self):
+        return self._admin

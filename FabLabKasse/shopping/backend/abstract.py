@@ -476,7 +476,12 @@ class AbstractShoppingBackend(object):
     def list_clients(self):
         """returns all selectable clients in a dict {id: Client(id), ...}"""
         pass
-
+    
+    @abstractmethod
+    def add_client(self, name, email, address, pin, comment, debt_limit):
+        """ creates new client and returns ID on success """
+        pass
+    
     @abstractmethod
     def print_receipt(self, order_id):
         """print the receipt for a given, already paid order_id
@@ -509,6 +514,10 @@ class AbstractClient(object):
     def get_debt_limit(self):
         """how much is the limit for the debt that may not be exceeded"""
         return 0
+    
+    def is_admin(self):
+        """may this user perform administrative tasks (add new clients)?"""
+        return False
 
 
 def basicUnitTests(shopping_backend):  # for implentations
