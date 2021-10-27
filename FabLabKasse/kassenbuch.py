@@ -1306,7 +1306,7 @@ def main():
     elif args.action == 'receipt':
         print(args.receipt.receipt(header=cfg.get('receipt', 'header'),
                                    footer=cfg.get('receipt', 'footer'),
-                                   export=args.export))
+                                   export=args.export).encode("UTF-8"))
         if args.print_receipt:
             args.receipt.print_receipt(cfg)
 
@@ -1473,7 +1473,7 @@ def main():
 
         elif args.client_action == 'show':
 
-            print(kunde.to_string(short=not args.transactions, cur=k.cur))
+            print(kunde.to_string(short=not args.transactions, cur=k.cur).encode("UTF-8"))
 
             print("Kontostand: " + moneyfmt(kunde.summe) + ' EUR')
 
