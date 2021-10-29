@@ -19,6 +19,12 @@ echo "WORKAROUND FOR TOUCHSCREEN _ AAAAAH why does xinput_calibrate not work as 
 # set hardcoded calibration matrix, repeat every few second to allow for reconnects
 ( while true; do xinput set-prop "EloTouchSystems,Inc Elo TouchSystems 2216 AccuTouch® USB Touchmonitor Interface" --type=float "Coordinate Transformation Matrix" 1.215 0 -.085 0 -1.29 1.13 0 0 1 || true; sleep 2; done ) &
 
+
+# Workaround: set resolution for VirtualBox to something that is large enough for the GUI and small enough to fit on a typical notebook monitor in non-fullscreen mode.
+# only executed if the current resolution is 800x600
+( xrandr  --listactivemonitors | grep -q '800/[0-9]*x600/' ) && xrandr --output Virtual1 --mode 1152x864 || true
+
+
 # allow kde style
 export QT_PLUGIN_PATH=/usr/lib/kde4/plugins/
 
