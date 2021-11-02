@@ -217,7 +217,8 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
         username = KeyboardDialog.askText(u"Kundenkennung (nur a-z 0-9 -) (mind. 5 Zeichen): vorname-nachname oder firma", parent=self) or ""
         username = username.replace("-", "_")
         username = username.replace(" ", "_")
-        if not re.match(r'^[a-zA-Z0-9_]{5,}$', username):
+        username = username.lower()
+        if not re.match(r'^[a-z0-9_]{5,}$', username):
             msgBox = QtGui.QMessageBox(self)
             msgBox.setText(u"Nicht gültig. Abbruch.")
             msgBox.exec_()
