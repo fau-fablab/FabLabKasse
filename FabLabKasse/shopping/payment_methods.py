@@ -294,7 +294,7 @@ class ManualCashPayment(AbstractPaymentMethod):
             self.amount_paid = 0
         self.amount_returned = Decimal(0)
         self.successful = ok
-        self.print_receipt = "ask"
+        self.print_receipt = True
 
 
 class AutoCashPayment(AbstractPaymentMethod):
@@ -319,7 +319,7 @@ class AutoCashPayment(AbstractPaymentMethod):
         self.amount_paid = paid_amount  # TODO add amount_returned
         self.amount_returned = Decimal(0)  # TODO read from dialog
         self.successful = ok
-        self.print_receipt = pay_diag.get_receipt_wanted()
+        self.print_receipt = True
 
 
 class FAUCardPayment(AbstractPaymentMethod):
@@ -335,8 +335,7 @@ class FAUCardPayment(AbstractPaymentMethod):
 
     def _show_dialog(self):
         pay_func = PayupFAUCard(parent=self.parent, amount=self.amount_to_pay)
-        print_receipt = QtGui.QMessageBox.question(self.parent, u"FAUCardPayment", u"Benötigst du eine Quittung?", QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-        self.print_receipt = print_receipt == QtGui.QMessageBox.Yes;
+        self.print_receipt = True
         self.successful = pay_func.executePayment()
         self.amount_paid= pay_func.getPaidAmount()
         self.amount_returned = 0
