@@ -137,7 +137,9 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
             # set lineEdit_client to client id
             self.lineEdit_client.setText(str(client[0].client_id))
         else:
-            self.lineEdit_client.setText(u'')
+            pass
+            # do not clear the client textbox because otherwise you can not enter client number 123 if client 12 is disabled / nonexistent.
+            # self.lineEdit_client.setText(u'')
 
     def lineEditPINUpdate(self):
         input = self.lineEdit_pin.text()
