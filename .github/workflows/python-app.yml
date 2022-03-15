@@ -26,7 +26,7 @@ jobs:
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         sudo apt-get install -y python-qt4 python-qt4-dev pyqt4-dev-tools
-        piü install PyQt4
+        pip install PyQt4
     - name: Test script
       run: |
          cd FabLabKasse/UI/ && ./compile_all.py
