@@ -20,8 +20,9 @@
 
 .. WARNING:: not cryptographically secure!"""
 
+
 def random_integer_list(random_generator, integer_range, number_of_elements):
-    """ return a list of length number_of_elements
+    """return a list of length number_of_elements
     with elements in the range integer_range[0] <= element <= integer_range[1]
 
     :param random.Random random_generator: RNG instance
@@ -31,6 +32,7 @@ def random_integer_list(random_generator, integer_range, number_of_elements):
     for _ in range(number_of_elements):
         my_list.append(random_generator.randint(integer_range[0], integer_range[1]))
     return my_list
+
 
 def random_choice_list(random_generator, possible_elements, number_of_elements):
     """return a random list with len(list)==number_of_elements,

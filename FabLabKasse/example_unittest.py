@@ -22,19 +22,19 @@
 
 import unittest
 
+
 class ExampleTest(unittest.TestCase):
 
-    """ Test Examplel """
+    """Test Examplel"""
 
     def test_addition(self):
-        """unittest: test that python runtime is not drunk and can do basic math
-        """
+        """unittest: test that python runtime is not drunk and can do basic math"""
 
         self.assertEqual(1 + 1, 3 - 1)
         self.assertTrue(True)
 
         with self.assertRaises(ZeroDivisionError):
-            print 4/0
+            print 4 / 0
 
 
 if __name__ == "__main__":

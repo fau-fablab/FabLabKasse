@@ -57,7 +57,13 @@ class ESSPDevice(object):
         return "<ESSP>"
 
     def printDebug(self, s, debugLevel):
-        logLevels = {-1: logging.ERROR,  0: logging.WARNING,  1: logging.INFO, 2: logging.DEBUG,  3: logging.DEBUG - 1}
+        logLevels = {
+            -1: logging.ERROR,
+            0: logging.WARNING,
+            1: logging.INFO,
+            2: logging.DEBUG,
+            3: logging.DEBUG - 1,
+        }
         logging.getLogger(self.__repr__()).log(logLevels[debugLevel], s)
 
     def error(self, s):
@@ -76,17 +82,24 @@ class ESSPDevice(object):
         self.printDebug(s, 3)
 
     class Helper(object):
-        CRC = Crc(width=16,  poly=0x8005, reflect_in=False, xor_in=0xFFFF, reflect_out=False, xor_out=0x0000)  # specification is slightly unclear, figured out by trial-and-error
+        CRC = Crc(
+            width=16,
+            poly=0x8005,
+            reflect_in=False,
+            xor_in=0xFFFF,
+            reflect_out=False,
+            xor_out=0x0000,
+        )  # specification is slightly unclear, figured out by trial-and-error
 
         @staticmethod
         def unitTest():
-            assert ESSPDevice.Helper.crc([0x80, 0x01, 0x01]) == [0x06,  0x02]
-            assert ESSPDevice.Helper.crc([0x80, 0x01, 0xF0]) == [0x23,  0x80]
+            assert ESSPDevice.Helper.crc([0x80, 0x01, 0x01]) == [0x06, 0x02]
+            assert ESSPDevice.Helper.crc([0x80, 0x01, 0xF0]) == [0x23, 0x80]
 
         @classmethod
-        def splitBytes(cls,  uint16):
+        def splitBytes(cls, uint16):
             # uint16 -> [lowByte, highByte]
-            return [uint16 & 0xFF,  uint16 >> 8]
+            return [uint16 & 0xFF, uint16 >> 8]
 
         @classmethod
         def crc(cls, data):
@@ -117,14 +130,14 @@ class ESSPDevice(object):
 
         @staticmethod
         def byteArrayToString(data):
-            return b''.join([chr(x) for x in data])
+            return b"".join([chr(x) for x in data])
 
         @staticmethod
         def stringToByteArray(string):
-            return ([ord(x) for x in string])
+            return [ord(x) for x in string]
 
     class ByteStreamReader(object):
-        """  read data values from a list of bytes """
+        """read data values from a list of bytes"""
 
         def __init__(self, bytesList):
             self.buffer = copy.deepcopy(bytesList)
@@ -132,7 +145,7 @@ class ESSPDevice(object):
         @staticmethod
         def unitTest():
             test = ESSPDevice.ByteStreamReader([0x00, 0x1C, 0x96, 0x2C])
-            assert test.readUnsigned32BigEndian() == 0x1c962c
+            assert test.readUnsigned32BigEndian() == 0x1C962C
             test.assertFinished()
 
         def readData(self, n):
@@ -191,7 +204,9 @@ class ESSPDevice(object):
             # ASCII byte-array to string
             return "".join(map(chr, d))
 
-        def assertFinished(self):  # assert that there is no data left - use this at the end of parsing fixed-length replies
+        def assertFinished(
+            self,
+        ):  # assert that there is no data left - use this at the end of parsing fixed-length replies
             assert not self.hasData()
 
     #
@@ -247,7 +262,9 @@ class ESSPDevice(object):
         if bytesToRead > 0:
             self.debug2("received " + str(bytesToRead) + " bytes")
             rxString = self.ser.read(bytesToRead)
-            self.debug2("raw buffer at start of read()  (old data): " + hex(self.rawBuffer))
+            self.debug2(
+                "raw buffer at start of read()  (old data): " + hex(self.rawBuffer)
+            )
             for char in rxString:
                 self.rawBuffer.append(ord(char))
             self.debug2("raw buffer before byte-destuffing: " + hex(self.rawBuffer))
@@ -263,7 +280,9 @@ class ESSPDevice(object):
                 if self.rawBuffer[1] == 0x7F:
                     # we got a byte-stuffed 0x7F databyte
                     self.buffer.append(0x7F)
-                    del self.rawBuffer[0:2]  # delete first two elements (indices 0 and 1)
+                    del self.rawBuffer[
+                        0:2
+                    ]  # delete first two elements (indices 0 and 1)
                 else:
                     # we received a real STX byte
                     # store it as -1 (special value)
@@ -289,7 +308,9 @@ class ESSPDevice(object):
             # check validity of packet
             while len(self.buffer) > 0 and self.buffer[0] != -1:
                 self.warn("wrong sync-start of packet - discarding one byte")
-                self.error("halting because of wrong sync-start. buffer: " + hex(self.buffer))
+                self.error(
+                    "halting because of wrong sync-start. buffer: " + hex(self.buffer)
+                )
                 raise Exception("comms error or device firmware bug. halting.")
                 # del self.buffer[0]
 
@@ -299,8 +320,12 @@ class ESSPDevice(object):
 
             length = self.buffer[2]
 
-            if -1 in self.buffer[1:length + 5]:  # note: python does not throw exceptions if the buffer is not long enough for the range 1 ... length+5, but just returns the longest possible part
-                self.warn("packet data contains a sync-start, skipping the start of this malformed (too short?) packet and waiting for next sync")
+            if (
+                -1 in self.buffer[1 : length + 5]
+            ):  # note: python does not throw exceptions if the buffer is not long enough for the range 1 ... length+5, but just returns the longest possible part
+                self.warn(
+                    "packet data contains a sync-start, skipping the start of this malformed (too short?) packet and waiting for next sync"
+                )
                 del self.buffer[0]
                 continue
 
@@ -308,9 +333,11 @@ class ESSPDevice(object):
                 # not enough data received to parse the whole packet
                 return False
 
-            crc = self.buffer[length + 3:length + 4 + 1]
-            if ESSPDevice.Helper.crc(self.buffer[1:3 + length - 1 + 1]) != crc:
-                self.warn("CRC error - discarding this packet start and waiting for next sync-start")
+            crc = self.buffer[length + 3 : length + 4 + 1]
+            if ESSPDevice.Helper.crc(self.buffer[1 : 3 + length - 1 + 1]) != crc:
+                self.warn(
+                    "CRC error - discarding this packet start and waiting for next sync-start"
+                )
                 # do not delete whole packet from buffer (the length might have been corrupted), but only the first byte (sync-start), wait until the next start
                 del self.buffer[0]
                 continue
@@ -321,12 +348,12 @@ class ESSPDevice(object):
                     self.warn("response has wrong sequence number, discarding it.")
                     data = False
                 else:
-                    data = ESSPDevice.Response(self.buffer[3:length + 3])
+                    data = ESSPDevice.Response(self.buffer[3 : length + 3])
                     self.debug("response: {0}".format(data))
             else:
                 # the packet was not for us, but for another slave
                 data = False
-            del self.buffer[0:length + 5]
+            del self.buffer[0 : length + 5]
             return data
         return False
 
@@ -334,19 +361,19 @@ class ESSPDevice(object):
     # High-Level Send/Receive: Command/Response
     #
     class Response(object):
-        """ status + data
-        """
+        """status + data"""
+
         statusStrings = {
-            -1:   "decoded response contains no data",
-                        0xF0: "OK",
-                        0xF2: "Command not known",
-                        0xF3: "Wrong number of parameters",
-                        0xF4: "Param out of range",
-                        0xF5: "Command cannot be processed at this time, possibly busy or not correctly configured",
-                        0xF6: "Software error",
-                        0xF8: "Command failure",
-                        0xFA: "Encryption key not set",
-                        0x7E: "Encrypted Data"
+            -1: "decoded response contains no data",
+            0xF0: "OK",
+            0xF2: "Command not known",
+            0xF3: "Wrong number of parameters",
+            0xF4: "Param out of range",
+            0xF5: "Command cannot be processed at this time, possibly busy or not correctly configured",
+            0xF6: "Software error",
+            0xF8: "Command failure",
+            0xFA: "Encryption key not set",
+            0x7E: "Encrypted Data",
         }
 
         def __init__(self, data):
@@ -364,7 +391,7 @@ class ESSPDevice(object):
             return self.status == 0xF5
 
         def isHardFail(self):
-            return not(self.isOkay() or self.isSoftFail())
+            return not (self.isOkay() or self.isSoftFail())
 
         def isEncrypted(self):
             return self.status == 0x7E
@@ -376,7 +403,15 @@ class ESSPDevice(object):
                 return "unknown statuscode " + str(self.status)
 
         def __repr__(self):
-            return "<Response: status=" + hex(self.status) + " (" + self.statusString() + "), data=" + hex(self.data) + ">"
+            return (
+                "<Response: status="
+                + hex(self.status)
+                + " ("
+                + self.statusString()
+                + "), data="
+                + hex(self.data)
+                + ">"
+            )
 
         def getData(self):
             return copy.copy(self.data)
@@ -414,14 +449,20 @@ class ESSPDevice(object):
                     else:
                         self.log("unsuccessful response: " + str(r))
             if r is False:
-                self.warn("Timeout or CRC/Crypto error -- resend necessary (not fatal, this may happen rarely)")
+                self.warn(
+                    "Timeout or CRC/Crypto error -- resend necessary (not fatal, this may happen rarely)"
+                )
                 self.resendLast()
                 continue
             if not r.isOkay():
                 self.warn("got response with error status:" + str(r))
                 if not (r.isSoftFail() and allowSoftFail):
-                    self.error(("Command failed: Cmd " + hex(data) + ", Resp " + str(r)))
-                    raise Exception("Command failed: Cmd " + hex(data) + ", Resp " + str(r))
+                    self.error(
+                        ("Command failed: Cmd " + hex(data) + ", Resp " + str(r))
+                    )
+                    raise Exception(
+                        "Command failed: Cmd " + hex(data) + ", Resp " + str(r)
+                    )
             else:
                 self.debug2("got response:" + str(r))
             return r
@@ -434,21 +475,31 @@ class ESSPDevice(object):
     def initCrypto(self, presharedKey):
         # todo use real random primes here ????????? whatever, the whole crypto stuff is rather a marketing gag than a useful security measure, it has no MITM protection
         # and AFAIK SSL also uses fixed generator and modulus
-        generator = 0x5a7ccab
-        modulus = 0x4c564cf
+        generator = 0x5A7CCAB
+        modulus = 0x4C564CF
         assert modulus < generator
-        self.unencryptedCommand([0x4A] + ESSPDevice.Helper.Unsigned64ToBytes(generator))  # set generator
-        self.unencryptedCommand([0x4B] + ESSPDevice.Helper.Unsigned64ToBytes(modulus))  # set modulus
+        self.unencryptedCommand(
+            [0x4A] + ESSPDevice.Helper.Unsigned64ToBytes(generator)
+        )  # set generator
+        self.unencryptedCommand(
+            [0x4B] + ESSPDevice.Helper.Unsigned64ToBytes(modulus)
+        )  # set modulus
         # hostRandomNumber=1 # random number
-        hostRandomNumber = 0x4e9efc7
-        hostTempKey = pow(generator, hostRandomNumber, modulus)  # generator ** hostRandomNumber % modulus
+        hostRandomNumber = 0x4E9EFC7
+        hostTempKey = pow(
+            generator, hostRandomNumber, modulus
+        )  # generator ** hostRandomNumber % modulus
         # assert hostTempKey==0x1d9ecb1
-        s = self.unencryptedCommand([0x4C] + ESSPDevice.Helper.Unsigned64ToBytes(hostTempKey)).getDataStream()
+        s = self.unencryptedCommand(
+            [0x4C] + ESSPDevice.Helper.Unsigned64ToBytes(hostTempKey)
+        ).getDataStream()
         slaveTempKey = s.readUnsigned(numBytes=8, littleEndian=True)
         # SlaveInter=0x10ada5d
         # slaveTempKey=SlaveInter
         s.assertFinished()
-        negotiatedKey = pow(slaveTempKey, hostRandomNumber, modulus)  # (slaveTempKey ** hostRandomNumber) % modulus
+        negotiatedKey = pow(
+            slaveTempKey, hostRandomNumber, modulus
+        )  # (slaveTempKey ** hostRandomNumber) % modulus
 
         key = negotiatedKey * (2 ** 64) + presharedKey
         # convert to byte array
@@ -459,7 +510,11 @@ class ESSPDevice(object):
         self.encryptionCounter = 0
 
     def encryptData(self, data):
-        d = [len(data)] + ESSPDevice.Helper.Unsigned32ToBytes(self.encryptionCounter) + data
+        d = (
+            [len(data)]
+            + ESSPDevice.Helper.Unsigned32ToBytes(self.encryptionCounter)
+            + data
+        )
         self.encryptionCounter += 1
 
         # padding: make the final data length a multiple of 16 bytes
@@ -480,12 +535,16 @@ class ESSPDevice(object):
 
     def decryptResponse(self, r):
         try:
-            assert r.isEncrypted()  # check start byte 0x7E, it is the response status byte
+            assert (
+                r.isEncrypted()
+            )  # check start byte 0x7E, it is the response status byte
             assert len(r.data) % 16 == 0, "padding length"
             encryptedStream = r.getDataStream()
             decryptedData = []
             while encryptedStream.hasData():
-                dataStr = ESSPDevice.Helper.byteArrayToString(encryptedStream.readData(16))
+                dataStr = ESSPDevice.Helper.byteArrayToString(
+                    encryptedStream.readData(16)
+                )
                 decryptedStr = self.crypt.decrypt(dataStr)
                 decryptedData += ESSPDevice.Helper.stringToByteArray(decryptedStr)
             self.debug2("parsing decrypted data: " + hex(decryptedData))
@@ -493,7 +552,11 @@ class ESSPDevice(object):
             length = stream.readByte()
             assert length > 0, "nonzero length"
             receivedEncryptionCounter = stream.readUnsigned32(CheckOverrun=False)
-            assert self.encryptionCounter == receivedEncryptionCounter, "encryption counter: expected {0}, received {1}".format(self.encryptionCounter, receivedEncryptionCounter)
+            assert (
+                self.encryptionCounter == receivedEncryptionCounter
+            ), "encryption counter: expected {0}, received {1}".format(
+                self.encryptionCounter, receivedEncryptionCounter
+            )
             data = stream.readData(length)
 
             # discard padding
@@ -503,23 +566,27 @@ class ESSPDevice(object):
             #
             # => (7 + len) + x - n*16 = 0
             # => x = n*16 - (7*length) so that x >= 0
-            stream.readData((- (7 + length)) % 16)
+            stream.readData((-(7 + length)) % 16)
 
             # CRC on all bytes except the start byte and the CRC itself
-            assert stream.readData(2) == ESSPDevice.Helper.crc(decryptedData[0:-2]), "decrypted CRC mismatch"
+            assert stream.readData(2) == ESSPDevice.Helper.crc(
+                decryptedData[0:-2]
+            ), "decrypted CRC mismatch"
 
             stream.assertFinished()
 
             return ESSPDevice.Response(data)
         except AssertionError:
-            self.warn("failed to decrypt response, discarding it. " + traceback.format_exc())
+            self.warn(
+                "failed to decrypt response, discarding it. " + traceback.format_exc()
+            )
             # self.encryptionCounter-=1
             return False
 
     #
     # Basic Commands
     #
-        # resets the device - ATTENTION, the usb device also detaches after reset, so you need to reopen the port!
+    # resets the device - ATTENTION, the usb device also detaches after reset, so you need to reopen the port!
     def reset(self):
         r = self.unencryptedCommand([0x01])
         if r != 0x01:
@@ -552,6 +619,7 @@ class NV11Device(ESSPDevice):
 
     def __repr__(self):
         return "<NV11>"
+
     #
     # Commands
     #
@@ -595,7 +663,9 @@ class NV11Device(ESSPDevice):
 
         # Serial number
         s = self.command([0xC]).getDataStream()
-        unitData["serial number"] = s.readUnsigned32BigEndian()  # serial number is big-endian - WTF
+        unitData[
+            "serial number"
+        ] = s.readUnsigned32BigEndian()  # serial number is big-endian - WTF
         s.assertFinished()
 
         # Unit data
@@ -603,7 +673,11 @@ class NV11Device(ESSPDevice):
         unitData["unit type"] = s.readByte()
         unitData["firmware version"] = s.readAscii(4)
         unitData["country"] = s.readAscii(3)
-        unitData["internal value multiplier"] = s.readUnsigned24BigEndian()  # the official documentation example looks like this should be little-endian, but it isn't
+        unitData[
+            "internal value multiplier"
+        ] = (
+            s.readUnsigned24BigEndian()
+        )  # the official documentation example looks like this should be little-endian, but it isn't
         unitData["protocol version"] = s.readByte()
         s.assertFinished()
 
@@ -613,17 +687,32 @@ class NV11Device(ESSPDevice):
         assert s.readAscii(4) == unitData["firmware version"]
         assert s.readAscii(3) == unitData["country"]
         assert unitData["internal value multiplier"] == s.readUnsigned24BigEndian()
-        assert unitData["internal value multiplier"] != 0  # assuming old-style dataset - if this fails, see official docs and rewrite
+        assert (
+            unitData["internal value multiplier"] != 0
+        )  # assuming old-style dataset - if this fails, see official docs and rewrite
 
         unitData["numChannels"] = s.readByte()
         assert unitData["numChannels"] in range(1, 17)
-        unmultipliedChannelValue = [s.readByte() for _ in range(unitData["numChannels"])]
-        unitData["channel security (obsolete)"] = [s.readByte() for _ in range(unitData["numChannels"])]
-        unitData["real value multiplier"] = s.readUnsigned24BigEndian()  # second value multiplier
+        unmultipliedChannelValue = [
+            s.readByte() for _ in range(unitData["numChannels"])
+        ]
+        unitData["channel security (obsolete)"] = [
+            s.readByte() for _ in range(unitData["numChannels"])
+        ]
+        unitData[
+            "real value multiplier"
+        ] = s.readUnsigned24BigEndian()  # second value multiplier
         assert unitData["internal value multiplier"] != 0
 
-        unitData["reported channel value"] = [x * unitData["internal value multiplier"] for x in unmultipliedChannelValue]
-        unitData["real channel value"] = [x * unitData["internal value multiplier"] * unitData["real value multiplier"] for x in unmultipliedChannelValue]
+        unitData["reported channel value"] = [
+            x * unitData["internal value multiplier"] for x in unmultipliedChannelValue
+        ]
+        unitData["real channel value"] = [
+            x
+            * unitData["internal value multiplier"]
+            * unitData["real value multiplier"]
+            for x in unmultipliedChannelValue
+        ]
 
         assert s.readByte() == 7  # current protocol version
 
@@ -644,14 +733,23 @@ class NV11Device(ESSPDevice):
         """
         for v in values:
             assert v % self.unitData["real value multiplier"] == 0
-            assert v / self.unitData["real value multiplier"] in self.unitData["reported channel value"]
+            assert (
+                v / self.unitData["real value multiplier"]
+                in self.unitData["reported channel value"]
+            )
         for v in self.unitData["reported channel value"]:
             # set denomination route
             route = 0x01  # default: to cashbox
             if v * self.unitData["real value multiplier"] in values:
                 route = 0x00  # route to payout-store
             # docs are unclear: here the real and not the reported value is used!!!!
-            self.command([0x3B, route] + ESSPDevice.Helper.Unsigned32ToBytes(v * self.unitData["real value multiplier"]) + ESSPDevice.Helper.AsciiToBytes(self.unitData["country"]))
+            self.command(
+                [0x3B, route]
+                + ESSPDevice.Helper.Unsigned32ToBytes(
+                    v * self.unitData["real value multiplier"]
+                )
+                + ESSPDevice.Helper.AsciiToBytes(self.unitData["country"])
+            )
 
     def getPayoutValues(self):
         """get values of notes on payout stack.
@@ -673,7 +771,9 @@ class NV11Device(ESSPDevice):
         r = self.command([0x42], allowSoftFail=True)  # payout last stored note
         if not r.isOkay():
             self.log("could not payout (busy if data==3, otherwise error):" + str(r))
-        return r.isOkay()  # False = could not payout, True = starting payout / waiting for start
+        return (
+            r.isOkay()
+        )  # False = could not payout, True = starting payout / waiting for start
 
     def stackFromPayout(self):
         """
@@ -683,7 +783,11 @@ class NV11Device(ESSPDevice):
         """
         l = self.getPayoutValues()
         assert len(l) > 0
-        self.log("moving note {0} from payout-store to cashbox. payout store contents before:{1} ".format(l[-1], l))
+        self.log(
+            "moving note {0} from payout-store to cashbox. payout store contents before:{1} ".format(
+                l[-1], l
+            )
+        )
         self.command([0x43])
 
     def empty(self):
@@ -723,23 +827,29 @@ class NV11Device(ESSPDevice):
         # non-ACK events with no data:
         simpleEvents = {
             # 0xB5: ["all input channels disabled", debug],
-                      0xB6: ["booting,  please wait", log],
-                      0xC2: ["emptying,  please wait", debug],
-                      0xC3: ["emptied", log],
-                      0xC6: ["payout device went out of service - (TODO: implement re-enabling by ENABLE PAYOUT DEVICE)", warning],
-                      0xC7: ["payout device removed", warning],
-                      0xC8: ["payout device attached", log],
-                      0xCF: ["payout device full", log],  # TODO official documentation says that this event is 0xC9,  which already has a meaning. WTF
-                      0xCC: ["note stacking", debug],
-                      0xE3: ["cashbox removed", log],
-                      0xE4: ["cashbox reinserted", log],
-                      0xE7: ["stacker full", warning],
-                      0xE9: ["note jammed, possibly removable by user", warning],
-                      0xEA: ["note jammed, safe (not retrievable by user)", warning],
-                      0xEB: ["note stacked", debug],
-                      0xEC: ["note rejected", debug],
-                      0xED: ["rejecting note", debug],
-                      0xF1: ["power reset", log],
+            0xB6: ["booting,  please wait", log],
+            0xC2: ["emptying,  please wait", debug],
+            0xC3: ["emptied", log],
+            0xC6: [
+                "payout device went out of service - (TODO: implement re-enabling by ENABLE PAYOUT DEVICE)",
+                warning,
+            ],
+            0xC7: ["payout device removed", warning],
+            0xC8: ["payout device attached", log],
+            0xCF: [
+                "payout device full",
+                log,
+            ],  # TODO official documentation says that this event is 0xC9,  which already has a meaning. WTF
+            0xCC: ["note stacking", debug],
+            0xE3: ["cashbox removed", log],
+            0xE4: ["cashbox reinserted", log],
+            0xE7: ["stacker full", warning],
+            0xE9: ["note jammed, possibly removable by user", warning],
+            0xEA: ["note jammed, safe (not retrievable by user)", warning],
+            0xEB: ["note stacked", debug],
+            0xEC: ["note rejected", debug],
+            0xED: ["rejecting note", debug],
+            0xF1: ["power reset", log],
         }
 
         # TODO filter out repetitions????
@@ -747,33 +857,78 @@ class NV11Device(ESSPDevice):
 
         # events with 1 byte data (channel or 0=in progress)
         # only for NV9/NV11 validators - needs many changes for other device types!
-        eventsWithChannelInfo = {0xE6: ["Fraud attemtpted", True, warning],
-                                 0xE1: ["Note rejected to user at powerup", True, warning],
-                                 0xE2: ["Note cleared to cashbox at powerup", True, warning],
-                                 0xEE: ["Credit note ", True, log]
-                                 }
+        eventsWithChannelInfo = {
+            0xE6: ["Fraud attemtpted", True, warning],
+            0xE1: ["Note rejected to user at powerup", True, warning],
+            0xE2: ["Note cleared to cashbox at powerup", True, warning],
+            0xEE: ["Credit note ", True, log],
+        }
 
         # events with and without ACK that have a data response like:
         # numItems, [Countrycode, Value], [Countrycode, Value], ...
         eventsWithValueReporting = {  # Code: [name, needsACK, logLevel, meaning], ...
             # meaning: see code below - how should the code handle this event
-                                  0xB3: ["emptying (smart-empty), current value ", False, debug, "ignore"],
-                                  0xB4: ["emptied (smart-empty)", True, log, "ignore"],
-                                  0xCA: ["note cleared to stacker at powerup", True, warning, "LogSingleItem"],
-                                  0xCB: ["note cleared to payout-store at powerup", True, warning, "LogSingleItem"],
-                                  0xCD: ["note cleared to user (dispensed!) at powerup", True, warning, "LogSingleItem"],
-                                  0xCE: ["dispensed note held in bezel", False, log, "LogSingleItem"],
-                                  0xD2: ["payout completed", True, log, "EndOfPayout"],
-                                  0xD5: ["jammed - needs manual intervention,  currently paid out value:", False, warning, "EndOfPayout"],  # TODO should this really be EndOfPayout ?????
-                                  # TODO 0xD5 really EndOfPayout ?????
-                                  0xD6: ["payout halted (requested by host),  currently paid out value", False, log, "Unsupported"],
-                                  0xD9: ["Timeout: unable to complete payout request. paid out value:", True, warning, "EndOfPayout"],  # TODO should this really be EndOfPayout ?????
-                                  0xDA: ["payout is active, currently paid out:", False, debug, "ignore"],
-                                  0xDB: ["note stored in payout", False, log, "LogSingleItem"],  # official documentation unclear!
-                                  0xDC: ["Payout request before powerup was interrupted. floated value / requested value:", True, warning, "LogTwoValues"],
-                                  0xDD: ["Float request before powerup was interrupted. floated value / requested value: ", True, warning, "LogTwoValues"],
-                                  0xC9: ["note moved from payout to stacker", True, log, "LogSingleItem"],
-
+            0xB3: ["emptying (smart-empty), current value ", False, debug, "ignore"],
+            0xB4: ["emptied (smart-empty)", True, log, "ignore"],
+            0xCA: [
+                "note cleared to stacker at powerup",
+                True,
+                warning,
+                "LogSingleItem",
+            ],
+            0xCB: [
+                "note cleared to payout-store at powerup",
+                True,
+                warning,
+                "LogSingleItem",
+            ],
+            0xCD: [
+                "note cleared to user (dispensed!) at powerup",
+                True,
+                warning,
+                "LogSingleItem",
+            ],
+            0xCE: ["dispensed note held in bezel", False, log, "LogSingleItem"],
+            0xD2: ["payout completed", True, log, "EndOfPayout"],
+            0xD5: [
+                "jammed - needs manual intervention,  currently paid out value:",
+                False,
+                warning,
+                "EndOfPayout",
+            ],  # TODO should this really be EndOfPayout ?????
+            # TODO 0xD5 really EndOfPayout ?????
+            0xD6: [
+                "payout halted (requested by host),  currently paid out value",
+                False,
+                log,
+                "Unsupported",
+            ],
+            0xD9: [
+                "Timeout: unable to complete payout request. paid out value:",
+                True,
+                warning,
+                "EndOfPayout",
+            ],  # TODO should this really be EndOfPayout ?????
+            0xDA: ["payout is active, currently paid out:", False, debug, "ignore"],
+            0xDB: [
+                "note stored in payout",
+                False,
+                log,
+                "LogSingleItem",
+            ],  # official documentation unclear!
+            0xDC: [
+                "Payout request before powerup was interrupted. floated value / requested value:",
+                True,
+                warning,
+                "LogTwoValues",
+            ],
+            0xDD: [
+                "Float request before powerup was interrupted. floated value / requested value: ",
+                True,
+                warning,
+                "LogTwoValues",
+            ],
+            0xC9: ["note moved from payout to stacker", True, log, "LogSingleItem"],
         }
         eventNeedsACK = False
         r = {}  # return
@@ -788,7 +943,9 @@ class NV11Device(ESSPDevice):
             ev = eventData.readByte()
             self.debug("event  " + hex(ev))
             if ev in simpleEvents:
-                self.printDebug("event " + hex(ev) + ": " + simpleEvents[ev][0], simpleEvents[ev][1])
+                self.printDebug(
+                    "event " + hex(ev) + ": " + simpleEvents[ev][0], simpleEvents[ev][1]
+                )
             elif ev == 0xEF:
                 channel = eventData.readByte()
                 if channel == 0:
@@ -810,7 +967,9 @@ class NV11Device(ESSPDevice):
                 channel = eventData.readByte()
                 self.printDebug(message + " - channel " + str(channel), logSeverity)
                 if ev == 0xEE:  # credit note
-                    r["received"] += [self.getChannelValue(channel)]  # TODO we can't easily tell if the note was stacked or put into the cashbox
+                    r["received"] += [
+                        self.getChannelValue(channel)
+                    ]  # TODO we can't easily tell if the note was stacked or put into the cashbox
                     # self.setEnabledChannels() will be called after parsing of all events has been completed
             elif ev in eventsWithValueReporting.keys():
                 message = eventsWithValueReporting[ev][0]
@@ -819,7 +978,13 @@ class NV11Device(ESSPDevice):
                 logSeverity = eventsWithValueReporting[ev][2]
                 meaning = eventsWithValueReporting[ev][3]
 
-                assert meaning in ["EndOfPayout", "Unsupported", "ignore", "LogTwoValues", "LogSingleItem"]
+                assert meaning in [
+                    "EndOfPayout",
+                    "Unsupported",
+                    "ignore",
+                    "LogTwoValues",
+                    "LogSingleItem",
+                ]
                 assert meaning != "Unsupported"
 
                 if ev == 0xDA:
@@ -835,17 +1000,23 @@ class NV11Device(ESSPDevice):
                     assert eventData.readByte() == 1
                     # for "LogSingleItems" the array length is not transmitted and fixed to 1
 
-                value = eventData.readUnsigned32()  # assuming reporting by value (this is set in init)
+                value = (
+                    eventData.readUnsigned32()
+                )  # assuming reporting by value (this is set in init)
                 if meaning == "LogTwoValues":
                     # this event has an answer with two values: (value1 value2 country)
-                    value = [value,  eventData.readUnsigned32()]
+                    value = [value, eventData.readUnsigned32()]
                 country = eventData.readAscii(3)
                 message += " {0} {1}. ".format(value, country)
 
                 if meaning == "EndOfPayout":
                     self.log(hex(ev) + "end of payout,  dispensed: " + str(value))
-                    assert r["dispensed"] == []  # prevent duplicate counting of one pay-out in single poll response - TODO is this okay?
-                    assert value > 0  # empty completed payouts are usually reported after communication errors - TODO may this happen?
+                    assert (
+                        r["dispensed"] == []
+                    )  # prevent duplicate counting of one pay-out in single poll response - TODO is this okay?
+                    assert (
+                        value > 0
+                    )  # empty completed payouts are usually reported after communication errors - TODO may this happen?
                     r["dispensed"] += [value]
 
                 self.printDebug(message, logSeverity)
@@ -853,7 +1024,14 @@ class NV11Device(ESSPDevice):
                 remainingData = []
                 while eventData.hasData():
                     remainingData.append(eventData.readByte())
-                self.error("event decode error: " + hex(fullData) + ", trouble at " + hex(ev) + ", remaining unparsed data:" + hex(remainingData))
+                self.error(
+                    "event decode error: "
+                    + hex(fullData)
+                    + ", trouble at "
+                    + hex(ev)
+                    + ", remaining unparsed data:"
+                    + hex(remainingData)
+                )
                 raise Exception("unknown event - probably decode error")
         logging.debug("event parsing finished.")
         if r["received"]:
@@ -869,6 +1047,7 @@ class NV11Device(ESSPDevice):
             time.sleep(1)
 
         return r
+
 
 class NV11DeviceTest(unittest.TestCase):
     """Test NV11Device class"""

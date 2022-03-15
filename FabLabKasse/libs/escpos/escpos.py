@@ -1,10 +1,10 @@
 #!/usr/bin/python
-'''
+"""
 @author: Manuel F Martinez <manpaz@bashlinux.com>
 @organization: Bashlinux
 @copyright: Copyright (c) 2012 Bashlinux
 @license: GPL
-'''
+"""
 from __future__ import absolute_import
 from __future__ import print_function
 
@@ -23,11 +23,12 @@ from .exceptions import *
 
 class Escpos:
 
-    """ ESC/POS Printer object """
+    """ESC/POS Printer object"""
+
     device = None
 
     def _check_image_size(self, size):
-        """ Check and fix the size of the image to 32 bits """
+        """Check and fix the size of the image to 32 bits"""
         if size % 32 == 0:
             return (0, 0)
         else:
@@ -38,18 +39,18 @@ class Escpos:
                 return (image_border / 2, (image_border / 2) + 1)
 
     def _print_image(self, line, size):
-        """ Print formatted image """
+        """Print formatted image"""
         i = 0
         cont = 0
         buffer = ""
 
         self._raw(S_RASTER_N)
         buffer = "%02X%02X%02X%02X" % (((size[0] / size[1]) / 8), 0, size[1], 0)
-        self._raw(buffer.decode('hex'))
+        self._raw(buffer.decode("hex"))
         buffer = ""
 
         while i < len(line):
-            hex_string = int(line[i:i + 8], 2)
+            hex_string = int(line[i : i + 8], 2)
             buffer += "%02X" % hex_string
             i += 8
             cont += 1
@@ -59,7 +60,7 @@ class Escpos:
                 cont = 0
 
     def _convert_image(self, im):
-        """ Parse image and prepare it to a printable format """
+        """Parse image and prepare it to a printable format"""
         pixels = []
         pix_line = ""
         im_left = ""
@@ -68,7 +69,9 @@ class Escpos:
         img_size = [0, 0]
 
         if im.size[0] > 512:
-            print("WARNING: Image is wider than 512 and could be truncated at print time ")
+            print(
+                "WARNING: Image is wider than 512 and could be truncated at print time "
+            )
         if im.size[1] > 255:
             raise ImageSizeError()
 
@@ -85,7 +88,7 @@ class Escpos:
             for x in range(im.size[0]):
                 img_size[0] += 1
                 RGB = im.getpixel((x, y))
-                im_color = (RGB[0] + RGB[1] + RGB[2])
+                im_color = RGB[0] + RGB[1] + RGB[2]
                 im_pattern = "1X0"
                 pattern_len = len(im_pattern)
                 switch = (switch - 1) * (-1)
@@ -96,7 +99,9 @@ class Escpos:
                         else:
                             pix_line += im_pattern[x]
                         break
-                    elif im_color > (255 * 3 / pattern_len * pattern_len) and im_color <= (255 * 3):
+                    elif im_color > (
+                        255 * 3 / pattern_len * pattern_len
+                    ) and im_color <= (255 * 3):
                         pix_line += im_pattern[-1]
                         break
             pix_line += im_right
@@ -105,26 +110,25 @@ class Escpos:
         self._print_image(pix_line, img_size)
 
     def image(self, path_img):
-        """ Open image file """
+        """Open image file"""
         im_open = Image.open(path_img)
         im = im_open.convert("RGB")
         # Convert the RGB image in printable image
         self._convert_image(im)
 
-
-#    def qr(self,text):
-#        """ Print QR Code for the provided string """
-#        qr_code = qrcode.QRCode(version=4, box_size=4, border=1)
-#        qr_code.add_data(text)
-#        qr_code.make(fit=True)
-#        qr_img = qr_code.make_image()
-#        im = qr_img._img.convert("RGB")
-# Convert the RGB image in printable image
-#        self._convert_image(im)
-#
+    #    def qr(self,text):
+    #        """ Print QR Code for the provided string """
+    #        qr_code = qrcode.QRCode(version=4, box_size=4, border=1)
+    #        qr_code.add_data(text)
+    #        qr_code.make(fit=True)
+    #        qr_img = qr_code.make_image()
+    #        im = qr_img._img.convert("RGB")
+    # Convert the RGB image in printable image
+    #        self._convert_image(im)
+    #
 
     def barcode(self, code, bc, width, height, pos, font):
-        """ Print Barcode """
+        """Print Barcode"""
         # Align Bar Code()
         self._raw(TXT_ALIGN_CT)
         # Height
@@ -175,14 +179,14 @@ class Escpos:
             raise exception.BarcodeCodeError()
 
     def text(self, txt):
-        """ Print alpha-numeric text """
+        """Print alpha-numeric text"""
         if txt:
-            self._raw(codecs.encode(txt, 'cp437', 'replace'))
+            self._raw(codecs.encode(txt, "cp437", "replace"))
         else:
             raise TextError()
 
-    def set(self, align='left', font='a', type='normal', width=1, height=1):
-        """ Set text properties """
+    def set(self, align="left", font="a", type="normal", width=1, height=1):
+        """Set text properties"""
         # Width
         if height != 2 and width != 2:  # DEFAULT SIZE: NORMAL
             self._raw(TXT_NORMAL)
@@ -228,8 +232,8 @@ class Escpos:
         elif align.upper() == "LEFT":
             self._raw(TXT_ALIGN_LT)
 
-    def cut(self, mode=''):
-        """ Cut paper """
+    def cut(self, mode=""):
+        """Cut paper"""
         # Fix the size between last line and cut
         # TODO: handle this with a line feed
         self._raw("\n\n\n\n\n\n")
@@ -239,7 +243,7 @@ class Escpos:
             self._raw(PAPER_FULL_CUT)
 
     def cashdraw(self, pin):
-        """ Send pulse to kick the cash drawer """
+        """Send pulse to kick the cash drawer"""
         if pin == 2:
             self._raw(CD_KICK_2)
         elif pin == 5:
@@ -248,7 +252,7 @@ class Escpos:
             raise CashDrawerError()
 
     def hw(self, hw):
-        """ Hardware operations """
+        """Hardware operations"""
         if hw.upper() == "INIT":
             self._raw(HW_INIT)
         elif hw.upper() == "SELECT":
@@ -259,7 +263,7 @@ class Escpos:
             pass
 
     def control(self, ctl):
-        """ Feed control sequences """
+        """Feed control sequences"""
         if ctl.upper() == "LF":
             self._raw(CTL_LF)
         elif ctl.upper() == "FF":

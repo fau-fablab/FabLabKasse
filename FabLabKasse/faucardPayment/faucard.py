@@ -33,8 +33,12 @@ class PayupFAUCard(QtCore.QObject):
         self.amount = amount
         self.thread = QtCore.QThread()
         self.dialog = FAUcardPaymentDialog(parent=parent, amount=self.amount)
-        self.dialog.request_termination.connect(self.threadTerminationRequested, type= QtCore.Qt.DirectConnection)
-        self.worker = FAUcardThread(dialog=self.dialog, amount=self.amount, thread=self.thread)
+        self.dialog.request_termination.connect(
+            self.threadTerminationRequested, type=QtCore.Qt.DirectConnection
+        )
+        self.worker = FAUcardThread(
+            dialog=self.dialog, amount=self.amount, thread=self.thread
+        )
         self.want_receipt = False
 
     def executePayment(self):
@@ -51,9 +55,9 @@ class PayupFAUCard(QtCore.QObject):
         success = self.dialog.exec_()
 
         if success == Qt.QDialog.Accepted:
-        #    receipt = QtGui.QMessageBox.question(self.parent(), u'FaucardPayment', u'Brauchst du eine Rechnung?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-        #    if receipt == QtGui.QMessageBox.Yes:
-        #        self.want_receipt = True
+            #    receipt = QtGui.QMessageBox.question(self.parent(), u'FaucardPayment', u'Brauchst du eine Rechnung?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            #    if receipt == QtGui.QMessageBox.Yes:
+            #        self.want_receipt = True
             return True
         else:
             # Wait for thread to finish cleanup
@@ -81,7 +85,12 @@ class PayupFAUCard(QtCore.QObject):
         Completes the log entry in the MagPosLog and closes all open threads and dialogs
         """
         if self.thread.isRunning():
-            QtCore.QMetaObject.invokeMethod(self.worker, "set_ack", QtCore.Qt.QueuedConnection, Qt.Q_ARG(bool, False))
+            QtCore.QMetaObject.invokeMethod(
+                self.worker,
+                "set_ack",
+                QtCore.Qt.QueuedConnection,
+                Qt.Q_ARG(bool, False),
+            )
         self.close()
 
     @QtCore.pyqtSlot()
@@ -100,8 +109,18 @@ class PayupFAUCard(QtCore.QObject):
         """
         self.dialog.close()
         if self.thread.isRunning():
-            QtCore.QMetaObject.invokeMethod(self.worker, "set_should_finish_log", QtCore.Qt.QueuedConnection, Qt.Q_ARG(bool, False))
-            QtCore.QMetaObject.invokeMethod(self.worker, "set_ack", QtCore.Qt.QueuedConnection, Qt.Q_ARG(bool, False))
+            QtCore.QMetaObject.invokeMethod(
+                self.worker,
+                "set_should_finish_log",
+                QtCore.Qt.QueuedConnection,
+                Qt.Q_ARG(bool, False),
+            )
+            QtCore.QMetaObject.invokeMethod(
+                self.worker,
+                "set_ack",
+                QtCore.Qt.QueuedConnection,
+                Qt.Q_ARG(bool, False),
+            )
             self.thread.wait(100)
             if not self.thread.isRunning():
                 return
@@ -117,19 +136,19 @@ def check_last_transaction():
     :rtype: bool
     """
     cfg = scriptHelper.getConfig()
-    con = sqlite3.connect(cfg.get('magna_carta', 'log_file'))
+    con = sqlite3.connect(cfg.get("magna_carta", "log_file"))
     cur = con.cursor()
     con.text_factory = unicode
     return FAUcardThread.check_last_transaction(cur=cur, con=con)
 
 
-def finish_log(info = Info.OK):
+def finish_log(info=Info.OK):
     """
     Part
     Finishes last MagPosLog Entry by setting its state to Status.booking_done after the internal booking was done
     """
     cfg = scriptHelper.getConfig()
-    con = sqlite3.connect(cfg.get('magna_carta', 'log_file'))
+    con = sqlite3.connect(cfg.get("magna_carta", "log_file"))
     cur = con.cursor()
     con.text_factory = unicode
 
@@ -139,6 +158,8 @@ def finish_log(info = Info.OK):
     # Check if last entry was about an not yet booked but payed payment
     if row[1] == Status.decreasing_done.value and row[2] == Info.OK.value:
         id = row[0]
-        cur.execute("UPDATE MagPosLog SET datum=(?), status=(?), info=(?) WHERE id=(?)",
-                    (datetime.now(), Status.booking_done.value, info.value, id))
+        cur.execute(
+            "UPDATE MagPosLog SET datum=(?), status=(?), info=(?) WHERE id=(?)",
+            (datetime.now(), Status.booking_done.value, info.value, id),
+        )
         con.commit()

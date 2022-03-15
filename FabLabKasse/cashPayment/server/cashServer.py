@@ -46,7 +46,7 @@ class CashServer:
     def __init__(self):
         # load options, PaymentDevicesManager encoded these
         self.options = pickle.loads(base64.b64decode(sys.argv[1]))
-        deviceName = self.options['name']
+        deviceName = self.options["name"]
         self.lock = scriptHelper.FileLock("cash-" + deviceName)
         db = scriptHelper.getDB()
         self.cash = CashStorage(db, deviceName, readonly=False)
@@ -121,7 +121,9 @@ class CashServer:
                     self.currentMode = "accept"
                     self.moneyReceiveAllowed = int(acceptCommandMatch.groups()[0])
                     self.reply("OK")
-                    self.cash.log("started accepting, max. {0}".format(self.moneyReceiveAllowed))
+                    self.cash.log(
+                        "started accepting, max. {0}".format(self.moneyReceiveAllowed)
+                    )
                 elif updateAcceptCommandMatch:
                     newMoneyReceiveAllowed = int(updateAcceptCommandMatch.groups()[0])
                     if self.moneyReceiveAllowed > newMoneyReceiveAllowed:
@@ -134,10 +136,18 @@ class CashServer:
                     assert self.moneyDispenseAllowed <= self.MAXIMUM_DISPENSE
                     assert self.moneyDispenseAllowed >= 0
                     self.reply("OK")
-                    self.cash.log("started dispensing, requested {0}".format(self.moneyDispenseAllowed))
+                    self.cash.log(
+                        "started dispensing, requested {0}".format(
+                            self.moneyDispenseAllowed
+                        )
+                    )
                 elif command == "POLL":
-                    self.reply("{0} {1} (not the final value!)".format(self.moneyReceivedTotal - self.moneyDispensedTotal,
-                                                                     self.currentMode))
+                    self.reply(
+                        "{0} {1} (not the final value!)".format(
+                            self.moneyReceivedTotal - self.moneyDispensedTotal,
+                            self.currentMode,
+                        )
+                    )
                 elif command == "CANPAYOUT":
                     p = self.getCanPayout()
                     self.reply("{0} {1}".format(p[0], p[1]))
@@ -153,7 +163,11 @@ class CashServer:
                     assert self.currentMode != "idle"  # cannot stop twice
                     if self.currentMode == "stopped":
                         self.reply(self.moneyReceivedTotal - self.moneyDispensedTotal)
-                        self.cash.log("stopped. received {0}".format(self.moneyReceivedTotal - self.moneyDispensedTotal))
+                        self.cash.log(
+                            "stopped. received {0}".format(
+                                self.moneyReceivedTotal - self.moneyDispensedTotal
+                            )
+                        )
                         self.__moneyReceivedTotal = 0
                         self.__moneyDispensedTotal = 0
                         self.currentMode = "idle"
@@ -216,40 +230,61 @@ class CashServer:
 
             time.sleep(self.getSleepTime())
 
-    def event_receivedMoney(self, count, denomination, storage="main", comment="accept"):
+    def event_receivedMoney(
+        self, count, denomination, storage="main", comment="accept"
+    ):
         self.logger.info("event_receivedMoney {0}*{1}".format(count, denomination))
         assert count > 0
         assert denomination > 0
         self.cash.addToState(storage, CashState({denomination: count}), comment=comment)
         # TODO improve currentMode so that "stopping..." is not the same mode for dispense and accept
         # would like something like:  assert self.currentMode.contains("accept")
-        assert self.moneyDispenseAllowed == 0, "error: money received while in dispensing-mode!"
-        assert self.currentMode not in ["dispense", "stopped",
-                                        "idle"], "error: money received while in dispensing-mode!"
+        assert (
+            self.moneyDispenseAllowed == 0
+        ), "error: money received while in dispensing-mode!"
+        assert self.currentMode not in [
+            "dispense",
+            "stopped",
+            "idle",
+        ], "error: money received while in dispensing-mode!"
         self.__moneyReceivedTotal += count * denomination
 
-    def event_dispensedMoney(self, count, denomination, storage="main", comment="dispense"):
+    def event_dispensedMoney(
+        self, count, denomination, storage="main", comment="dispense"
+    ):
         self.logger.info("event_dispensedMoney {0}*{1}".format(count, denomination))
         assert count > 0
         assert denomination > 0
-        self.cash.addToState(storage, CashState({denomination: -count}), comment=comment)
+        self.cash.addToState(
+            storage, CashState({denomination: -count}), comment=comment
+        )
         # TODO improve currentMode so that "stopping..." is not the same mode for dispense and accept
         # would like something like:
         # assert self.currentMode.contains("dispense")
-        assert self.moneyReceiveAllowed == 0, "error: money dispensed while in accepting-mode!"
-        assert self.currentMode not in ["accept", "stopped", "idle"], "error: money dispensed while in accepting-mode!"
+        assert (
+            self.moneyReceiveAllowed == 0
+        ), "error: money dispensed while in accepting-mode!"
+        assert self.currentMode not in [
+            "accept",
+            "stopped",
+            "idle",
+        ], "error: money dispensed while in accepting-mode!"
         self.__moneyDispensedTotal += count * denomination
 
     # internal move (between different subindices of the cash device)
     # not for giving money to the customer
-    def event_internallyMovedMoney(self, count, denomination, fromStorage, toStorage, comment="move"):
+    def event_internallyMovedMoney(
+        self, count, denomination, fromStorage, toStorage, comment="move"
+    ):
         assert count > 0
         assert denomination > 0
-        self.cash.moveToOtherSubindex(fromStorage, toStorage, denomination, count, comment)
+        self.cash.moveToOtherSubindex(
+            fromStorage, toStorage, denomination, count, comment
+        )
 
     @abstractmethod
     def initializeDevice(self):
-        """ setup device"""
+        """setup device"""
         pass
 
     @abstractmethod
@@ -271,42 +306,42 @@ class CashServer:
 
     @abstractmethod
     def getCanAccept(self):
-        """ return True if device is an acceptor device """
+        """return True if device is an acceptor device"""
         pass
 
     @abstractmethod
     def doEmpty(self):
-        """ empty the payout store.  """
+        """empty the payout store."""
         pass
 
     @abstractmethod
     def pollAndUpdateStatus(self):
-        """ poll the device, update self.busy, and call :meth:`event_receivedMoney` and :meth:`event_dispensedMoney`
+        """poll the device, update self.busy, and call :meth:`event_receivedMoney` and :meth:`event_dispensedMoney`
 
         set self.busy=False only if the device has completely stopped, i.e. no spontaneous dispense/accept/empty can happen
         when dispensing/emptying has completed, change self.currentMode to "stopping" """
         pass
 
     def getSleepTime(self):
-        """ sleep time in seconds between polls - do not make this larger than 1sec or
+        """sleep time in seconds between polls - do not make this larger than 1sec or
         command handling will be slowed down
         """
         return 0.5
 
     def getIdleTime(self):
-        """ slow down polling after specified time -- change to float("inf") to disable this feature """
+        """slow down polling after specified time -- change to float("inf") to disable this feature"""
         return 60
 
     @property
     def moneyDispensedTotal(self):
-        """ an implementation may read moneyDispensedTotal and moneyReceivedTotal, but writing must take place
+        """an implementation may read moneyDispensedTotal and moneyReceivedTotal, but writing must take place
         through event_dispensedMoney and event_receivedMoney.
         """
         return self.__moneyDispensedTotal
 
     @property
     def moneyReceivedTotal(self):
-        """ an implementation may read moneyDispensedTotal and moneyReceivedTotal, but writing must take place
+        """an implementation may read moneyDispensedTotal and moneyReceivedTotal, but writing must take place
         through event_dispensedMoney and event_receivedMoney.
         """
         return self.__moneyReceivedTotal

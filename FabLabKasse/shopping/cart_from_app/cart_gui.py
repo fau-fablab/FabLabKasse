@@ -23,7 +23,11 @@ from PyQt4 import Qt, QtGui
 from FabLabKasse.UI.LoadFromMobileAppDialogCode import LoadFromMobileAppDialog
 from FabLabKasse.UI.CheckCartAfterImportDialogCode import CheckCartAfterImportDialog
 from FabLabKasse.shopping.cart_from_app.cart_model import MobileAppCartModel
-from FabLabKasse.shopping.cart_from_app.cart_model import InvalidCartJSONError, MissingAPIKeyError, MaximumNumRetriesException
+from FabLabKasse.shopping.cart_from_app.cart_model import (
+    InvalidCartJSONError,
+    MissingAPIKeyError,
+    MaximumNumRetriesException,
+)
 from FabLabKasse.shopping.backend.abstract import ProductNotFound
 import logging
 
@@ -44,8 +48,8 @@ class MobileAppCartGUI(object):
         """
         self.random_code = ""
         appstore_url = None
-        if cfg.has_option('mobile_app', 'appstore_url'):
-            appstore_url = cfg.get('mobile_app', 'appstore_url')
+        if cfg.has_option("mobile_app", "appstore_url"):
+            appstore_url = cfg.get("mobile_app", "appstore_url")
         self.diag = LoadFromMobileAppDialog(parent, appstore_url)
         self.checkdiag = CheckCartAfterImportDialog(parent, parent.shoppingBackend)
         self.parent = parent
@@ -65,9 +69,12 @@ class MobileAppCartGUI(object):
         """
         if self.parent.shoppingBackend.get_current_order() != None:
             if self.parent.shoppingBackend.get_current_total() != 0:
-                QtGui.QMessageBox.warning(self.parent, "Fehler",
-                                          u"Im Warenkorb am Automat liegen Produkte.\n" +
-                                          u"Bitte zahle zuerst diese Produkte oder lösche sie aus dem Warenkorb.\n")
+                QtGui.QMessageBox.warning(
+                    self.parent,
+                    "Fehler",
+                    u"Im Warenkorb am Automat liegen Produkte.\n"
+                    + u"Bitte zahle zuerst diese Produkte oder lösche sie aus dem Warenkorb.\n",
+                )
                 return
             self.parent.shoppingBackend.delete_current_order()
 
@@ -76,7 +83,7 @@ class MobileAppCartGUI(object):
         self.diag.show()
 
     def pay_cart(self, cart):
-        """ import given cart (from server's response), let the user pay it
+        """import given cart (from server's response), let the user pay it
 
         :param cart: cart received from server
         :type cart: see MobileAppCartModel.load()
@@ -89,29 +96,39 @@ class MobileAppCartGUI(object):
 
         try:
             for (product, quantity) in cart:
-                self.parent.shoppingBackend.add_order_line(prod_id=product, qty=quantity)
+                self.parent.shoppingBackend.add_order_line(
+                    prod_id=product, qty=quantity
+                )
 
             # check total sum
             self.checkdiag.update()
             okay = self.checkdiag.exec_()
             okay = okay == 1
         except ProductNotFound:
-            logging.warning(u"error importing cart from app: product not found"
-                            u"Might be caused by outdated cache in the app, "
-                            u"the terminal or somewhere else.")
-            QtGui.QMessageBox.information(self.parent, "Warenkorb", u"Entschuldigung, beim Import ist leider ein Fehler aufgetreten.\n (Produkt nicht gefunden)")
+            logging.warning(
+                u"error importing cart from app: product not found"
+                u"Might be caused by outdated cache in the app, "
+                u"the terminal or somewhere else."
+            )
+            QtGui.QMessageBox.information(
+                self.parent,
+                "Warenkorb",
+                u"Entschuldigung, beim Import ist leider ein Fehler aufgetreten.\n (Produkt nicht gefunden)",
+            )
             okay = False
 
         if okay:
             # try payup
-            successful = (self.parent.payup() is True)
+            successful = self.parent.payup() is True
         else:
             successful = False
         print "feedback successful = {0}".format(successful)
         self.cart.send_status_feedback(successful)
         if not successful:
             self.parent.shoppingBackend.delete_current_order()
-            QtGui.QMessageBox.information(self.parent, "Info", u"Die Zahlung wurde abgebrochen.")
+            QtGui.QMessageBox.information(
+                self.parent, "Info", u"Die Zahlung wurde abgebrochen."
+            )
         return successful
 
     def poll(self):
@@ -123,15 +140,27 @@ class MobileAppCartGUI(object):
         try:
             response = self.cart.load()
         except InvalidCartJSONError:
-            QtGui.QMessageBox.warning(self.parent, "Warenkorb", u"Entschuldigung, beim Import ist leider ein Fehler aufgetreten.\n(Fehlerhafte Warenkorbdaten)")
+            QtGui.QMessageBox.warning(
+                self.parent,
+                "Warenkorb",
+                u"Entschuldigung, beim Import ist leider ein Fehler aufgetreten.\n(Fehlerhafte Warenkorbdaten)",
+            )
             self.diag.reject()
             return
         except MaximumNumRetriesException:
-            QtGui.QMessageBox.critical(self.parent, "Serverfehler", u"Entschuldigung, dieses Feature ist momentan nicht verfügbar.\n(Server nicht erreichbar oder Antwort fehlerhaft)")
+            QtGui.QMessageBox.critical(
+                self.parent,
+                "Serverfehler",
+                u"Entschuldigung, dieses Feature ist momentan nicht verfügbar.\n(Server nicht erreichbar oder Antwort fehlerhaft)",
+            )
             self.diag.reject()
             return
         except MissingAPIKeyError:
-            QtGui.QMessageBox.critical(self.parent, "Konfigurationsfehler", u"Entschuldigung, dieses Feature ist momentan nicht verfügbar.\n(API-Key fehlt.)")
+            QtGui.QMessageBox.critical(
+                self.parent,
+                "Konfigurationsfehler",
+                u"Entschuldigung, dieses Feature ist momentan nicht verfügbar.\n(API-Key fehlt.)",
+            )
             self.diag.reject()
             return
 

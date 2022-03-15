@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
+
 def resize_table_columns(table, widths):
     """resize Qt table columns by the weight factors specified in widths,
     using the whole width (excluding scrollbar width)

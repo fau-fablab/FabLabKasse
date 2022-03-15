@@ -29,8 +29,8 @@ from ConfigParser import NoOptionError
 from ConfigParser import ConfigParser
 import codecs
 
-class PaymentDevicesManager(object):
 
+class PaymentDevicesManager(object):
     def __init__(self, cfg):
         self.devices = []
         self._reset()
@@ -46,7 +46,7 @@ class PaymentDevicesManager(object):
                     if not key.startswith(prefix):
                         continue
                     # remove prefix
-                    key = key[len(prefix):]
+                    key = key[len(prefix) :]
                     options[key] = value
                 self.devices.append(PaymentDeviceClient(cmd, options))
         logging.info("cashPayment started with {0} devices".format(len(self.devices)))
@@ -70,7 +70,11 @@ class PaymentDevicesManager(object):
             try:
                 d.poll()
             except Exception:
-                logging.error("device {0} failed - see cash-{1}.log. If it crashed before writing the logfile, try launching the server yourself with the commandline from gui.log ".format(d, d.options['name']))
+                logging.error(
+                    "device {0} failed - see cash-{1}.log. If it crashed before writing the logfile, try launching the server yourself with the commandline from gui.log ".format(
+                        d, d.options["name"]
+                    )
+                )
                 raise
         if self.mode == "idle":
             pass
@@ -98,7 +102,9 @@ class PaymentDevicesManager(object):
                     final = d.getFinalAmountAndReset()
                     assert final >= 0
                     self.finishedAmount += final
-                logging.info("cash accept finished: total {0}".format(self.finishedAmount))
+                logging.info(
+                    "cash accept finished: total {0}".format(self.finishedAmount)
+                )
                 self.mode = "stopped"
         elif self.mode == "payout":
             # sequential:
@@ -107,7 +113,11 @@ class PaymentDevicesManager(object):
             if not self.payoutDeviceDispensing:
                 # self.finishedAmount is negative!
                 dispenseAmount = self.requestedPayout + self.finishedAmount
-                logging.info("trying to pay out {0} on device {1}".format(dispenseAmount, self.payoutDeviceNumber))
+                logging.info(
+                    "trying to pay out {0} on device {1}".format(
+                        dispenseAmount, self.payoutDeviceNumber
+                    )
+                )
                 d.dispense(dispenseAmount)
                 self.payoutDeviceDispensing = True
             else:
@@ -120,7 +130,11 @@ class PaymentDevicesManager(object):
                     self.payoutDeviceDispensing = False
                     if self.payoutDeviceNumber == len(self.devices):
                         # all devices are finished
-                        logging.info("cash payout finished: total {0}".format(self.finishedAmount))
+                        logging.info(
+                            "cash payout finished: total {0}".format(
+                                self.finishedAmount
+                            )
+                        )
                         self.mode = "stopped"
         elif self.mode == "empty":
             pass  # just poll and wait for stop command
@@ -276,18 +290,21 @@ class PaymentDevicesManager(object):
     def statusText(self):
         def formatCent(x):
             return u"{:.2f}\u2009€".format(float(x) / 100).replace(".", ",")
+
         totalSum = self.getCurrentAmount()
         if self.mode.startswith("payout"):
             totalSum = -totalSum
-        modes = {"payin": "Bitte bezahlen",
-                 "payinStop": "Bezahlung wird abgeschlossen...",
-                 "stopped": "Bitte warten, Daten werden gespeichert",
-                 "idle": "Bereit",
-                 "payout": u"Zahle Rückgeld...",
-                 "start": "Bitte warten, initialisiere...",
-                 "canPayout": u"Bitte warten, prüfe Wechselgeldvorrat...",
-                 "empty": u"Service Ausleeren aktiv: Geldscheinspeicher->Cashbox (automatisch), Münzauswurf (manuell: Knopf drücken),\n zum Beenden Abbrechen drücken",
-                 "emptyingStop": u"Service: beende automatisches/manuelles Ausleeren..."}
+        modes = {
+            "payin": "Bitte bezahlen",
+            "payinStop": "Bezahlung wird abgeschlossen...",
+            "stopped": "Bitte warten, Daten werden gespeichert",
+            "idle": "Bereit",
+            "payout": u"Zahle Rückgeld...",
+            "start": "Bitte warten, initialisiere...",
+            "canPayout": u"Bitte warten, prüfe Wechselgeldvorrat...",
+            "empty": u"Service Ausleeren aktiv: Geldscheinspeicher->Cashbox (automatisch), Münzauswurf (manuell: Knopf drücken),\n zum Beenden Abbrechen drücken",
+            "emptyingStop": u"Service: beende automatisches/manuelles Ausleeren...",
+        }
         text = u""
         if self.mode in modes.keys():
             text += modes[self.mode]
@@ -299,7 +316,9 @@ class PaymentDevicesManager(object):
         elif self.mode.startswith("payout"):
             requested = self.requestedPayout
         if requested is not None:
-            text += u":\n{0} von {1} ".format(formatCent(totalSum), formatCent(requested))
+            text += u":\n{0} von {1} ".format(
+                formatCent(totalSum), formatCent(requested)
+            )
         if self.mode.startswith("payin"):
             text += "bezahlt (maximal " + formatCent(self.maximumPayin) + ")"
         elif self.mode.startswith("payout"):
@@ -346,16 +365,17 @@ class PaymentDevicesManager(object):
         self.mode = "idle"
         return ret
 
+
 class PaymentDevicesManagerTest(unittest.TestCase):
-    """ Test PaymentDevicesManager
-    """
+    """Test PaymentDevicesManager"""
+
     def test_canPayout_with_one_random_datapoint_on_example_server(self):
         """
         test the _canPayout_total() function with 10 random datapoints and the exampleserver (from example config)
         """
         # probably hacky, should be improved
         cfg = ConfigParser()
-        cfg.readfp(codecs.open('./FabLabKasse/config.ini.example', 'r', 'utf8'))
+        cfg.readfp(codecs.open("./FabLabKasse/config.ini.example", "r", "utf8"))
 
         for _ in range(0, 9):
             history = []
@@ -372,13 +392,18 @@ class PaymentDevicesManagerTest(unittest.TestCase):
                     r = 1
                 return r
 
-            def myRandInt(n):  # 0 ... n, with a finite >0 probability for both endpoints
+            def myRandInt(
+                n,
+            ):  # 0 ... n, with a finite >0 probability for both endpoints
                 return int(randFactor() * n)
+
             canPayoutAmounts = []
             n = random.randint(2, 5)
             # fill canPayoutAmounts with random foo
             for _ in range(n):
-                canPayoutAmounts.append([int(randFactor() * randFactor() * 70000), myRandInt(1023)])
+                canPayoutAmounts.append(
+                    [int(randFactor() * randFactor() * 70000), myRandInt(1023)]
+                )
 
             [canMaximumRequest, canRemain] = p._canPayout_total(canPayoutAmounts)
             requested = myRandInt(canMaximumRequest)
@@ -388,23 +413,35 @@ class PaymentDevicesManagerTest(unittest.TestCase):
                 nowRequested_limited = nowRequested
                 if nowRequested > maximumRequest:
                     # requested more than the guaranteed amount
-                    nowRequested_limited = maximumRequest + myRandInt(nowRequested - maximumRequest)
+                    nowRequested_limited = maximumRequest + myRandInt(
+                        nowRequested - maximumRequest
+                    )
                 nowPaidOut = nowRequested_limited - myRandInt(maximumRemaining)
                 if nowPaidOut < 0:
                     nowPaidOut = 0
 
                 if nowRequested <= maximumRequest:
                     # request is in the accepted range, will be satisfied
-                    self.assertTrue(maximumRequest >= nowRequested >= nowPaidOut >= nowRequested - maximumRemaining)
+                    self.assertTrue(
+                        maximumRequest
+                        >= nowRequested
+                        >= nowPaidOut
+                        >= nowRequested - maximumRemaining
+                    )
                 else:
                     # requested more than guaranteed, may not be satisfied
-                    self.assertTrue(nowRequested >= nowPaidOut >= maximumRequest - maximumRemaining)
+                    self.assertTrue(
+                        nowRequested >= nowPaidOut >= maximumRequest - maximumRemaining
+                    )
                 history.append([requested, paidOut, nowPaidOut, nowRequested])
                 paidOut += nowPaidOut
-            msg = "Failed: {0} {1} {2} {3} {4}\n".format(requested, paidOut, canMaximumRequest, canRemain, history)
+            msg = "Failed: {0} {1} {2} {3} {4}\n".format(
+                requested, paidOut, canMaximumRequest, canRemain, history
+            )
             msg += str(canPayoutAmounts)
             self.assertTrue(requested - canRemain <= paidOut <= requested, msg=msg)
             self.assertTrue(paidOut >= 0, msg=msg)
+
 
 def demo():
     """Simple demonstration using two exampleServer devices"""
@@ -415,6 +452,7 @@ def demo():
         p.poll()
         print p.statusText()
         time.sleep(0.3)
+
     while p.startingUp():
         wait()
     pay = None
@@ -422,7 +460,9 @@ def demo():
         wait()
         pay = p.canPayout()
     print pay
-    print "Es dürfen maximal {0} Cent gezahlt werden. Ein Rest-Rückgeld von unter {1} Cent wird nicht zurückgegeben!".format(pay[0], pay[1])
+    print "Es dürfen maximal {0} Cent gezahlt werden. Ein Rest-Rückgeld von unter {1} Cent wird nicht zurückgegeben!".format(
+        pay[0], pay[1]
+    )
     shouldPay = 4213
     p.payin(shouldPay, shouldPay + pay[0])
     received = None

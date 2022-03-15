@@ -31,13 +31,13 @@ import threading
 import subprocess
 
 
-__all__ = ['Process', 'with_timeout', 'Timeout']
+__all__ = ["Process", "with_timeout", "Timeout"]
 
 
 class Timeout(Exception):
 
-    """Exception raised by with_timeout() when the operation takes too long.
-    """
+    """Exception raised by with_timeout() when the operation takes too long."""
+
     pass
 
 
@@ -66,8 +66,8 @@ def with_timeout(timeout, func, *args, **kwargs):
 
     class SigAlarm(Exception):
 
-        """Internal exception used only within with_timeout().
-        """
+        """Internal exception used only within with_timeout()."""
+
         pass
 
     def alarm_handler(signum, frame):
@@ -100,35 +100,35 @@ def with_timeout(timeout, func, *args, **kwargs):
 class Process(object):
 
     """Manager for an asynchronous process.
-       The process will be run in the background, and its standard output
-       and standard error will be collected asynchronously.
+    The process will be run in the background, and its standard output
+    and standard error will be collected asynchronously.
 
-       Since the collection of output happens asynchronously (handled by
-       threads), the process won't block even if it outputs large amounts
-       of data and you do not call Process.read*().
+    Since the collection of output happens asynchronously (handled by
+    threads), the process won't block even if it outputs large amounts
+    of data and you do not call Process.read*().
 
-       Similarly, it is possible to send data to the standard input of the
-       process using the write() method, and the caller of write() won't
-       block even if the process does not drain its input.
+    Similarly, it is possible to send data to the standard input of the
+    process using the write() method, and the caller of write() won't
+    block even if the process does not drain its input.
 
-       On the other hand, this can consume large amounts of memory,
-       potentially even exhausting all memory available.
+    On the other hand, this can consume large amounts of memory,
+    potentially even exhausting all memory available.
 
-       Parameters are identical to subprocess.Popen(), except that stdin,
-       stdout and stderr default to subprocess.PIPE instead of to None.
-       Note that if you set stdout or stderr to anything but PIPE, the
-       Process object won't collect that output, and the read*() methods
-       will always return empty strings.  Also, setting stdin to something
-       other than PIPE will make the write() method raise an exception.
+    Parameters are identical to subprocess.Popen(), except that stdin,
+    stdout and stderr default to subprocess.PIPE instead of to None.
+    Note that if you set stdout or stderr to anything but PIPE, the
+    Process object won't collect that output, and the read*() methods
+    will always return empty strings.  Also, setting stdin to something
+    other than PIPE will make the write() method raise an exception.
     """
 
     def __init__(self, *params, **kwparams):
         if len(params) <= 3:
-            kwparams.setdefault('stdin', subprocess.PIPE)
+            kwparams.setdefault("stdin", subprocess.PIPE)
         if len(params) <= 4:
-            kwparams.setdefault('stdout', subprocess.PIPE)
+            kwparams.setdefault("stdout", subprocess.PIPE)
         if len(params) <= 5:
-            kwparams.setdefault('stderr', subprocess.PIPE)
+            kwparams.setdefault("stderr", subprocess.PIPE)
         self.__pending_input = []
         self.__collected_outdata = []
         self.__collected_errdata = []
@@ -143,22 +143,25 @@ class Process(object):
         if self.__process.stdin:
             self.__stdin_thread = threading.Thread(
                 name="stdin-thread",
-                target=self.__feeder, args=(self.__pending_input,
-                                            self.__process.stdin))
+                target=self.__feeder,
+                args=(self.__pending_input, self.__process.stdin),
+            )
             self.__stdin_thread.setDaemon(True)
             self.__stdin_thread.start()
         if self.__process.stdout:
             self.__stdout_thread = threading.Thread(
                 name="stdout-thread",
-                target=self.__reader, args=(self.__collected_outdata,
-                                            self.__process.stdout))
+                target=self.__reader,
+                args=(self.__collected_outdata, self.__process.stdout),
+            )
             self.__stdout_thread.setDaemon(True)
             self.__stdout_thread.start()
         if self.__process.stderr:
             self.__stderr_thread = threading.Thread(
                 name="stderr-thread",
-                target=self.__reader, args=(self.__collected_errdata,
-                                            self.__process.stderr))
+                target=self.__reader,
+                args=(self.__collected_errdata, self.__process.stderr),
+            )
             self.__stderr_thread.setDaemon(True)
             self.__stderr_thread.start()
 
@@ -168,16 +171,16 @@ class Process(object):
 
     def pid(self):
         """Return the process id of the process.
-           Note that if the process has died (and successfully been waited
-           for), that process id may have been re-used by the operating
-           system.
+        Note that if the process has died (and successfully been waited
+        for), that process id may have been re-used by the operating
+        system.
         """
         return self.__process.pid
 
     def kill(self, signal):
         """Send a signal to the process.
-           Raises OSError, with errno set to ECHILD, if the process is no
-           longer running.
+        Raises OSError, with errno set to ECHILD, if the process is no
+        longer running.
         """
         if self.__exitstatus is not None:
             # Throwing ECHILD is perhaps not the most kosher thing to do...
@@ -188,14 +191,14 @@ class Process(object):
     def wait(self, flags=0):
         """Return the process' termination status.
 
-           If bitmask parameter 'flags' contains os.WNOHANG, wait() will
-           return None if the process hasn't terminated.  Otherwise it
-           will wait until the process dies.
+        If bitmask parameter 'flags' contains os.WNOHANG, wait() will
+        return None if the process hasn't terminated.  Otherwise it
+        will wait until the process dies.
 
-           It is permitted to call wait() several times, even after it
-           has succeeded; the Process instance will remember the exit
-           status from the first successful call, and return that on
-           subsequent calls.
+        It is permitted to call wait() several times, even after it
+        has succeeded; the Process instance will remember the exit
+        status from the first successful call, and return that on
+        subsequent calls.
         """
         if self.__exitstatus is not None:
             return self.__exitstatus
@@ -223,20 +226,20 @@ class Process(object):
 
     def terminate(self, graceperiod=1):
         """Terminate the process, with escalating force as needed.
-           First try gently, but increase the force if it doesn't respond
-           to persuassion.  The levels tried are, in order:
+        First try gently, but increase the force if it doesn't respond
+        to persuassion.  The levels tried are, in order:
 
-            - close the standard input of the process, so it gets an EOF.
-            - send SIGTERM to the process.
-            - send SIGKILL to the process.
+         - close the standard input of the process, so it gets an EOF.
+         - send SIGTERM to the process.
+         - send SIGKILL to the process.
 
-           terminate() waits up to GRACEPERIOD seconds (default 1) before
-           escalating the level of force.  As there are three levels, a total
-           of (3-1)*GRACEPERIOD is allowed before the process is SIGKILL:ed.
-           GRACEPERIOD must be an integer, and must be at least 1.
+        terminate() waits up to GRACEPERIOD seconds (default 1) before
+        escalating the level of force.  As there are three levels, a total
+        of (3-1)*GRACEPERIOD is allowed before the process is SIGKILL:ed.
+        GRACEPERIOD must be an integer, and must be at least 1.
 
-           If the process was started with stdin not set to PIPE, the
-           first level (closing stdin) is skipped.
+        If the process was started with stdin not set to PIPE, the
+        first level (closing stdin) is skipped.
         """
         if self.__process.stdin:
             # This is rather meaningless when stdin != PIPE.
@@ -256,8 +259,7 @@ class Process(object):
         return self.wait()
 
     def __reader(self, collector, source):
-        """Read data from source until EOF, adding it to collector.
-        """
+        """Read data from source until EOF, adding it to collector."""
         while True:
             data = os.read(source.fileno(), 65536)
             self.__lock.acquire()
@@ -269,8 +271,7 @@ class Process(object):
         return
 
     def __feeder(self, pending, drain):
-        """Feed data from the list pending to the file drain.
-        """
+        """Feed data from the list pending to the file drain."""
         while True:
             self.__inputsem.acquire()
             self.__lock.acquire()
@@ -283,8 +284,7 @@ class Process(object):
             drain.write(data)
 
     def read(self):
-        """Read data written by the process to its standard output.
-        """
+        """Read data written by the process to its standard output."""
         self.__lock.acquire()
         outdata = "".join(self.__collected_outdata)
         del self.__collected_outdata[:]
@@ -292,8 +292,7 @@ class Process(object):
         return outdata
 
     def readerr(self):
-        """Read data written by the process to its standard error.
-        """
+        """Read data written by the process to its standard error."""
         self.__lock.acquire()
         errdata = "".join(self.__collected_errdata)
         del self.__collected_errdata[:]
@@ -302,10 +301,10 @@ class Process(object):
 
     def readboth(self):
         """Read data written by the process to its standard output and error.
-           Return value is a two-tuple ( stdout-data, stderr-data ).
+        Return value is a two-tuple ( stdout-data, stderr-data ).
 
-           WARNING!  The name of this method is ugly, and may change in
-           future versions!
+        WARNING!  The name of this method is ugly, and may change in
+        future versions!
         """
         self.__lock.acquire()
         outdata = "".join(self.__collected_outdata)
@@ -323,8 +322,7 @@ class Process(object):
         return output, error
 
     def write(self, data):
-        """Send data to a process's standard input.
-        """
+        """Send data to a process's standard input."""
         if self.__process.stdin is None:
             raise ValueError("Writing to process with stdin not a pipe")
         self.__lock.acquire()
@@ -333,8 +331,7 @@ class Process(object):
         self.__lock.release()
 
     def closeinput(self):
-        """Close the standard input of a process, so it receives EOF.
-        """
+        """Close the standard input of a process, so it receives EOF."""
         self.__lock.acquire()
         self.__quit = True
         self.__inputsem.release()
@@ -344,11 +341,11 @@ class Process(object):
 class ProcessManager(object):
 
     """Manager for asynchronous processes.
-       This class is intended for use in a server that wants to expose the
-       asyncproc.Process API to clients.  Within a single process, it is
-       usually better to just keep track of the Process objects directly
-       instead of hiding them behind this.  It probably shouldn't have been
-       made part of the asyncproc module in the first place.
+    This class is intended for use in a server that wants to expose the
+    asyncproc.Process API to clients.  Within a single process, it is
+    usually better to just keep track of the Process objects directly
+    instead of hiding them behind this.  It probably shouldn't have been
+    made part of the asyncproc module in the first place.
     """
 
     def __init__(self):
@@ -357,12 +354,11 @@ class ProcessManager(object):
 
     def start(self, args, executable=None, shell=False, cwd=None, env=None):
         """Start a program in the background, collecting its output.
-           Returns an integer identifying the process.	(Note that this
-           integer is *not* the OS process id of the actuall running
-           process.)
+        Returns an integer identifying the process.	(Note that this
+        integer is *not* the OS process id of the actuall running
+        process.)
         """
-        proc = Process(args=args, executable=executable, shell=shell,
-                       cwd=cwd, env=env)
+        proc = Process(args=args, executable=executable, shell=shell, cwd=cwd, env=env)
         self.__last_id += 1
         self.__procs[self.__last_id] = proc
         return self.__last_id
@@ -390,18 +386,18 @@ class ProcessManager(object):
 
     def wait(self, procid, flags=0):
         """
-           Unlike the os.wait() function, the process will be available
-           even after ProcessManager.wait() has returned successfully,
-           in order for the process' output to be retrieved.  Use the
-           reap() method for removing dead processes.
+        Unlike the os.wait() function, the process will be available
+        even after ProcessManager.wait() has returned successfully,
+        in order for the process' output to be retrieved.  Use the
+        reap() method for removing dead processes.
         """
         return self.__procs[procid].wait(flags)
 
     def reap(self, procid):
         """Remove a process.
-           If the process is still running, it is killed with no pardon.
-           The process will become unaccessible, and its identifier may
-           be reused immediately.
+        If the process is still running, it is killed with no pardon.
+        The process will become unaccessible, and its identifier may
+        be reused immediately.
         """
         if self.wait(procid, os.WNOHANG) is None:
             self.kill(procid, signal.SIGKILL)
@@ -410,7 +406,7 @@ class ProcessManager(object):
 
     def reapall(self):
         """Remove all processes.
-           Running processes are killed without pardon.
+        Running processes are killed without pardon.
         """
         # Since reap() modifies __procs, we have to iterate over a copy
         # of the keys in it.  Thus, do not remove the .keys() call.

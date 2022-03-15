@@ -67,15 +67,15 @@ from termcolor import colored
 
 
 def coloredError(s):
-    return colored(s, 'red',  attrs=['bold'])
+    return colored(s, "red", attrs=["bold"])
 
 
 def coloredGood(s):
-    return colored(s, 'green',  attrs=['bold'])
+    return colored(s, "green", attrs=["bold"])
 
 
 def coloredBold(s):
-    return colored(s, 'blue',  attrs=['bold'])
+    return colored(s, "blue", attrs=["bold"])
 
 
 class NoDataFound(Exception):
@@ -100,8 +100,23 @@ class CashState(object):
             dictionary = {}
         for key in dictionary.keys():
             assert type(key) == int
-            assert key in [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000,
-                           5000, 10000, 20000, 50000], "invalid denomination"
+            assert key in [
+                1,
+                2,
+                5,
+                10,
+                20,
+                50,
+                100,
+                200,
+                500,
+                1000,
+                2000,
+                5000,
+                10000,
+                20000,
+                50000,
+            ], "invalid denomination"
         for value in dictionary.values():
             assert type(value) == int
 
@@ -162,7 +177,7 @@ class CashState(object):
 
         :rtype: str
         """
-        return "{0:.2f}".format(self.sum / 100.)
+        return "{0:.2f}".format(self.sum / 100.0)
 
     def toDict(self):
         """
@@ -176,13 +191,12 @@ class CashState(object):
         convert state to JSON encoded string like ``'{"200": 5, "100": 3}'``
         """
         s = json.dumps(self._d)
-        assert self == CashState.fromJSON(s), \
-            "decoding did not return equal state"
+        assert self == CashState.fromJSON(s), "decoding did not return equal state"
         return s
 
     @classmethod
     def fromJSON(cls, s):
-        """ load from CashState.toJSON
+        """load from CashState.toJSON
 
         :rtype: CashState"""
         state = json.loads(s)
@@ -199,7 +213,7 @@ class CashState(object):
         return self._d == other.toDict()
 
     def toHumanString(self):
-        """ output state in the format ``/13x10c,53x200E/`` that :meth:`fromHumanString` takes
+        """output state in the format ``/13x10c,53x200E/`` that :meth:`fromHumanString` takes
 
         :rtype: str"""
         s = "/"
@@ -212,40 +226,45 @@ class CashState(object):
         if s[-1] == ",":
             s = s[:-1]
         s += "/"
-        assert self == CashState.fromHumanString(s),\
-            "decoding didnt return equal state"
+        assert self == CashState.fromHumanString(s), "decoding didnt return equal state"
         return s
 
     def toVerboseString(self):
-        """ output state and sum in the format ``/13x10c,7x2E/ \t 15,30€`` for two-column printing
+        """output state and sum in the format ``/13x10c,7x2E/ \t 15,30€`` for two-column printing
 
         :rtype: str"""
         return "{0}\t{1}".format(self.sumStr(), self.toHumanString())
 
     @classmethod
     def fromHumanString(cls, s):
-        """ state from string with a more human-friendly format: ``/13x10c,53x200E/`` """
+        """state from string with a more human-friendly format: ``/13x10c,53x200E/``"""
         state = {}
         s = s.strip()
-        assert (s[0] == "/" and s[-1] == "/"), \
-            "state string must be enclosed in /.../, " \
+        assert s[0] == "/" and s[-1] == "/", (
+            "state string must be enclosed in /.../, "
             " if you want wo set to zero use //"
+        )
         s = s[1:-1]  # discard { and }
         if s == "":
             return cls()
         for t in s.split(","):
             tempList = t.split("x")
-            assert len(tempList) == 2, \
-                "state format must be /13x10c,53x200E/ (13 * 10 cent, 53 * 200 euro)"
+            assert (
+                len(tempList) == 2
+            ), "state format must be /13x10c,53x200E/ (13 * 10 cent, 53 * 200 euro)"
             [val, key] = tempList
-            assert key[-1] in ["c", "E"],  "key must end with c for cents or E for euro. example: 13x10c"
+            assert key[-1] in [
+                "c",
+                "E",
+            ], "key must end with c for cents or E for euro. example: 13x10c"
             keyInt = int(key[0:-1])
             if key[-1] == "E":
                 keyInt *= 100
             key = keyInt
             val = int(val)
-            assert key not in state.keys(), \
-                "state indices must be unique, NOT e.g. {12*100€, 13*100€}"
+            assert (
+                key not in state.keys()
+            ), "state indices must be unique, NOT e.g. {12*100€, 13*100€}"
             state[key] = val
         return cls(state)
 
@@ -272,7 +291,9 @@ class CashStorage(object):
         :param bool readonly: forbid write access
         """
         self.db = db
-        self.db.execute("CREATE TABLE IF NOT EXISTS cash(id INTEGER PRIMARY KEY AUTOINCREMENT, device TEXT NOT NULL, date TEXT NOT NULL, state TEXT NOT NULL, updateType TEXT NOT NULL, isManual INTEGER NOT NULL, comment TEXT)")
+        self.db.execute(
+            "CREATE TABLE IF NOT EXISTS cash(id INTEGER PRIMARY KEY AUTOINCREMENT, device TEXT NOT NULL, date TEXT NOT NULL, state TEXT NOT NULL, updateType TEXT NOT NULL, isManual INTEGER NOT NULL, comment TEXT)"
+        )
         self.identifier = identifier
         self.readonly = readonly
         if not readonly:
@@ -280,7 +301,9 @@ class CashStorage(object):
             # (they would overwrite each other's data)
             assert not "." in self.identifier
             if identifier in CashStorage.__usedIdentifiers:
-                raise ValueError("CashState identifier already in use for writing in this process")
+                raise ValueError(
+                    "CashState identifier already in use for writing in this process"
+                )
             CashStorage.__usedIdentifiers.append(identifier)
 
     def getState(self, subindex="main", allowEmpty=True, date=None):
@@ -301,9 +324,15 @@ class CashStorage(object):
         dev = self.identifier + "." + subindex
         cur = self.db.cursor()
         if not date:
-            cur.execute("SELECT state FROM cash WHERE device = ? ORDER BY id DESC LIMIT 1 ", (dev, ))
+            cur.execute(
+                "SELECT state FROM cash WHERE device = ? ORDER BY id DESC LIMIT 1 ",
+                (dev,),
+            )
         else:
-            cur.execute("SELECT state FROM cash WHERE device = ? AND date <= ? ORDER BY id DESC LIMIT 1 ", (dev, date))
+            cur.execute(
+                "SELECT state FROM cash WHERE device = ? AND date <= ? ORDER BY id DESC LIMIT 1 ",
+                (dev, date),
+            )
         row = cur.fetchone()
 
         if row is None:
@@ -328,21 +357,34 @@ class CashStorage(object):
         assert type(state) == CashState
         assert type(isManual) == bool
         assert updateType in ["add", "set", "log", "move"]
-        assert (updateType == "log" and subindex == "log") or (updateType != "log" and subindex != "log"), \
-            "For logging, you must use updateType=log and subindex=log. " \
+        assert (updateType == "log" and subindex == "log") or (
+            updateType != "log" and subindex != "log"
+        ), (
+            "For logging, you must use updateType=log and subindex=log. "
             "All other operations must not use 'log' as updateType or subindex."
-        self.db.execute("INSERT INTO cash (device, date, state, updateType, isManual, comment) VALUES (?, ?, ?, ?, ?, ?)", (device, date, state.toJSON(), updateType, isManual,  comment))
+        )
+        self.db.execute(
+            "INSERT INTO cash (device, date, state, updateType, isManual, comment) VALUES (?, ?, ?, ?, ?, ?)",
+            (device, date, state.toJSON(), updateType, isManual, comment),
+        )
 
     def setState(self, subindex, state, isManual=False, comment=""):
-        """ set the new absolute state to the given value.
-            use this only if you have completely certain values (from your device or from manually counting)
+        """set the new absolute state to the given value.
+        use this only if you have completely certain values (from your device or from manually counting)
         """
         assert type(state) == CashState
-        self._storeState(subindex=subindex, state=state, updateType="set",
-                         isManual=isManual, comment=comment)
+        self._storeState(
+            subindex=subindex,
+            state=state,
+            updateType="set",
+            isManual=isManual,
+            comment=comment,
+        )
         self.db.commit()
 
-    def addToState(self, subindex, stateDelta, isManual=False, comment="", _isLogMessage=False):
+    def addToState(
+        self, subindex, stateDelta, isManual=False, comment="", _isLogMessage=False
+    ):
         """
         increment the current state by stateDelta=CashState({denomination:count,...})
         e.g. when a coin was accepted or paid out
@@ -373,27 +415,55 @@ class CashStorage(object):
                 assert stateDelta == CashState()
                 assert subindex == "log"
                 updateType = "log"
-            self._storeState(subindex=subindex, state=newState, updateType=updateType, isManual=isManual, comment=comment)
+            self._storeState(
+                subindex=subindex,
+                state=newState,
+                updateType=updateType,
+                isManual=isManual,
+                comment=comment,
+            )
             # implicit commit/rollback because of "with" block
 
-    def moveToOtherSubindex(self, fromSubindex, toSubindex, denomination, count, comment="", isManual=False):
-        """ move coins/banknotes (denomination * count) from one subindex to another
+    def moveToOtherSubindex(
+        self, fromSubindex, toSubindex, denomination, count, comment="", isManual=False
+    ):
+        """move coins/banknotes (denomination * count) from one subindex to another
         (e.g. banknote recycler to banknote cashbox)
         """
         with self.db:
             self.db.execute("BEGIN IMMEDIATE")  # acquite write-lock *before* reading
             # read, calculate, then update
-            newFromState = self.getState(fromSubindex) + CashState({denomination: -count})
+            newFromState = self.getState(fromSubindex) + CashState(
+                {denomination: -count}
+            )
             newToState = self.getState(toSubindex) + CashState({denomination: +count})
 
-            self._storeState(subindex=fromSubindex, state=newFromState, updateType="move", isManual=isManual, comment=comment)
-            self._storeState(subindex=toSubindex, state=newToState, updateType="move", isManual=isManual, comment=comment)
+            self._storeState(
+                subindex=fromSubindex,
+                state=newFromState,
+                updateType="move",
+                isManual=isManual,
+                comment=comment,
+            )
+            self._storeState(
+                subindex=toSubindex,
+                state=newToState,
+                updateType="move",
+                isManual=isManual,
+                comment=comment,
+            )
 
             # implicit commit/rollback because of "with" block
 
     def log(self, comment, isManual=False):
         """save a string to the database, used for logging of important events"""
-        self.addToState(subindex="log", stateDelta=CashState(), isManual=isManual,  comment=comment, _isLogMessage=True)
+        self.addToState(
+            subindex="log",
+            stateDelta=CashState(),
+            isManual=isManual,
+            comment=comment,
+            _isLogMessage=True,
+        )
 
 
 class CashStorageList(object):
@@ -468,7 +538,6 @@ class CashStorageList(object):
         s += coloredBold("TOTAL") + ":\t{0}".format(totalState.toVerboseString())
         return s
 
-
     @property
     def total(self):
         """How much money is inside the whole vending machine?
@@ -479,7 +548,9 @@ class CashStorageList(object):
         """How much money was inside the whole vending machine at the given date?
         :param datetime.dateime | None date: given date and time
         :rtype: Decimal"""
-        return sum([state.sum for state in self.states_at_date(date).values()]) * Decimal('0.01')
+        return sum(
+            [state.sum for state in self.states_at_date(date).values()]
+        ) * Decimal("0.01")
 
     def first_date(self):
         """
@@ -505,7 +576,7 @@ def verifySum(db, printMessage=False, date=None):
     :rtype: boolean
     """
     cfg = scriptHelper.getConfig()
-    k = Kasse(cfg.get('general', 'db_file'))
+    k = Kasse(cfg.get("general", "db_file"))
     summeKassenbuch = 0
     for buchung in k.get_buchungen():
         if date and buchung.datum > date:
@@ -517,13 +588,20 @@ def verifySum(db, printMessage=False, date=None):
 
     if summeKasse == summeKassenbuch:
         if printMessage:
-            print coloredGood("check OK") + ": cash=accounting(Kassenbuch)={0}".format(summeKasse)
+            print coloredGood("check OK") + ": cash=accounting(Kassenbuch)={0}".format(
+                summeKasse
+            )
         return True
     else:
         if printMessage:
-            print coloredError("Attention, mismatch:") + " cash: {0}, accounting (Kassenbuch): {1}, too much in cash state: {2}".format(summeKasse, summeKassenbuch, summeKasse - summeKassenbuch)
+            print coloredError(
+                "Attention, mismatch:"
+            ) + " cash: {0}, accounting (Kassenbuch): {1}, too much in cash state: {2}".format(
+                summeKasse, summeKassenbuch, summeKasse - summeKassenbuch
+            )
             print "use 'cash verify-search' to find out when the error started"
         return False
+
 
 def verifySearch(db, step):
     """
@@ -540,7 +618,9 @@ def verifySearch(db, step):
     print "The wrong entry is usually the one after which the status is bad for a long time, maybe with some short good interruptions."
     print "False error reports, and also rare false negatives, may occur in the timespan between inserting the first coin and getting the receipt."
     print "output format:"
-    print "   {0} or {1} = status is good/bad for one step".format(coloredGood('+'), coloredError('-'))
+    print "   {0} or {1} = status is good/bad for one step".format(
+        coloredGood("+"), coloredError("-")
+    )
     print "   <date> <status> = date of status change"
     print ""
     last_date = None
@@ -560,12 +640,13 @@ def verifySearch(db, step):
             print "{0} until {1} (included) ".format(status, date)
             last_result = result
         if result:
-            sys.stdout.write(coloredGood('+'))
+            sys.stdout.write(coloredGood("+"))
         else:
-            sys.stdout.write(coloredError('-'))
+            sys.stdout.write(coloredError("-"))
         last_date = date
-        date -= step # go back 1h
+        date -= step  # go back 1h
     print "End of database."
+
 
 def dateFromString(s, default=None):
     """
@@ -583,6 +664,7 @@ def dateFromString(s, default=None):
     else:
         return dateutil.parser.parse(s)
 
+
 def printLog(db, date_from=None, date_to=None):
     """print all cash movements in the given time region
 
@@ -592,13 +674,25 @@ def printLog(db, date_from=None, date_to=None):
     :type date_to: str | None
     """
     cur = db.cursor()
-    cur.execute('SELECT device, date, state, updateType, isManual, comment FROM cash')
+    cur.execute("SELECT device, date, state, updateType, isManual, comment FROM cash")
 
     fromDate = dateFromString(date_from, "1900-01-01")
-    untilDate = dateFromString(date_to, "3456-01-01") + timedelta(days=1, microseconds=-1)
+    untilDate = dateFromString(date_to, "3456-01-01") + timedelta(
+        days=1, microseconds=-1
+    )
     if date_from:
         print "showing from {0}".format(fromDate)
-    columnTitles = ["device.sub", "date", "manual?", "type", "comment", "delta", "delta", "dev.total", "dev.total"]
+    columnTitles = [
+        "device.sub",
+        "date",
+        "manual?",
+        "type",
+        "comment",
+        "delta",
+        "delta",
+        "dev.total",
+        "dev.total",
+    ]
     # column width -1 is infinite width, but without padding
     # -- may only be used for the last column
     columnWidths = [15, 26, 7, 4, 40, 8, 20, 8, -1]
@@ -610,8 +704,9 @@ def printLog(db, date_from=None, date_to=None):
             if columnWidths[i] > 0:
                 output[i] = output[i].ljust(columnWidths[i])
                 if l > columnWidths[i]:
-                    output[i] = output[i][0:columnWidths[i] - 3] + "..."
+                    output[i] = output[i][0 : columnWidths[i] - 3] + "..."
         print u"|".join(output)
+
     printFormatted(columnTitles)
     previousStates = {}
     for row in cur:
@@ -645,27 +740,29 @@ def printLog(db, date_from=None, date_to=None):
 
 
 def checkIfDeviceExists(db, identifier, subindex):
-    """ check if given cash device has entries in the database. if not, exit with error message. """
+    """check if given cash device has entries in the database. if not, exit with error message."""
     try:
         # check if given name exists
         cash = CashStorage(db, identifier, readonly=True)
         cash.getState(subindex, allowEmpty=False)
     except NoDataFound:
-        print "Error: Given device or subindex  '{0}.{1}' does not exist in database.".format(identifier, subindex)
+        print "Error: Given device or subindex  '{0}.{1}' does not exist in database.".format(
+            identifier, subindex
+        )
         print "If this is not a typo and the device was never used yet, please use --force-new"
         sys.exit(1)
 
 
 def splitDeviceName(dev):
-    assert "." in dev, \
-        "devicename must be <identifier>.<subindex>"
+    assert "." in dev, "devicename must be <identifier>.<subindex>"
     [identifier, subindex] = dev.split(".")
     return [identifier, subindex]
 
 
 def main():
     from docopt import docopt
-    arguments = docopt(__doc__, version='cashState.py')
+
+    arguments = docopt(__doc__, version="cashState.py")
 
     # Python2.7 fixup: decode UTF8 arguments
     def decodeUtf8(x):
@@ -683,72 +780,80 @@ def main():
     CashStorage(db, "dummy")  # call constructor to create database if it doesnt exist
 
     # common argument preprocessing
-    if arguments['<device>']:
-        [identifier, subindex] = splitDeviceName(arguments['<device>'])
+    if arguments["<device>"]:
+        [identifier, subindex] = splitDeviceName(arguments["<device>"])
         if subindex == "log":
             print "Writing to the .log subindex is not supported. For adding comments, please add an empty state on another subindex."
             sys.exit(1)
-    if arguments['<fromDevice>']:
-        [identifierFrom, subindexFrom] = splitDeviceName(arguments['<fromDevice>'])
-    if arguments['<toDevice>']:
-        [identifierTo, subindexTo] = splitDeviceName(arguments['<toDevice>'])
-    if arguments['<comment>']:
-        comment = u" ".join(arguments['<comment>'])
+    if arguments["<fromDevice>"]:
+        [identifierFrom, subindexFrom] = splitDeviceName(arguments["<fromDevice>"])
+    if arguments["<toDevice>"]:
+        [identifierTo, subindexTo] = splitDeviceName(arguments["<toDevice>"])
+    if arguments["<comment>"]:
+        comment = u" ".join(arguments["<comment>"])
 
-    if arguments['help']:
+    if arguments["help"]:
         print __doc__
-    elif arguments['show']:
+    elif arguments["show"]:
         print CashStorageList(db).statesStr()
         verifySum(db, printMessage=True)
-    elif arguments['set'] or arguments['add'] or arguments['check']:
-        cash = CashStorage(db, identifier, readonly=arguments['check'])
-        if (arguments['set'] or arguments['add']) and not arguments['--force-new']:
+    elif arguments["set"] or arguments["add"] or arguments["check"]:
+        cash = CashStorage(db, identifier, readonly=arguments["check"])
+        if (arguments["set"] or arguments["add"]) and not arguments["--force-new"]:
             checkIfDeviceExists(db, identifier, subindex)
         # now do the actual work:
-        if arguments['set']:
-            state = CashState.fromHumanString(arguments['<state>'])
+        if arguments["set"]:
+            state = CashState.fromHumanString(arguments["<state>"])
             cash.setState(subindex, state, isManual=True, comment=comment)
-        elif arguments['add']:
-            stateDelta = CashState.fromHumanString(arguments['<stateDelta>'])
+        elif arguments["add"]:
+            stateDelta = CashState.fromHumanString(arguments["<stateDelta>"])
             cash.addToState(subindex, stateDelta, isManual=True, comment=comment)
-        elif arguments['check']:
-            newState = CashState.fromHumanString(arguments['<state>'])
+        elif arguments["check"]:
+            newState = CashState.fromHumanString(arguments["<state>"])
             try:
                 oldState = cash.getState(subindex, allowEmpty=False)
                 if newState == oldState:
                     print "Okay, state matches."
                 else:
                     print "States do not match!"
-                    print "Difference new-current is " + (newState - oldState).toVerboseString()
+                    print "Difference new-current is " + (
+                        newState - oldState
+                    ).toVerboseString()
                     print "current state: " + oldState.toVerboseString()
                     print "new state:     " + newState.toVerboseString()
             except NoDataFound:
                 print "Error: Given device or subindex does not (yet?) exist in database."
                 sys.exit(1)
-        if not arguments['check']:
+        if not arguments["check"]:
             print "new state is now: " + cash.getStateVerbose(subindex)
             verifySum(db, printMessage=True)
-    elif arguments['log']:
-        printLog(db, arguments['<fromDate>'], arguments['<untilDate>'])
-    elif arguments['move']:
-        assert identifierFrom == identifierTo,  "moving between two different devices is not supported, please use two 'add' operations."
-        stateDelta = CashState.fromHumanString(arguments['<stateDelta>'])
+    elif arguments["log"]:
+        printLog(db, arguments["<fromDate>"], arguments["<untilDate>"])
+    elif arguments["move"]:
+        assert (
+            identifierFrom == identifierTo
+        ), "moving between two different devices is not supported, please use two 'add' operations."
+        stateDelta = CashState.fromHumanString(arguments["<stateDelta>"])
         stateDeltaDict = stateDelta.toDict()
-        assert len(stateDeltaDict) == 1,  "move supports only exactly one coin type at once"
+        assert (
+            len(stateDeltaDict) == 1
+        ), "move supports only exactly one coin type at once"
         denomination = stateDeltaDict.keys()[0]
         count = stateDeltaDict.values()[0]
-        if not arguments['--force-new']:
+        if not arguments["--force-new"]:
             checkIfDeviceExists(db, identifierFrom, subindexFrom)
             checkIfDeviceExists(db, identifierTo, subindexTo)
         cash = CashStorage(db, identifierFrom, readonly=False)
-        cash.moveToOtherSubindex(subindexFrom, subindexTo, denomination, count, comment, isManual=True)
-    elif arguments['verify']:
-        if arguments['<date>']:
-            date = dateFromString(" ".join(arguments['<date>']), None)
+        cash.moveToOtherSubindex(
+            subindexFrom, subindexTo, denomination, count, comment, isManual=True
+        )
+    elif arguments["verify"]:
+        if arguments["<date>"]:
+            date = dateFromString(" ".join(arguments["<date>"]), None)
         else:
             date = None
         verifySum(db, printMessage=True, date=date)
-    elif arguments['verify-search']:
+    elif arguments["verify-search"]:
         step = timedelta(0, 3600)
         verifySearch(db, step)
     else:
@@ -756,5 +861,6 @@ def main():
         print arguments
         # if arguments['device']
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

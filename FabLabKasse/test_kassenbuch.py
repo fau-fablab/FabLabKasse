@@ -19,7 +19,14 @@
 from __future__ import unicode_literals
 
 import unittest
-from FabLabKasse.kassenbuch import Kasse, Kunde, Buchung, Rechnung, NoDataFound, parse_args
+from FabLabKasse.kassenbuch import (
+    Kasse,
+    Kunde,
+    Buchung,
+    Rechnung,
+    NoDataFound,
+    parse_args,
+)
 from FabLabKasse.kassenbuch import argparse_parse_date, argparse_parse_currency
 from hypothesis import given
 from hypothesis.strategies import text
@@ -37,26 +44,25 @@ class KassenbuchTestCase(unittest.TestCase):
         test the argparser
         """
         # test show
-        args = parse_args("show".split(' '))
-        self.assertEqual(args.action, 'show')
+        args = parse_args("show".split(" "))
+        self.assertEqual(args.action, "show")
         self.assertFalse(args.hide_receipts)
         self.assertIsNone(args.from_date)
         self.assertIsNone(args.until_date)
-        args = parse_args("show --hide-receipts".split(' '))
-        self.assertEqual(args.action, 'show')
+        args = parse_args("show --hide-receipts".split(" "))
+        self.assertEqual(args.action, "show")
         self.assertTrue(args.hide_receipts)
         self.assertIsNone(args.from_date)
         self.assertIsNone(args.until_date)
-        args = parse_args(['show', '--hide-receipts',
-                          '--from', '2016-12-31 13:37:42'])
-        self.assertEqual(args.action, 'show')
+        args = parse_args(["show", "--hide-receipts", "--from", "2016-12-31 13:37:42"])
+        self.assertEqual(args.action, "show")
         self.assertTrue(args.hide_receipts)
         self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31 13:37:42"))
         self.assertIsNone(args.until_date)
-        args = parse_args("show --hide-receipts "
-                          "--from 2016-12-31 "
-                          "--until 2017-1-23".split(' '))
-        self.assertEqual(args.action, 'show')
+        args = parse_args(
+            "show --hide-receipts " "--from 2016-12-31 " "--until 2017-1-23".split(" ")
+        )
+        self.assertEqual(args.action, "show")
         self.assertTrue(args.hide_receipts)
         self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31"))
         self.assertEquals(args.until_date, dateutil.parser.parse("2017-1-23"))
@@ -64,18 +70,23 @@ class KassenbuchTestCase(unittest.TestCase):
 
     def test_parsing(self):
         """test argument parsing helper"""
-        self.assertEqual(argparse_parse_currency(' 13,37€ '), Decimal('13.37'))
-        self.assertAlmostEqual(argparse_parse_date('today'), datetime.today(),
-                               delta=timedelta(minutes=5))
-        self.assertAlmostEqual(argparse_parse_date('yesterday'),
-                               datetime.today() - timedelta(1),
-                               delta=timedelta(minutes=5))
-        self.assertEqual(argparse_parse_date("2016-12-31 13:37:42"),
-                         dateutil.parser.parse("2016-12-31 13:37:42"))
+        self.assertEqual(argparse_parse_currency(" 13,37€ "), Decimal("13.37"))
+        self.assertAlmostEqual(
+            argparse_parse_date("today"), datetime.today(), delta=timedelta(minutes=5)
+        )
+        self.assertAlmostEqual(
+            argparse_parse_date("yesterday"),
+            datetime.today() - timedelta(1),
+            delta=timedelta(minutes=5),
+        )
+        self.assertEqual(
+            argparse_parse_date("2016-12-31 13:37:42"),
+            dateutil.parser.parse("2016-12-31 13:37:42"),
+        )
 
     def test_accounting_database_setup(self):
         """tests the creation of the accounting database"""
-        kasse = Kasse(sqlite_file=':memory:')
+        kasse = Kasse(sqlite_file=":memory:")
         kasse.con.commit()
         # TODO check the database instead of the functions of Kasse
         self.assertFalse(kasse.kunden)
@@ -85,7 +96,7 @@ class KassenbuchTestCase(unittest.TestCase):
     @given(clientname=text())
     def test_accounting_database_client_creation(self, clientname):
         """very basically test the creation of a new client"""
-        kasse = Kasse(sqlite_file=':memory:')
+        kasse = Kasse(sqlite_file=":memory:")
         self.assertFalse(kasse.kunden)
         # TODO thouroughly test client creation, this seems to be fishy somewhere
         bob = Kunde(clientname, schuldengrenze=0)
@@ -98,27 +109,46 @@ class KassenbuchTestCase(unittest.TestCase):
         # TODO test integrity checking (no double creation of same ID)
         # TODO code crashes when reading Kunde with "None" in e.g. schuldengrenze
 
-    @given(from_date=hypothesis_datetime.datetimes(), until_date=hypothesis_datetime.datetimes())
+    @given(
+        from_date=hypothesis_datetime.datetimes(),
+        until_date=hypothesis_datetime.datetimes(),
+    )
     def test_datestring_generator(self, from_date, until_date):
         """test the datestring_generator in Kasse"""
-        query = Kasse._date_query_generator('buchung', from_date=from_date, until_date=until_date)
-        pristine_query = "SELECT id FROM buchung WHERE datum >= Datetime('{from_date}') AND " \
-                         "datum < Datetime('{until_date}')".format(from_date=from_date, until_date=until_date)
+        query = Kasse._date_query_generator(
+            "buchung", from_date=from_date, until_date=until_date
+        )
+        pristine_query = (
+            "SELECT id FROM buchung WHERE datum >= Datetime('{from_date}') AND "
+            "datum < Datetime('{until_date}')".format(
+                from_date=from_date, until_date=until_date
+            )
+        )
         self.assertEqual(query, pristine_query)
-        query = Kasse._date_query_generator('buchung', until_date=until_date)
-        pristine_query = "SELECT id FROM buchung WHERE datum < Datetime('{until_date}')".format(until_date=until_date)
+        query = Kasse._date_query_generator("buchung", until_date=until_date)
+        pristine_query = (
+            "SELECT id FROM buchung WHERE datum < Datetime('{until_date}')".format(
+                until_date=until_date
+            )
+        )
         self.assertEqual(query, pristine_query)
-        query = Kasse._date_query_generator('buchung', from_date=from_date)
-        pristine_query = "SELECT id FROM buchung WHERE datum >= Datetime('{from_date}')".format(from_date=from_date)
+        query = Kasse._date_query_generator("buchung", from_date=from_date)
+        pristine_query = (
+            "SELECT id FROM buchung WHERE datum >= Datetime('{from_date}')".format(
+                from_date=from_date
+            )
+        )
         self.assertEqual(query, pristine_query)
 
-    @given(rechnung_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
-           from_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
-           until_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]))
+    @given(
+        rechnung_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
+        from_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
+        until_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
+    )
     def test_get_rechnungen(self, rechnung_date, from_date, until_date):
         """test the get_rechnungen function"""
-        kasse = Kasse(sqlite_file=':memory:')
-        rechnung = Rechnung(datum=rechnung_date.strftime('%Y-%m-%d %H:%M:%S.%f'))
+        kasse = Kasse(sqlite_file=":memory:")
+        rechnung = Rechnung(datum=rechnung_date.strftime("%Y-%m-%d %H:%M:%S.%f"))
         rechnung.store(kasse.cur)
         kasse.con.commit()
 
@@ -128,23 +158,27 @@ class KassenbuchTestCase(unittest.TestCase):
         else:
             self.assertFalse(query)
 
-    @given(buchung_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
-           from_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
-           until_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]))
+    @given(
+        buchung_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
+        from_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
+        until_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
+    )
     def test_get_buchungen(self, buchung_date, from_date, until_date):
         """test the get_buchungen function"""
-        kasse = Kasse(sqlite_file=':memory:')
-        rechnung = Rechnung(datum=buchung_date.strftime('%Y-%m-%d %H:%M:%S.%f'))
+        kasse = Kasse(sqlite_file=":memory:")
+        rechnung = Rechnung(datum=buchung_date.strftime("%Y-%m-%d %H:%M:%S.%f"))
         rechnung.store(kasse.cur)
-        buchung = Buchung(konto='somewhere',
-                          betrag='0',
-                          rechnung=rechnung.id,
-                          kommentar="Passing By And Thought I'd Drop In",
-                          datum=buchung_date.strftime('%Y-%m-%d %H:%M:%S.%f'))
+        buchung = Buchung(
+            konto="somewhere",
+            betrag="0",
+            rechnung=rechnung.id,
+            kommentar="Passing By And Thought I'd Drop In",
+            datum=buchung_date.strftime("%Y-%m-%d %H:%M:%S.%f"),
+        )
         buchung._store(kasse.cur)
         kasse.con.commit()
 
-        #TODO load_from_row ist sehr anfällig gegen kaputte datetimes, das sollte am besten schon sauber in die Datenbank
+        # TODO load_from_row ist sehr anfällig gegen kaputte datetimes, das sollte am besten schon sauber in die Datenbank
         query = kasse.get_buchungen(from_date, until_date)
         if from_date <= buchung_date < until_date:
             self.assertTrue(query)

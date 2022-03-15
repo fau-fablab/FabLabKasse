@@ -24,7 +24,6 @@ import functools
 
 
 class PaymentMethodDialog(QtGui.QDialog, Ui_PaymentMethodDialog):
-
     def __init__(self, parent, cfg, amount):
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
@@ -41,7 +40,9 @@ class PaymentMethodDialog(QtGui.QDialog, Ui_PaymentMethodDialog):
         first_button = True
         for method in PAYMENT_METHODS:
             button = Qt.QPushButton(method.get_title())
-            button.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+            button.setSizePolicy(
+                QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding
+            )
             # cannot use lambda here because the variable 'method' will change
             # in the next iteration... python is counterintuitive here....
             button.clicked.connect(functools.partial(self.acceptAndSetMethod, method))

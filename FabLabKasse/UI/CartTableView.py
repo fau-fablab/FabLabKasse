@@ -22,11 +22,13 @@ from PyQt4 import QtGui, QtCore
 import functools
 from FabLabKasse.UI.GUIHelper import resize_table_columns
 
+
 class CartTableView(QTableView):
     """Extends the funxtionality of a normal QTableView in order to supply a cart-view
 
     for usage see the cart-view in Kassenterminal and the cart-view in the app-checkout
     """
+
     def update_cart(self, shoppingBackend):
         """update table with current order lines"""
         order_lines = shoppingBackend.get_order_lines()
@@ -52,17 +54,25 @@ class CartTableView(QTableView):
             name = QtGui.QStandardItem(line.name)
             order_model.setItem(i, 2, name)
 
-            price_unit = QtGui.QStandardItem(shoppingBackend.format_money(line.price_per_unit))
+            price_unit = QtGui.QStandardItem(
+                shoppingBackend.format_money(line.price_per_unit)
+            )
             order_model.setItem(i, 3, price_unit)
 
-            subtotal = QtGui.QStandardItem(shoppingBackend.format_money(line.price_subtotal))
+            subtotal = QtGui.QStandardItem(
+                shoppingBackend.format_money(line.price_subtotal)
+            )
             order_model.setItem(i, 4, subtotal)
 
         # Set Model
         self.setModel(order_model)
         # Change column width to useful values
         # needs to be delayed so that resize events for the scrollbar happens first, otherwise it reports a scrollbar width of 100px at the very first call
-        QtCore.QTimer.singleShot(0, functools.partial(resize_table_columns, self, [4, 6, 20, 5, 5]))
+        QtCore.QTimer.singleShot(
+            0, functools.partial(resize_table_columns, self, [4, 6, 20, 5, 5])
+        )
         # TODO the 100ms delay is a workaround that is necessary because the first call often comes too early.
         # this workaround looks not so good, a nicer solution would be good
-        QtCore.QTimer.singleShot(100, functools.partial(resize_table_columns, self, [4, 6, 20, 5, 5]))
+        QtCore.QTimer.singleShot(
+            100, functools.partial(resize_table_columns, self, [4, 6, 20, 5, 5])
+        )

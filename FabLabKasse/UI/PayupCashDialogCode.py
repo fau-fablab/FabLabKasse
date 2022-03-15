@@ -25,7 +25,6 @@ from ConfigParser import Error as ConfigParserError
 
 
 class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
-
     def __init__(self, parent, amount_total, cfg):
         """
         payment method dialog for automatic cash payin and payout
@@ -38,7 +37,9 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
         self.setupUi(self)
         # maximize window - WORKAROUND because showMaximized() doesn't work
         # when a default geometry is set in the Qt designer file
-        QtCore.QTimer.singleShot(0, lambda: self.setWindowState(QtCore.Qt.WindowMaximized))
+        QtCore.QTimer.singleShot(
+            0, lambda: self.setWindowState(QtCore.Qt.WindowMaximized)
+        )
         self.pushButton_return.clicked.connect(self.payoutReturnCompletely)
         self.pushButton_donate.clicked.connect(self.donateReturn)
         self.pushButton_acceptLowPayout.clicked.connect(self.acceptLowPayoutWarning)
@@ -52,7 +53,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
         self.pushButton_acceptLowPayout.setVisible(False)
         self.pushButton_receipt.setVisible(False)
         self.pushButton_receipt.clicked.connect(self.accept_and_print_receipt)
-        assert isinstance(amount_total,  Decimal)
+        assert isinstance(amount_total, Decimal)
         assert amount_total % Decimal("0.01") == 0
         self.centsToPay = int(100 * amount_total)
         self.centsToPayOut = None
@@ -67,7 +68,11 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
         self.state = "init"
 
         if not parent.cashPayment.devices:
-            QtGui.QMessageBox.warning(self, "Error", "No cash payment devices are configured. For testing please add an example (simulated) device.")
+            QtGui.QMessageBox.warning(
+                self,
+                "Error",
+                "No cash payment devices are configured. For testing please add an example (simulated) device.",
+            )
 
         self.update()
         # call update() regularly via QTimer
@@ -79,7 +84,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
 
     @staticmethod
     def getSuggestedDonations(toPay, payout):
-        """ heuristically determine a list of up to three recommended donation values.
+        """heuristically determine a list of up to three recommended donation values.
         :param toPay: how much was paid for articles
         :param payout: how much was paid too much and would be paid back to the user
         """
@@ -102,13 +107,15 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
         # - donate nothing/everything [there are already buttons for that]
         #  - any donation greater than "donate everything" (makes no sense)
         # also convert to sorted list
-        donationCandidates = filter(lambda donation: 0 < donation < payout,  donationCandidates)
+        donationCandidates = filter(
+            lambda donation: 0 < donation < payout, donationCandidates
+        )
         donationCandidates.sort()
 
         # step 2: from the previous list, fetch up to three values based on the amount paid
         suggestedDonation = []
         donationCandidates.reverse()
-        for donationPart in [0.01, .05, .10]:
+        for donationPart in [0.01, 0.05, 0.10]:
             try:
                 while True:
                     value = donationCandidates.pop()
@@ -124,8 +131,14 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
 
     def showSuggestedDonations(self):
         """update text of donate[123] buttons"""
-        self.pushButton_donate.setText(u"{0} (gesamtes Rückgeld) spenden ".format(PayupCashDialog.formatCent(self.centsReceived - self.centsToPay)))
-        suggestedDonations = PayupCashDialog.getSuggestedDonations(toPay=self.centsToPay, payout=self.centsReceived - self.centsToPay)
+        self.pushButton_donate.setText(
+            u"{0} (gesamtes Rückgeld) spenden ".format(
+                PayupCashDialog.formatCent(self.centsReceived - self.centsToPay)
+            )
+        )
+        suggestedDonations = PayupCashDialog.getSuggestedDonations(
+            toPay=self.centsToPay, payout=self.centsReceived - self.centsToPay
+        )
         suggestedDonations.reverse()
         for i in [1, 2, 3]:
             button = getattr(self, "pushButton_donate" + str(i))
@@ -141,7 +154,12 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
                 #   when using a lambda, it would be wrongly used by-reference and get the value of the last iteration of this loop
                 #  see http://stackoverflow.com/a/3252364
 
-                button.clicked.connect(functools.partial(self.payoutReturn, self.centsReceived - self.centsToPay - donationValue))
+                button.clicked.connect(
+                    functools.partial(
+                        self.payoutReturn,
+                        self.centsReceived - self.centsToPay - donationValue,
+                    )
+                )
                 button.setText(self.formatCent(donationValue) + " spenden")
                 button.setVisible(True)
             else:
@@ -151,7 +169,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
     @staticmethod
     # TODO deduplicate
     def formatCent(x):
-            return u"{:.2f}\u2009€".format(float(x) / 100).replace(".", ",")
+        return u"{:.2f}\u2009€".format(float(x) / 100).replace(".", ",")
 
     def update(self):
         p = self.parent().cashPayment
@@ -180,7 +198,11 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
         self.label_return_donation.setEnabled(self.returnDonated)
 
         if self.returnDonated:
-            self.label_return_donation.setText(PayupCashDialog.formatCent(self.centsReceived - self.centsToPay - self.centsToPayOut))
+            self.label_return_donation.setText(
+                PayupCashDialog.formatCent(
+                    self.centsReceived - self.centsToPay - self.centsToPayOut
+                )
+            )
         if self.centsToPayOut != None:
             self.label_missing.setText(PayupCashDialog.formatCent(self.centsToPayOut))
         self.label_payout_current.setText(PayupCashDialog.formatCent(paidOut))
@@ -198,17 +220,30 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
                 self.allowedOverpay = 50 * 100
 
                 self.state = "askLowPayout"
-                logging.info("canPayout: {0} with max. rest {1} / to pay: {2} / allowed overpay: {3}".format(self.payoutMaximumAmount, self.payoutRemainingAmount, self.centsToPay, self.allowedOverpay))
+                logging.info(
+                    "canPayout: {0} with max. rest {1} / to pay: {2} / allowed overpay: {3}".format(
+                        self.payoutMaximumAmount,
+                        self.payoutRemainingAmount,
+                        self.centsToPay,
+                        self.allowedOverpay,
+                    )
+                )
         elif self.state == "askLowPayout":
             warningText = u""
-            if self.payoutMaximumAmount < self.allowedOverpay or self.payoutRemainingAmount > 10 * 100:
+            if (
+                self.payoutMaximumAmount < self.allowedOverpay
+                or self.payoutRemainingAmount > 10 * 100
+            ):
                 warningText = u"Der Automat hat gerade nur wenig Wechselgeld.\nBitte zahle passend oder spende dein Rückgeld!\n\n"
             elif self.payoutRemainingAmount > 20:
                 warningText = u"Der Automat hat gerade nur wenig Kleingeld.\nBitte zahle passend oder spende dein Rückgeld!\n\n"
 
             if self.centsToPay + self.allowedOverpay > 200 * 100:
                 warningText += u"Der bezahlte Betrag ist recht hoch.\nSolltest du später die Bezahlung abbrechen,\nwird dir womöglich nur ein Teil zurückgezahlt!"
-            elif self.centsToPay + self.allowedOverpay > self.payoutMaximumAmount or self.payoutRemainingAmount > 50:
+            elif (
+                self.centsToPay + self.allowedOverpay > self.payoutMaximumAmount
+                or self.payoutRemainingAmount > 50
+            ):
                 warningText += u"Wenn du später die Bezahlung abbrichst,\nwird dir womöglich nur ein Teil zurückgezahlt!"
 
             if warningText == u"":
@@ -241,7 +276,11 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
             if self.centsToPay == 0:  # payment was aborted, payout return
                 self.payoutReturn(self.centsReceived)
             else:
-                self.label_status.setText(u'<html><p style="margin-bottom:20px;">Du würdest {0} Rückgeld bekommen.<br>Möchtest du etwas davon spenden?</br><p style="font-size:14px;">Alle Spenden und Einnahmen werden ausschließlich für das FabLab verwendet.</p></html>'.format(PayupCashDialog.formatCent(self.centsReceived - self.centsToPay)))
+                self.label_status.setText(
+                    u'<html><p style="margin-bottom:20px;">Du würdest {0} Rückgeld bekommen.<br>Möchtest du etwas davon spenden?</br><p style="font-size:14px;">Alle Spenden und Einnahmen werden ausschließlich für das FabLab verwendet.</p></html>'.format(
+                        PayupCashDialog.formatCent(self.centsReceived - self.centsToPay)
+                    )
+                )
                 self.pushButton_return.setVisible(True)
                 self.pushButton_donate.setVisible(True)
                 self.showSuggestedDonations()
@@ -250,7 +289,9 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
             self.label_payout_current_text.setEnabled(True)
             self.label_payout_current.setEnabled(True)
             assert self.centsReceived >= self.centsToPay
-            p.payout(min(self.centsToPayOut, 200 * 100))  # HARDCODED: limit payouts to 200€ - here and in PaymentDeviceServer
+            p.payout(
+                min(self.centsToPayOut, 200 * 100)
+            )  # HARDCODED: limit payouts to 200€ - here and in PaymentDeviceServer
             self.state = "payout"
         elif self.state == "payout":
             # poll until payout is finished
@@ -277,16 +318,25 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
             rest = self.centsReceived - self.centsPaidOut - self.centsToPay
             assert rest >= 0
             if self.centsPaidOut < self.centsToPayOut:
-                text = text + u" <p>Ein Rest von {0} konnte leider nicht zurückgezahlt werden.</p>".format(PayupCashDialog.formatCent(self.centsToPayOut - self.centsPaidOut))
+                text = (
+                    text
+                    + u" <p>Ein Rest von {0} konnte leider nicht zurückgezahlt werden.</p>".format(
+                        PayupCashDialog.formatCent(
+                            self.centsToPayOut - self.centsPaidOut
+                        )
+                    )
+                )
             if self.centsToPay > 0:  # payment not aborted
                 text += u"<p>Bitte das Aufräumen nicht vergessen!</p>"
-            text += u'<p style="font-size:14px"> Sollte etwas nicht stimmen, ' + \
-                u'benachrichtige bitte sofort einen Betreuer'
+            text += (
+                u'<p style="font-size:14px"> Sollte etwas nicht stimmen, '
+                + u"benachrichtige bitte sofort einen Betreuer"
+            )
             try:
-                email = self.cfg.get('general', 'support_mail')
-                text += u' und melde dich bei {}.</p></html>'.format(email)
+                email = self.cfg.get("general", "support_mail")
+                text += u" und melde dich bei {}.</p></html>".format(email)
             except ConfigParserError:
-                text += '.</p></html>'
+                text += ".</p></html>"
             self.label_status.setText(text)
             self.pushButton_finish.setVisible(True)
             # only ask for receipt if something was paid
@@ -312,7 +362,7 @@ class PayupCashDialog(QtGui.QDialog, Ui_PayupCashDialog):
         if self.state != "askPayout":
             return
         assert requestedPayback <= self.centsReceived - self.centsToPay
-        self.returnDonated = (requestedPayback < (self.centsReceived - self.centsToPay))
+        self.returnDonated = requestedPayback < (self.centsReceived - self.centsToPay)
         self.pushButton_return.setVisible(False)
         self.pushButton_donate.setVisible(False)
         self.pushButton_donate1.setVisible(False)

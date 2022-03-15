@@ -22,7 +22,9 @@
 It shows a QR Code as one-time-token for authentication."""
 
 from PyQt4 import QtGui, QtCore
-from FabLabKasse.UI.uic_generated.LoadFromMobileAppDialog import Ui_LoadFromMobileAppDialog
+from FabLabKasse.UI.uic_generated.LoadFromMobileAppDialog import (
+    Ui_LoadFromMobileAppDialog,
+)
 import qrcode
 import StringIO
 
@@ -54,7 +56,9 @@ class LoadFromMobileAppDialog(QtGui.QDialog, Ui_LoadFromMobileAppDialog):
         self.setupUi(self)
         # maximize window - WORKAROUND because showMaximized() doesn't work
         # when a default geometry is set in the Qt designer file
-        QtCore.QTimer.singleShot(0, lambda: self.setWindowState(QtCore.Qt.WindowMaximized))
+        QtCore.QTimer.singleShot(
+            0, lambda: self.setWindowState(QtCore.Qt.WindowMaximized)
+        )
         set_layout_items_visible(self.verticalLayout_app_download, False)
         self.pushButton_app.clicked.connect(self._show_app_download)
         if app_url is None:

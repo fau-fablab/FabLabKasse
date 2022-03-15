@@ -22,6 +22,7 @@
 
 import requests
 import logging
+
 # from FabLabKasse.shopping
 from FabLabKasse.shopping.backend.abstract import float_to_decimal
 import simplejson
@@ -49,7 +50,9 @@ class InvalidCartJSONError(Exception):
             text = u""
         text = u"Invalid Cart: " + text
         if property_name:
-            text += u"Property {0} has unexpected value: {1}".format(property_name, repr(value))
+            text += u"Property {0} has unexpected value: {1}".format(
+                property_name, repr(value)
+            )
         Exception.__init__(self, text)
 
 
@@ -91,12 +94,12 @@ class MobileAppCartModel(QObject):
         """
         QObject.__init__(self)
         self.cfg = config
-        if config.has_option('mobile_app', 'ssl_cert'):
-            self._ssl_cert = str(config.get('mobile_app', 'ssl_cert'))
+        if config.has_option("mobile_app", "ssl_cert"):
+            self._ssl_cert = str(config.get("mobile_app", "ssl_cert"))
             if self._ssl_cert.startswith("base64://"):
                 # write contents of base64 to temporary file
                 f = NamedTemporaryFile(delete=False)
-                f.write(b64decode(self._ssl_cert[len("base64://"):]))
+                f.write(b64decode(self._ssl_cert[len("base64://") :]))
                 self._ssl_cert = f.name
                 f.close()
         else:
@@ -116,9 +119,13 @@ class MobileAppCartModel(QObject):
         :raise: requests.exceptions.RequestException
         :rtype: None
         """
-        get_params = {'password': self.api_key}
-        req = requests.get(self.server_url + "createCode", params=get_params,
-                           timeout=self.timeout, verify=self._ssl_cert)
+        get_params = {"password": self.api_key}
+        req = requests.get(
+            self.server_url + "createCode",
+            params=get_params,
+            timeout=self.timeout,
+            verify=self._ssl_cert,
+        )
         req.raise_for_status()
         if req.text == "":
             return
@@ -130,7 +137,7 @@ class MobileAppCartModel(QObject):
         Return the appservers query url
         """
         if self._server_url is None:
-            self._server_url = self.cfg.get('mobile_app', 'server_url')
+            self._server_url = self.cfg.get("mobile_app", "server_url")
         return self._server_url
 
     @property
@@ -141,8 +148,8 @@ class MobileAppCartModel(QObject):
         :raise: MissingAPIKeyError
         """
         if self._api_key is None:
-            if self.cfg.has_option('mobile_app', 'server_api_key'):
-                self._api_key = self.cfg.get('mobile_app', 'server_api_key')
+            if self.cfg.has_option("mobile_app", "server_api_key"):
+                self._api_key = self.cfg.get("mobile_app", "server_api_key")
             else:
                 raise MissingAPIKeyError()
 
@@ -154,11 +161,13 @@ class MobileAppCartModel(QObject):
         Timeout for single requests
         """
         if self._timeout is None:
-            if self.cfg.has_option('mobile_app', 'timeout'):
-                self._timeout = self.cfg.getint('mobile_app', 'timeout')
+            if self.cfg.has_option("mobile_app", "timeout"):
+                self._timeout = self.cfg.getint("mobile_app", "timeout")
             else:
                 self._timeout = 10
-                logging.info(u"using default timeout value '10' as it wasn't set in the config")
+                logging.info(
+                    u"using default timeout value '10' as it wasn't set in the config"
+                )
         return self._timeout
 
     @property
@@ -180,11 +189,13 @@ class MobileAppCartModel(QObject):
     def num_retries(self):
         """maximum number of retries before the server is considered down"""
         if self._num_retries is None:
-            if self.cfg.has_option('mobile_app', 'num_retries'):
-                self._num_retries = self.cfg.getint('mobile_app', 'num_retries')
+            if self.cfg.has_option("mobile_app", "num_retries"):
+                self._num_retries = self.cfg.getint("mobile_app", "num_retries")
             else:
                 self._num_retries = 10
-                logging.info(u"using default number of retries '10' as it wasn't set in the config")
+                logging.info(
+                    u"using default number of retries '10' as it wasn't set in the config"
+                )
         return self._num_retries
 
     def _tick_error_counter(self):
@@ -221,16 +232,24 @@ class MobileAppCartModel(QObject):
             if self.cart_id is None:
                 self._get_cart_id()
                 return False
-            req = requests.get(self.server_url + self.cart_id, timeout=self.timeout, verify=self._ssl_cert)
+            req = requests.get(
+                self.server_url + self.cart_id,
+                timeout=self.timeout,
+                verify=self._ssl_cert,
+            )
             req.raise_for_status()
         except requests.exceptions.HTTPError as exc:
-            logging.debug(u"app-checkout: app server responded with HTTP error {0}".format(exc))
+            logging.debug(
+                u"app-checkout: app server responded with HTTP error {0}".format(exc)
+            )
             self._tick_error_counter()
             return False
         except requests.exceptions.RequestException as exc:
             # WORKAROUND: SSLError is somehow broken, sometimes its __str__()  method does not return a string
             # therefore we use repr()
-            logging.debug(u"app-checkout: general error in HTTP request: {0}".format(repr(exc)))
+            logging.debug(
+                u"app-checkout: general error in HTTP request: {0}".format(repr(exc))
+            )
             self._tick_error_counter()
             return False
         if req.text == "":
@@ -262,19 +281,30 @@ class MobileAppCartModel(QObject):
             if data["status"] != "PENDING":
                 raise InvalidCartJSONError(property_name="status", value=data["status"])
             if unicode(data["cartCode"]) != self.cart_id:
-                raise InvalidCartJSONError(property_name="cartCode", value=data["cartCode"])
+                raise InvalidCartJSONError(
+                    property_name="cartCode", value=data["cartCode"]
+                )
             cart = []
             for entry in data["items"]:
                 if not isinstance(entry, dict):
-                    raise InvalidCartJSONError(property_name="items", value=data["items"])
-                item = (int(entry["productId"]), float_to_decimal(float(entry["amount"]), 3))
+                    raise InvalidCartJSONError(
+                        property_name="items", value=data["items"]
+                    )
+                item = (
+                    int(entry["productId"]),
+                    float_to_decimal(float(entry["amount"]), 3),
+                )
                 if item[1] < 0:
-                    raise InvalidCartJSONError(property_name="item.amount", value=item[1])
+                    raise InvalidCartJSONError(
+                        property_name="item.amount", value=item[1]
+                    )
                 cart.append(item)
         except KeyError:
             raise InvalidCartJSONError("a required key is missing in JSON")
         except ValueError:
-            raise InvalidCartJSONError("invalid field value in JSON (probably amount or productId)")
+            raise InvalidCartJSONError(
+                "invalid field value in JSON (probably amount or productId)"
+            )
         if not cart:
             raise InvalidCartJSONError("empty cart imported")
         return cart
@@ -293,7 +323,11 @@ class MobileAppCartModel(QObject):
         else:
             status = "cancelled"
         try:
-            req = requests.post(self.server_url + status + "/" + self.cart_id, timeout=self.timeout, verify=self._ssl_cert)  # , HTTPAdapter(max_retries=5))
+            req = requests.post(
+                self.server_url + status + "/" + self.cart_id,
+                timeout=self.timeout,
+                verify=self._ssl_cert,
+            )  # , HTTPAdapter(max_retries=5))
             logging.debug("response: {0}".format(repr(req.text)))
             req.raise_for_status()
         except IOError:
@@ -303,13 +337,14 @@ class MobileAppCartModel(QObject):
 
 class MobileAppCartModelTest(unittest.TestCase):
 
-    """ Test MobileAppCartModel """
+    """Test MobileAppCartModel"""
 
     def test_decode_json_cart(self):
         """unittest: load cart from JSON.
 
         Test normal use and various input format errors
         """
+
         def prepare():
             """
             return a list of three objects for MobileAppCartModel._decode_json_cart():
@@ -319,6 +354,7 @@ class MobileAppCartModelTest(unittest.TestCase):
             - valid_cart: decoded cart like it should be output by _decode_json_cart()
             """
             from ConfigParser import ConfigParser
+
             model = MobileAppCartModel(ConfigParser())
             model._cart_id = "FAU15596984"
 
@@ -393,16 +429,17 @@ class MobileAppCartModelTest(unittest.TestCase):
         # test naughty strings
         from os.path import dirname, abspath
         import codecs
+
         naughtystrings = ""
         naughtyfile = abspath(dirname(__file__) + "/../../libs/naughtystrings/blns.txt")
-        with codecs.open(naughtyfile, 'r', "utf-8") as f:
+        with codecs.open(naughtyfile, "r", "utf-8") as f:
             naughtystrings = f.readlines()
             naughtystrings.insert(0, u"")
         [model, data1, _] = prepare()
         data2 = data1.copy()
         for nstring in naughtystrings:
-            nstring = nstring.strip(u'\n')
-            if not nstring.startswith(u'#'):
+            nstring = nstring.strip(u"\n")
+            if not nstring.startswith(u"#"):
                 data1["status"] = nstring
                 data2["items"][0]["productId"] = nstring
                 with self.assertRaises(InvalidCartJSONError):

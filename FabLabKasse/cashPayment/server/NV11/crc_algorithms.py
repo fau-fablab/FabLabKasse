@@ -59,7 +59,16 @@ class Crc(object):
     # Class constructor
     # ==================================
 
-    def __init__(self, width, poly, reflect_in, xor_in, reflect_out, xor_out, table_idx_width=None):
+    def __init__(
+        self,
+        width,
+        poly,
+        reflect_in,
+        xor_in,
+        reflect_out,
+        xor_out,
+        table_idx_width=None,
+    ):
         """The Crc constructor.
 
         The parameters are as follows:
@@ -145,7 +154,7 @@ class Crc(object):
 
         for _ in range(self.Width):
             topbit = register & self.MSB_Mask
-            register = ((register << 1) & self.Mask)
+            register = (register << 1) & self.Mask
             if topbit:
                 register ^= self.Poly
 
@@ -201,9 +210,11 @@ class Crc(object):
                 if register & (self.MSB_Mask << self.CrcShift) != 0:
                     register = (register << 1) ^ (self.Poly << self.CrcShift)
                 else:
-                    register = (register << 1)
+                    register = register << 1
             if self.ReflectIn:
-                register = self.reflect(register >> self.CrcShift, self.Width) << self.CrcShift
+                register = (
+                    self.reflect(register >> self.CrcShift, self.Width) << self.CrcShift
+                )
             tbl[i] = register & (self.Mask << self.CrcShift)
         return tbl
 
@@ -222,14 +233,23 @@ class Crc(object):
         register = self.DirectInit << self.CrcShift
         if not self.ReflectIn:
             for octet in in_data:
-                tblidx = ((register >> (self.Width - self.TableIdxWidth + self.CrcShift)) ^ octet) & 0xff
-                register = ((register << (self.TableIdxWidth - self.CrcShift)) ^ tbl[tblidx]) & (self.Mask << self.CrcShift)
+                tblidx = (
+                    (register >> (self.Width - self.TableIdxWidth + self.CrcShift))
+                    ^ octet
+                ) & 0xFF
+                register = (
+                    (register << (self.TableIdxWidth - self.CrcShift)) ^ tbl[tblidx]
+                ) & (self.Mask << self.CrcShift)
             register = register >> self.CrcShift
         else:
-            register = self.reflect(register, self.Width + self.CrcShift) << self.CrcShift
+            register = (
+                self.reflect(register, self.Width + self.CrcShift) << self.CrcShift
+            )
             for octet in in_data:
-                tblidx = ((register >> self.CrcShift) ^ octet) & 0xff
-                register = ((register >> self.TableIdxWidth) ^ tbl[tblidx]) & (self.Mask << self.CrcShift)
+                tblidx = ((register >> self.CrcShift) ^ octet) & 0xFF
+                register = ((register >> self.TableIdxWidth) ^ tbl[tblidx]) & (
+                    self.Mask << self.CrcShift
+                )
             register = self.reflect(register, self.Width + self.CrcShift) & self.Mask
 
         if self.ReflectOut:

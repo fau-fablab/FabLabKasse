@@ -24,7 +24,6 @@ import random
 
 
 class ExampleServer(CashServer):
-
     def initializeDevice(self):
         pass
 
@@ -44,12 +43,25 @@ class ExampleServer(CashServer):
             self.busy = True
             if self.moneyReceivedTotal + 1000 <= self.moneyReceiveAllowed:
                 if random.random() > 0.9:
-                    self.event_receivedMoney(1, 1000, "storage", "yay, example server received some virtual money!")
+                    self.event_receivedMoney(
+                        1,
+                        1000,
+                        "storage",
+                        "yay, example server received some virtual money!",
+                    )
         elif self.currentMode == "dispense":
             self.busy = True
-            if self.moneyDispensedTotal + 1000 <= 3000 and self.moneyDispensedTotal + 1000 <= self.moneyDispenseAllowed:
+            if (
+                self.moneyDispensedTotal + 1000 <= 3000
+                and self.moneyDispensedTotal + 1000 <= self.moneyDispenseAllowed
+            ):
                 if random.random() > 0.9:
-                    self.event_dispensedMoney(1, 1000, "storage", "yay, example server dispensed some virtual money!")
+                    self.event_dispensedMoney(
+                        1,
+                        1000,
+                        "storage",
+                        "yay, example server dispensed some virtual money!",
+                    )
             else:
                 self.currentMode = "stopping"
         elif self.currentMode == "empty":

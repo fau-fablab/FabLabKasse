@@ -45,6 +45,7 @@ from .. import scriptHelper
 from FabLabKasse.shopping.backend.abstract import DebtLimitExceeded
 from FabLabKasse.faucardPayment.faucard import PayupFAUCard, finish_log
 
+
 class AbstractPaymentMethod(object):
 
     """interface for payment methods
@@ -54,13 +55,14 @@ class AbstractPaymentMethod(object):
     :param Decimal amount_to_pay: requested amount (rounded to cents)
     :param cfg: config object
     """
+
     __metaclass__ = ABCMeta
 
     def __init__(self, parent, shopping_backend, amount_to_pay, cfg):
         self.parent = parent
         self.shopping_backend = shopping_backend
         self.amount_to_pay = amount_to_pay
-        assert isinstance(amount_to_pay,  Decimal)
+        assert isinstance(amount_to_pay, Decimal)
         self.cfg = cfg
         self.successful = None
         self.amount_paid = None
@@ -69,7 +71,13 @@ class AbstractPaymentMethod(object):
         self.receipt_order_id = shopping_backend.get_current_order()
 
     def __repr__(self):
-        return "<{0}(amount_to_pay={1}, amount_paid={2}, amount_returned={3}, successful={4}, ...)>".format(type(self).__name__, repr(self.amount_to_pay), repr(self.amount_paid), repr(self.amount_returned), self.successful)
+        return "<{0}(amount_to_pay={1}, amount_paid={2}, amount_returned={3}, successful={4}, ...)>".format(
+            type(self).__name__,
+            repr(self.amount_to_pay),
+            repr(self.amount_paid),
+            repr(self.amount_returned),
+            self.successful,
+        )
 
     @abstractmethod
     def _show_dialog(self):
@@ -125,7 +133,7 @@ class AbstractPaymentMethod(object):
         """
 
     def show_thankyou(self):
-        """ Show a thank-you messge dialog. Block until it is closed.
+        """Show a thank-you messge dialog. Block until it is closed.
 
         This is called by the GUI after execute_and_store has ended and
         the receipt has been printed.
@@ -134,7 +142,7 @@ class AbstractPaymentMethod(object):
         this extra thank-you dialog.
         """
         pass
-        #QtGui.QMessageBox.information(self.parent, "", u"Vielen Dank für deine Zahlung von {0}.\nBitte das Aufräumen nicht vergessen!".format(self.shopping_backend.format_money(self.amount_paid - self.amount_returned)))
+        # QtGui.QMessageBox.information(self.parent, "", u"Vielen Dank für deine Zahlung von {0}.\nBitte das Aufräumen nicht vergessen!".format(self.shopping_backend.format_money(self.amount_paid - self.amount_returned)))
 
     @staticmethod
     def is_enabled(cfg):
@@ -172,18 +180,26 @@ class AbstractPaymentMethod(object):
           If possible, only override _show_dialog and not this method.
         """
         self._show_dialog()
-        assert isinstance(self.amount_paid,  (Decimal,  int))
-        assert isinstance(self.amount_returned,  (Decimal,  int))
+        assert isinstance(self.amount_paid, (Decimal, int))
+        assert isinstance(self.amount_returned, (Decimal, int))
         assert self.amount_paid >= self.amount_returned
         if self.successful:
             assert self.amount_paid >= self.amount_to_pay
             if self.amount_paid > self.amount_to_pay:
-                logging.info("user paid more than requested - adding product for overpayment to current order")
+                logging.info(
+                    "user paid more than requested - adding product for overpayment to current order"
+                )
                 # Modify sale order according to overpayment
                 # rather handle these two calls in shoppingBackend??
-                prod_id = scriptHelper.getConfig().getint('payup_methods', 'overpayment_product_id')
-                self.shopping_backend.add_order_line(prod_id, self.amount_paid - self.amount_to_pay)
-                assert self.shopping_backend.get_current_total() == self.amount_paid, "adding product for overpayment failed"
+                prod_id = scriptHelper.getConfig().getint(
+                    "payup_methods", "overpayment_product_id"
+                )
+                self.shopping_backend.add_order_line(
+                    prod_id, self.amount_paid - self.amount_to_pay
+                )
+                assert (
+                    self.shopping_backend.get_current_total() == self.amount_paid
+                ), "adding product for overpayment failed"
             self.shopping_backend.pay_order(self)
         else:  # unsuccessful payment
             amount_not_paid_back = self.amount_paid - self.amount_returned
@@ -191,7 +207,9 @@ class AbstractPaymentMethod(object):
                 # completely refunded aborted payment - no receipt necessary
                 self.print_receipt = False
             else:
-                logging.info("cannot pay back everything of aborted payment. issuing receipt for the remaining rest.")
+                logging.info(
+                    "cannot pay back everything of aborted payment. issuing receipt for the remaining rest."
+                )
                 self.print_receipt = True
                 old_order = self.shopping_backend.get_current_order()
                 # create a new, separate order for the non-paid-back rest
@@ -201,9 +219,13 @@ class AbstractPaymentMethod(object):
                 self.receipt_order_id = new_order
                 self.shopping_backend.set_current_order(new_order)
                 # todo add to cfg tests at startup
-                prod_id = scriptHelper.getConfig().getint('payup_methods', 'payout_impossible_product_id')
+                prod_id = scriptHelper.getConfig().getint(
+                    "payup_methods", "payout_impossible_product_id"
+                )
                 self.shopping_backend.add_order_line(prod_id, amount_not_paid_back)
-                assert self.shopping_backend.get_current_total() == self.amount_paid, "adding product for 'impossible payout' failed"
+                assert (
+                    self.shopping_backend.get_current_total() == self.amount_paid
+                ), "adding product for 'impossible payout' failed"
                 self.shopping_backend.pay_order(self)
 
                 # switch back to old order
@@ -218,6 +240,7 @@ class AbstractClientPaymentMethod(AbstractPaymentMethod):
     abstract base for virtual payment on client account (no real money is
     being) transfered, the client account balance just becomes lower)
     """
+
     __metaclass__ = ABCMeta
 
     @staticmethod
@@ -231,9 +254,10 @@ class AbstractClientPaymentMethod(AbstractPaymentMethod):
 
 class ClientPayment(AbstractClientPaymentMethod):
     "pay on client account with PIN and client number"
+
     @staticmethod
     def is_enabled(cfg):
-        return cfg.getboolean('payup_methods', 'client')
+        return cfg.getboolean("payup_methods", "client")
 
     @staticmethod
     def get_title():
@@ -243,7 +267,9 @@ class ClientPayment(AbstractClientPaymentMethod):
         pass  # we already show our own thankyou dialog.
 
     def _show_dialog(self):
-        client_diag = SelectClientDialog(parent=self.parent, shopping_backend=self.shopping_backend)
+        client_diag = SelectClientDialog(
+            parent=self.parent, shopping_backend=self.shopping_backend
+        )
         okay = client_diag.exec_()
         self.successful = bool(okay)
         self.client = client_diag.getClient()
@@ -262,8 +288,14 @@ class ClientPayment(AbstractClientPaymentMethod):
             self.amount_paid = self.amount_to_pay
             self.successful = True
             self._end_of_payment()
-            QtGui.QMessageBox.information(self.parent, "Information", u"Vielen Dank.\n Dein neuer Kontostand beträgt " +
-                                          u"{0}. \n(Positiv ist Guthaben)".format(self.shopping_backend.format_money(-new_debt)))
+            QtGui.QMessageBox.information(
+                self.parent,
+                "Information",
+                u"Vielen Dank.\n Dein neuer Kontostand beträgt "
+                + u"{0}. \n(Positiv ist Guthaben)".format(
+                    self.shopping_backend.format_money(-new_debt)
+                ),
+            )
         except DebtLimitExceeded, e:
             self.successful = False
             self._end_of_payment()
@@ -277,16 +309,19 @@ class ManualCashPayment(AbstractPaymentMethod):
     """
     Pay in cash, but enter manually how much money was put into the cashbox.
     """
+
     @staticmethod
     def is_enabled(cfg):
-        return cfg.getboolean('payup_methods', 'cash_manual')
+        return cfg.getboolean("payup_methods", "cash_manual")
 
     @staticmethod
     def get_title():
         return "Bargeld (Vertrauenskasse)"
 
     def _show_dialog(self):
-        pay_diag = PayupManualDialog(parent=self.parent, amount_total=self.amount_to_pay)
+        pay_diag = PayupManualDialog(
+            parent=self.parent, amount_total=self.amount_to_pay
+        )
         ok = bool(pay_diag.exec_())
         if ok:
             self.amount_paid = pay_diag.getPaidAmount()
@@ -302,7 +337,7 @@ class AutoCashPayment(AbstractPaymentMethod):
 
     @staticmethod
     def is_enabled(cfg):
-        return cfg.getboolean('payup_methods', 'cash')
+        return cfg.getboolean("payup_methods", "cash")
 
     def show_thankyou(self):
         pass  # we already show our own thankyou message in the dialog.
@@ -312,8 +347,9 @@ class AutoCashPayment(AbstractPaymentMethod):
         return "Bargeld"
 
     def _show_dialog(self):
-        pay_diag = PayupCashDialog(parent=self.parent,
-                                   amount_total=self.amount_to_pay, cfg=self.cfg)
+        pay_diag = PayupCashDialog(
+            parent=self.parent, amount_total=self.amount_to_pay, cfg=self.cfg
+        )
         ok = bool(pay_diag.exec_())
         paid_amount = pay_diag.getPaidAmount()
         self.amount_paid = paid_amount  # TODO add amount_returned
@@ -331,13 +367,13 @@ class FAUCardPayment(AbstractPaymentMethod):
 
     @staticmethod
     def is_enabled(cfg):
-        return cfg.getboolean('payup_methods', 'FAUcard')
+        return cfg.getboolean("payup_methods", "FAUcard")
 
     def _show_dialog(self):
         pay_func = PayupFAUCard(parent=self.parent, amount=self.amount_to_pay)
         self.print_receipt = True
         self.successful = pay_func.executePayment()
-        self.amount_paid= pay_func.getPaidAmount()
+        self.amount_paid = pay_func.getPaidAmount()
         self.amount_returned = 0
 
         pay_func.close()

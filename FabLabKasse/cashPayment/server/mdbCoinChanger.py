@@ -56,7 +56,7 @@ class MDBCoinChangerServer(CashServer):
         logging.info(str(self.options))
         port = self.options.get("port", "/dev/ttyACM0")
         extensionConfig = {}
-        extensionConfig["leds"] = (self.options.get("leds", "").strip().lower() == "true")
+        extensionConfig["leds"] = self.options.get("leds", "").strip().lower() == "true"
         extensionConfig["hopper"] = self.options.get("hopper", "").strip()
         if extensionConfig["hopper"].isdigit():
             extensionConfig["hopper"] = int(extensionConfig["hopper"])
@@ -77,15 +77,23 @@ class MDBCoinChangerServer(CashServer):
     def pollAndUpdateStatus(self):
         status = self.dev.poll()
         for d in status["accepted"]:
-            self.event_receivedMoney(d["count"], d["denomination"], d["storage"], "received")
+            self.event_receivedMoney(
+                d["count"], d["denomination"], d["storage"], "received"
+            )
 
         for d in status["manuallyDispensed"]:
-            self.event_internallyMovedMoney(d["count"], d["denomination"], d["storage"], "manual", "dispensed after manual request (service button)")
+            self.event_internallyMovedMoney(
+                d["count"],
+                d["denomination"],
+                d["storage"],
+                "manual",
+                "dispensed after manual request (service button)",
+            )
         if not self.currentMode in ["empty", "stopping"]:
             assert status["manuallyDispensed"] == []
 
         # ATTENTION, overwritten later near the end of this function
-        self.busy = (status["busy"] or self.currentMode == "empty")
+        self.busy = status["busy"] or self.currentMode == "empty"
 
         # accept/deny coins and manual dispense
         # stop if nothing to do
@@ -94,7 +102,9 @@ class MDBCoinChangerServer(CashServer):
         if self.currentMode == "accept":
             smallestCoinValue = self.dev.getSortedCoinValues()[-1][1]
             if self.moneyReceiveAllowed - self.moneyReceivedTotal > smallestCoinValue:
-                self.dev.setLEDs(["00FF00B", "000000N"])  # payin blink green, payout off
+                self.dev.setLEDs(
+                    ["00FF00B", "000000N"]
+                )  # payin blink green, payout off
                 acceptCoins = True
             else:
                 self.dev.setLEDs(["FF0000T", "000000N"])  # payin red, payout off
@@ -103,17 +113,28 @@ class MDBCoinChangerServer(CashServer):
         elif self.currentMode == "dispense":
             if self.moneyDispensedTotal <= self.moneyDispenseAllowed:
                 if not self.busy:
-                    dispensedNow = self.dev.dispenseValue(self.moneyDispenseAllowed - self.moneyDispensedTotal)
+                    dispensedNow = self.dev.dispenseValue(
+                        self.moneyDispenseAllowed - self.moneyDispensedTotal
+                    )
                     if dispensedNow is False:  # cannot dispense anymore
                         self.currentMode = "stopping"
                     else:
-                        self.event_dispensedMoney(dispensedNow["count"], dispensedNow["denomination"], dispensedNow["storage"], "dispensed")
-                        self.dev.setLEDs(["000000N", "FF7700B"])  # payin off, payout blink orange
+                        self.event_dispensedMoney(
+                            dispensedNow["count"],
+                            dispensedNow["denomination"],
+                            dispensedNow["storage"],
+                            "dispensed",
+                        )
+                        self.dev.setLEDs(
+                            ["000000N", "FF7700B"]
+                        )  # payin off, payout blink orange
             else:
                 self.currentMode = "stopping"
 
             if self.currentMode == "stopping":  # mode just now changed to 'stopping'
-                self.dev.setLEDs(["000000N", "FFFFFFT"])  # payin off, payout white (for a certain time, then off)
+                self.dev.setLEDs(
+                    ["000000N", "FFFFFFT"]
+                )  # payin off, payout white (for a certain time, then off)
         elif self.currentMode == "empty":
             self.dev.setLEDs(["000000N", "0000FFT"])  # payin off, payout blue
             allowManualDispense = True
@@ -126,8 +147,10 @@ class MDBCoinChangerServer(CashServer):
         # cassette is removed for service purposes.
         # Therefore we filter this event in the "idle" state.
         if self.busy and self.currentMode == "idle":
-            logging.info("ignoring BUSY flag in idle mode, most probably"
-                         "caused by service action")
+            logging.info(
+                "ignoring BUSY flag in idle mode, most probably"
+                "caused by service action"
+            )
             self.busy = False
 
     def getSleepTime(self):

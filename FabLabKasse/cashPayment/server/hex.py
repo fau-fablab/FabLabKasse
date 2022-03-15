@@ -19,7 +19,7 @@ def hex(x):
         if x < 0:
             return str(x)
         else:
-            return '0x%02X' % (x)
+            return "0x%02X" % (x)
     elif type(x) == list:
         return "[" + ", ".join([hex(val) for val in x]) + "]"
     else:

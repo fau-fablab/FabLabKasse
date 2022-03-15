@@ -27,6 +27,7 @@ import re
 import unittest
 import FabLabKasse.cashPayment.server.helpers.coin_payout_helper as coin_payout_helper
 
+
 class BusError(Exception):
     pass
 
@@ -60,18 +61,18 @@ class MdbCashDevice(object):
     JUST_RESET = "just reset"
     statusEvents = {
         0b0001: ["Escrow request", IGNORE],
-                0b0010: ["Payout Busy", BUSY],
-                0b0011: ["valid coin did not get to the place where credit is given", WARNING],
-                0b0100: ["Defective Tube Sensor", WARNING],
-                0b0101: ["Double Arrival", IGNORE],
-                0b0110: ["Acceptor unplugged", ERROR],
-                0b0111: ["Tube jam", WARNING],
-                0b1000: ["ROM checksum error", ERROR],
-                0b1001: ["coin routing error", ERROR],
-                0b1010: ["Busy", BUSY],
-                0b1011: ["Was just reset", JUST_RESET],
-                0b1100: ["Coin jam", WARNING],
-                0b1101: ["Possible credited coin removal", WARNING]
+        0b0010: ["Payout Busy", BUSY],
+        0b0011: ["valid coin did not get to the place where credit is given", WARNING],
+        0b0100: ["Defective Tube Sensor", WARNING],
+        0b0101: ["Double Arrival", IGNORE],
+        0b0110: ["Acceptor unplugged", ERROR],
+        0b0111: ["Tube jam", WARNING],
+        0b1000: ["ROM checksum error", ERROR],
+        0b1001: ["coin routing error", ERROR],
+        0b1010: ["Busy", BUSY],
+        0b1011: ["Was just reset", JUST_RESET],
+        0b1100: ["Coin jam", WARNING],
+        0b1101: ["Possible credited coin removal", WARNING],
     }
 
     def __init__(self, port, addr=0b00001, extensionConfig=None):
@@ -81,14 +82,16 @@ class MdbCashDevice(object):
         :param extensionConfig["leds"]: True to enable RGB-LEDs for payin/payout via extension command
         """
         if not extensionConfig:
-            extensionConfig = {"hopper": False,  "leds": False}
+            extensionConfig = {"hopper": False, "leds": False}
         self.ser = serial.serial_for_url(port, 38400, timeout=0.2)
         assert 0 <= addr < 2 ** 5
         self.addr = addr
         self.buffer = ""
         self.extensionConfig = extensionConfig
 
-        assert self.extensionConfig.get("hopper", False) in [False] + range(1, 9999),  "invalid extensionConfig for hopper"
+        assert self.extensionConfig.get("hopper", False) in [False] + range(
+            1, 9999
+        ), "invalid extensionConfig for hopper"
 
         self.reset()
 
@@ -99,7 +102,13 @@ class MdbCashDevice(object):
         return "<MDB>"
 
     def printDebug(self, s, debugLevel):
-        logLevels = {-1: logging.ERROR,  0: logging.WARNING,  1: logging.INFO, 2: logging.DEBUG,  3: logging.DEBUG - 1}
+        logLevels = {
+            -1: logging.ERROR,
+            0: logging.WARNING,
+            1: logging.INFO,
+            2: logging.DEBUG,
+            3: logging.DEBUG - 1,
+        }
         logging.getLogger(self.__repr__()).log(logLevels[debugLevel], s)
 
     def error(self, s):
@@ -150,7 +159,10 @@ class MdbCashDevice(object):
             # we have not yet received a full response
             return None
         if not self.buffer.endswith("\n"):
-            self.warn("received more than one response - flushing buffer. ignore next warnings. buffer:" + self.buffer.__repr__())
+            self.warn(
+                "received more than one response - flushing buffer. ignore next warnings. buffer:"
+                + self.buffer.__repr__()
+            )
             self.buffer = ""
             raise InterfaceHardwareError("received more than one response")
         if self.buffer == "RT\n":
@@ -166,7 +178,10 @@ class MdbCashDevice(object):
             self.buffer = ""
             raise BusError("bus error")
         if not self.buffer.startswith("R:"):
-            self.warn("response has wrong start,  skipping data. ignore next warnings. buffer:" + self.buffer.__repr__())
+            self.warn(
+                "response has wrong start,  skipping data. ignore next warnings. buffer:"
+                + self.buffer.__repr__()
+            )
             self.buffer = ""
             raise InterfaceHardwareError("response has wrong start")
         # everything is okay, return data
@@ -202,7 +217,9 @@ class MdbCashDevice(object):
                 for _ in range(30):
                     # timeout for interface board: 1sec
                     time.sleep(0.1)
-                    resp = self.read()  # possibly raises BusError (will be caught below) or InterfaceHardwareError (will not be caught)
+                    resp = (
+                        self.read()
+                    )  # possibly raises BusError (will be caught below) or InterfaceHardwareError (will not be caught)
                     if resp is not None:
                         resp = resp.strip()
                         logging.debug("resp: " + resp.__repr__())
@@ -222,15 +239,19 @@ class MdbCashDevice(object):
         # convert response (hex-string) to a byte array
         for i in range(len(resp) / 2):
             try:
-                responseData.append(int(resp[2 * i:2 * i + 2], 16))
+                responseData.append(int(resp[2 * i : 2 * i + 2], 16))
             except ValueError:
                 raise InterfaceHardwareError("cannot parse hex response")
         if len(responseData) > 1:
             if sum(responseData[:-1]) % 256 != responseData[-1]:
-                raise InterfaceHardwareError("checksum mismatch")  # interface checks the checksum itself, so we are in big trouble!
+                raise InterfaceHardwareError(
+                    "checksum mismatch"
+                )  # interface checks the checksum itself, so we are in big trouble!
             del responseData[-1]  # discard checksum
         logging.debug("respData: " + responseData.__repr__())
-        assert responseData != [MdbCashDevice.NAK]  # NAK will already be caught in read()
+        assert responseData != [
+            MdbCashDevice.NAK
+        ]  # NAK will already be caught in read()
         return responseData
 
     def extensionCmd(self, data):
@@ -241,7 +262,9 @@ class MdbCashDevice(object):
         for _ in range(30):
             # timeout for interface board: 1sec
             time.sleep(0.1)
-            resp = self.read()  # possibly raises BusError or InterfaceHardwareError (both will not be caught)
+            resp = (
+                self.read()
+            )  # possibly raises BusError or InterfaceHardwareError (both will not be caught)
             if resp is not None:
                 resp = resp.strip()
                 logging.debug("resp: " + resp.__repr__())
@@ -265,7 +288,7 @@ class MdbCashDevice(object):
                     self.getTubeStatus()
                     self.setAcceptCoins(False, manualDispenseEnabled=False)
                     return
-            except (InterfaceHardwareError, BusError, MissingResetEventError),  e:
+            except (InterfaceHardwareError, BusError, MissingResetEventError), e:
                 logging.debug("reset failed with exception: " + e.__repr__())
                 continue
         raise Exception("Device did not respond to reset attempts for 10 seconds")
@@ -294,16 +317,18 @@ class MdbCashDevice(object):
         return self.coinValues[type]
 
     def poll(self, wasJustReset=False):
-        """ get events from device.
+        """get events from device.
         :param wasJustReset: set this to True at the first poll after the RESET command
         """
         receivedResetEvent = False
 
-        def getBits(byte, lowest, highest):  # cut out bits lowest...highest (including highest) from byte
+        def getBits(
+            byte, lowest, highest
+        ):  # cut out bits lowest...highest (including highest) from byte
             # example: getBits(0b0110,2,3)=0b11
             mask = 0
             for bit in range(lowest, highest + 1):
-                mask |= (1 << bit)
+                mask |= 1 << bit
             return (byte & mask) >> lowest
 
         data = self.cmd(MdbCashDevice.CMD_POLL)
@@ -320,7 +345,13 @@ class MdbCashDevice(object):
                 assert len(data) >= 2
                 dispensedType = getBits(data[0], 0, 3)
                 dispensedNumber = getBits(data[0], 4, 6)
-                status["manuallyDispensed"] += [{"count": dispensedNumber,  "denomination": self.getValue(dispensedType), "storage": "tube{0}".format(dispensedType)}]
+                status["manuallyDispensed"] += [
+                    {
+                        "count": dispensedNumber,
+                        "denomination": self.getValue(dispensedType),
+                        "storage": "tube{0}".format(dispensedType),
+                    }
+                ]
                 del data[0:2]
                 # remaining in tube: data[1]
             else:
@@ -336,7 +367,13 @@ class MdbCashDevice(object):
                             storage = "cashbox"
                         else:
                             storage = "tube{0}".format(acceptedType)
-                        status["accepted"] += [{"count": 1,  "denomination": self.getValue(acceptedType), "storage": storage}]
+                        status["accepted"] += [
+                            {
+                                "count": 1,
+                                "denomination": self.getValue(acceptedType),
+                                "storage": storage,
+                            }
+                        ]
                     del data[0:2]
                 else:
                     if data[0] & 1 << 5:
@@ -360,25 +397,31 @@ class MdbCashDevice(object):
                             status["busy"] = True
                             # BUG: if the payout-stack is removed and reattached, the device may send BUSY even while we are not doing payout/payin.
                             # by design, we shouldn't just ignore it because this would remove protections against accidental state mismatches between device and this code
-                            logging.debug("received event: {0}. If this happens shortly before an error, read the following explanation: If at this moment a service operator was doing something with the device (the payout unit was removed or the device menu was used), then it is a known bug which can be ignored. Otherwise it probably has happened because of a state mismatch between this driver and the device, then it is a severe problem. To be safe, CashServer will halt with an exception.".format(description))
+                            logging.debug(
+                                "received event: {0}. If this happens shortly before an error, read the following explanation: If at this moment a service operator was doing something with the device (the payout unit was removed or the device menu was used), then it is a known bug which can be ignored. Otherwise it probably has happened because of a state mismatch between this driver and the device, then it is a severe problem. To be safe, CashServer will halt with an exception.".format(
+                                    description
+                                )
+                            )
                         elif severity == MdbCashDevice.IGNORE:
                             pass
                         else:
                             raise Exception("unknown severity. ups.")
                         del data[0]
         if wasJustReset and not receivedResetEvent:
-            raise MissingResetEventError("did not receive JUST_RESET response at first poll")
+            raise MissingResetEventError(
+                "did not receive JUST_RESET response at first poll"
+            )
         return status
 
     def setAcceptCoins(self, acceptCoins, manualDispenseEnabled=False):
         # simplified: always accept either all values or no value
-        map = {True: [0xFF, 0xFF],  False: [0x00, 0x00]}
+        map = {True: [0xFF, 0xFF], False: [0x00, 0x00]}
         d = []
         d += map[acceptCoins]
         d += map[manualDispenseEnabled]
         # logging.warning("debug")
-#        d=[0xFF, 0xFF, 0xFF, 0xFF]
-        assert self.cmd(MdbCashDevice.CMD_COIN_TYPE,  d) == [MdbCashDevice.ACK]
+        #        d=[0xFF, 0xFF, 0xFF, 0xFF]
+        assert self.cmd(MdbCashDevice.CMD_COIN_TYPE, d) == [MdbCashDevice.ACK]
 
     def getTubeStatus(self):
         d = self.cmd(MdbCashDevice.CMD_TUBE_STATUS)
@@ -393,7 +436,9 @@ class MdbCashDevice(object):
             else:
                 # 0 count bytes at the end of the packet are not sent
                 status[i]["count"] = 0
-            status[i]["okay"] = not (status[i]["count"] == 0 and status[i]["full"])  # count 0 and full means "defective"
+            status[i]["okay"] = not (
+                status[i]["count"] == 0 and status[i]["full"]
+            )  # count 0 and full means "defective"
             if not status[i]["okay"]:
                 self.warn("tube {0} defective".format(i))
         return status
@@ -403,8 +448,14 @@ class MdbCashDevice(object):
     def dispenseCoin(self, type, amount):
         assert 0 <= type <= 15
         assert 0 < amount <= 15
-        self.log("dispensing {0}x value {1} (coin type {2})".format(amount, self.coinValues[type], type))
-        assert self.cmd(MdbCashDevice.CMD_DISPENSE, [type | amount << 4]) == [MdbCashDevice.ACK]
+        self.log(
+            "dispensing {0}x value {1} (coin type {2})".format(
+                amount, self.coinValues[type], type
+            )
+        )
+        assert self.cmd(MdbCashDevice.CMD_DISPENSE, [type | amount << 4]) == [
+            MdbCashDevice.ACK
+        ]
 
     def tryDispenseCoinFromExternalHopper(self):
         """dispense a coin from an external non-MDB hopper connected directly to the interface board.
@@ -413,7 +464,7 @@ class MdbCashDevice(object):
         if not self.extensionConfig.get("hopper", False):
             logging.debug("skipping external hopper,  disabled")
             return False
-        #==============================================================================
+        # ==============================================================================
         # hopper protocol, copied from kassenautomat.mdb-interface/main.c:
         #
         # Hopper Protocol:
@@ -428,10 +479,14 @@ class MdbCashDevice(object):
         #         Please reset board to exit this state, otherwise all hopper requests will be ignored and answered with this error.
         #  RD = okay, dispensed a coin
         #  RE = okay, hopper is empty, could not dispense a coin
-        #==============================================================================
+        # ==============================================================================
         self.log("trying to dispense from hopper")
         response = self.extensionCmd("H")
-        assert response == "A", "Did not receive ACK on first dispense request, but {0}. Lost reply from a previous command?".format(response)
+        assert (
+            response == "A"
+        ), "Did not receive ACK on first dispense request, but {0}. Lost reply from a previous command?".format(
+            response
+        )
         poll_tries = 20
         for _ in range(poll_tries):
             response = self.extensionCmd("H")
@@ -452,21 +507,27 @@ class MdbCashDevice(object):
             logging.info("hopper empty")
             return False
         elif response.startswith("E"):
-            errors = {"E00": "HOPPER_OKAY",
-                      "E01": "HOPPER_ERR_SENSOR1",
-                      "E02": "HOPPER_ERR_SENSOR2",
-                      "E03": "HOPPER_ERR_SHORT_COIN_IMPULSE",
-                      "E04": "HOPPER_ERR_UNEXPECTED_COIN",
-                      "E05": "HOPPER_ERR_EARLY_COIN",
-                      "E06": "HOPPER_ERR_UNEXPECTED_COIN_AT_COOLDOWN"}
+            errors = {
+                "E00": "HOPPER_OKAY",
+                "E01": "HOPPER_ERR_SENSOR1",
+                "E02": "HOPPER_ERR_SENSOR2",
+                "E03": "HOPPER_ERR_SHORT_COIN_IMPULSE",
+                "E04": "HOPPER_ERR_UNEXPECTED_COIN",
+                "E05": "HOPPER_ERR_EARLY_COIN",
+                "E06": "HOPPER_ERR_UNEXPECTED_COIN_AT_COOLDOWN",
+            }
             errorText = errors.get(response, "unknown error")
-            logging.warn("hopper is disabled because of hardware error {0} - {1}. poweroff interface board to re-enable.".format(response, errorText))
+            logging.warn(
+                "hopper is disabled because of hardware error {0} - {1}. poweroff interface board to re-enable.".format(
+                    response, errorText
+                )
+            )
             return False
         else:
             raise BusError("received unknown response {0}.".format(response))
 
     def setLEDs(self, leds):
-        """ set RGB-LED color via extension command, if it is enabled in the extensionConfig.
+        """set RGB-LED color via extension command, if it is enabled in the extensionConfig.
         :param leds: list of two LED color values.
         color value: RR GG BB in hex plus a mode of N (normal) or special modes B (blink) or T (timeout: switch off after 20 sec)
         e.g. "00FF00N" = green normal, "FF0000B" = red blink, "0000FFT" = blue with timeout (will switch off after 20sec or the next command)
@@ -477,7 +538,9 @@ class MdbCashDevice(object):
         assert len(leds) == 2
         for led in leds:
             assert re.match(r"^[0-9A-F]{6}[BTN]$", led), "invalid LED value"
-        assert self.extensionCmd("L{0}{1}".format(leds[0], leds[1])) == "OK",  "LED command failed"
+        assert (
+            self.extensionCmd("L{0}{1}".format(leds[0], leds[1])) == "OK"
+        ), "LED command failed"
 
     # =======================
     # higher level functions
@@ -493,6 +556,7 @@ class MdbCashDevice(object):
 
         def cmpItem(x, y):
             return cmp(x[1], y[1])
+
         v.sort(cmp=cmpItem, reverse=True)
         return v
 
@@ -518,7 +582,11 @@ class MdbCashDevice(object):
         hopperCoinValue = self.extensionConfig.get("hopper", False)
         if hopperCoinValue is not False and 0 < hopperCoinValue <= maximumDispense:
             if self.tryDispenseCoinFromExternalHopper():
-                return {"count": 1, "denomination": hopperCoinValue, "storage": "hopper"}
+                return {
+                    "count": 1,
+                    "denomination": hopperCoinValue,
+                    "storage": "hopper",
+                }
 
         # it did not work, now use MDB bus
         tubeStatus = self.getTubeStatus()
@@ -536,7 +604,7 @@ class MdbCashDevice(object):
             without running out of smaller coins.
             This is used so that the coin storage does not run short of often paid out coins (like 1€),
             while the small ones keep overflowing.
-            
+
             This function assumes a greedy payout strategy:
             If 1*X is to be paid out, the maximum remaining payout amount is 2*X.
             """
@@ -556,8 +624,10 @@ class MdbCashDevice(object):
                 # too few of the smaller coins
                 return False
             # only split if there are significantly more smaller coins available than large coins
-            return coinsAvailable[coinValue / splitFactor] > coinsAvailable[coinValue] + 10
-        
+            return (
+                coinsAvailable[coinValue / splitFactor] > coinsAvailable[coinValue] + 10
+            )
+
         for [coinType, coinValue] in sortedCoinValues:
             # how many coins should be dispensed? maximum 15 at once
             assert isinstance(coinValue, int)
@@ -568,7 +638,11 @@ class MdbCashDevice(object):
             if number == 0:
                 continue
             if shouldSplit(coinValue):
-                logging.debug("splitting payout: skipping 1x out of {number}x{coinValue}, will be paid as smaller coins".format(number=number,  coinValue=coinValue))
+                logging.debug(
+                    "splitting payout: skipping 1x out of {number}x{coinValue}, will be paid as smaller coins".format(
+                        number=number, coinValue=coinValue
+                    )
+                )
                 number = number - 1
                 if number == 0:
                     continue
@@ -577,5 +651,9 @@ class MdbCashDevice(object):
             self.dispenseCoin(coinType, number)
             dispensed = coinValue * number
             assert dispensed <= maximumDispense
-            return {"count": number, "denomination": coinValue, "storage": "tube{0}".format(coinType)}
+            return {
+                "count": number,
+                "denomination": coinValue,
+                "storage": "tube{0}".format(coinType),
+            }
         return False

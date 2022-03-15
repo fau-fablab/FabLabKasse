@@ -24,6 +24,7 @@ import random
 import unittest
 import FabLabKasse.libs.random_lists as random_lists
 
+
 class BanknoteStackHelper(object):
     """
     helper class for stack-based banknote payout systems.
@@ -42,6 +43,7 @@ class BanknoteStackHelper(object):
 
     :param accepted_rest: see :meth:`FabLabKasse.cashPayment.server.cashServer.CashServer.getCanPayout`
     """
+
     def __init__(self, accepted_rest):
         self.accepted_rest = accepted_rest
 
@@ -62,7 +64,9 @@ class BanknoteStackHelper(object):
         if requested_payout < min(payout_stack):
             # we only have too large notes
             return False
-        if requested_payout < self.accepted_rest and requested_payout < min(payout_stack[-2:]):
+        if requested_payout < self.accepted_rest and requested_payout < min(
+            payout_stack[-2:]
+        ):
             # for values smaller than the accepted rest, discard one note at maximum
             # this means that the last note or the one before need to be okay
             return False
@@ -86,7 +90,9 @@ class BanknoteStackHelper(object):
                 # would pay out note, if it is not too large
                 simulated_payout += payout_stack[-1]
                 # print(payout_stack[-1])
-            elif self._would_stack_from_payout(payout_stack, requested_payout - simulated_payout):
+            elif self._would_stack_from_payout(
+                payout_stack, requested_payout - simulated_payout
+            ):
                 # would stack away the note
                 pass
             else:
@@ -115,15 +121,22 @@ class BanknoteStackHelper(object):
 
         :returns: True if stacking is recommended, even if the note could be paid out
         """
-        result_with_stacking = self._simulate_simple_payout(payout_stack[:-1], requested_payout)
-        result_without_stacking = self._simulate_simple_payout(payout_stack, requested_payout)
+        result_with_stacking = self._simulate_simple_payout(
+            payout_stack[:-1], requested_payout
+        )
+        result_without_stacking = self._simulate_simple_payout(
+            payout_stack, requested_payout
+        )
         # print("simulation: stacking={},
         # payout={}".format(result_with_stacking, result_without_stacking))
 
         # better payout: see example 1
         # better storageRemaining: see example 2
-        return result_with_stacking["payout"] > result_without_stacking["payout"]  \
-            or result_with_stacking["storageRemaining"] > result_without_stacking["storageRemaining"]
+        return (
+            result_with_stacking["payout"] > result_without_stacking["payout"]
+            or result_with_stacking["storageRemaining"]
+            > result_without_stacking["storageRemaining"]
+        )
 
     def get_next_payout_action(self, payout_stack, requested_payout):
         """which action should be taken next?
@@ -131,7 +144,9 @@ class BanknoteStackHelper(object):
         """
         if not payout_stack:
             return "stop"
-        if self._forced_stacking_is_helpful(payout_stack, requested_payout) and self._would_stack_from_payout(payout_stack, requested_payout):
+        if self._forced_stacking_is_helpful(
+            payout_stack, requested_payout
+        ) and self._would_stack_from_payout(payout_stack, requested_payout):
             return "stack"
         if payout_stack[-1] <= requested_payout:
             # would pay out note, if it is not too large
@@ -143,7 +158,7 @@ class BanknoteStackHelper(object):
                 return "stop"
 
     def can_payout(self, payout_stack):
-        """ implementation for CashServer.getCanPayout()"""
+        """implementation for CashServer.getCanPayout()"""
         if not payout_stack:
             # no notes available at all
             return self.accepted_rest
@@ -163,8 +178,12 @@ class BanknoteStackHelper(object):
         requested_value = self.accepted_rest
         last_successful_request = 0
         while True:
-            could_payout_sum = self._simulate_simple_payout(payout_stack, requested_value)["payout"]
-            assert could_payout_sum <= requested_value  # otherwise would have paid ot more than requested!
+            could_payout_sum = self._simulate_simple_payout(
+                payout_stack, requested_value
+            )["payout"]
+            assert (
+                could_payout_sum <= requested_value
+            )  # otherwise would have paid ot more than requested!
             if could_payout_sum >= requested_value - self.accepted_rest:
                 # enough can be paid
                 last_successful_request = requested_value
@@ -182,7 +201,9 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
     """unittest methods for BanknoteStackHelper"""
 
     @classmethod
-    def get_random_payout_parameters(cls, random_generator, payout_stack=None, requested_payout=None):
+    def get_random_payout_parameters(
+        cls, random_generator, payout_stack=None, requested_payout=None
+    ):
         """determine parameters for payout_stack and requested_payout
 
         :param random.Random random_generator: RNG instance for calculating
@@ -191,7 +212,8 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
             payout_stack = random_lists.random_choice_list(
                 random_generator,
                 possible_elements=[500, 1000, 2000, 5000],
-                number_of_elements=random.randint(1, 8))
+                number_of_elements=random.randint(1, 8),
+            )
         if requested_payout is None:
             requested_payout = random.randint(1, sum(payout_stack))
         assert 0 < requested_payout <= sum(payout_stack)
@@ -204,7 +226,9 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
             pseudorandom test parameters
         :rtype: None
         :raise: AssertionError if the test failed"""
-        [payout_stack, requested_payout] = self.get_random_payout_parameters(random_generator)
+        [payout_stack, requested_payout] = self.get_random_payout_parameters(
+            random_generator
+        )
 
         origpayout_stack = copy.deepcopy(payout_stack)
 
@@ -217,7 +241,9 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
                 # would pay out note, if it is not too large
                 simulated_payout += payout_stack[-1]
                 # print(payout_stack[-1])
-            elif self._would_stack_from_payout(payout_stack, requested_payout - simulated_payout):
+            elif self._would_stack_from_payout(
+                payout_stack, requested_payout - simulated_payout
+            ):
                 # would stack away the note
                 # print("stack anyway.")
                 pass
@@ -225,7 +251,8 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
                 break
             payout_stack.pop()
         payout_without_forced_stacking = self._simulate_simple_payout(
-            origpayout_stack, requested_payout)
+            origpayout_stack, requested_payout
+        )
         assert simulated_payout >= payout_without_forced_stacking["payout"]
         assert sum(payout_stack) >= payout_without_forced_stacking["storageRemaining"]
 
@@ -236,7 +263,9 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
             pseudorandom test parameters
         :rtype: None
         :raise: AssertionError if the test failed"""
-        [payout_stack, requested_payout] = self.get_random_payout_parameters(random_generator)
+        [payout_stack, requested_payout] = self.get_random_payout_parameters(
+            random_generator
+        )
         payout_stack_original = copy.deepcopy(payout_stack)  # for debugging
         payout_stack_original = payout_stack_original  # suppress unused-warning
 
@@ -244,7 +273,8 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
         sum_paid_out = 0
         while True:
             action = self.get_next_payout_action(
-                payout_stack, requested_payout - sum_paid_out)
+                payout_stack, requested_payout - sum_paid_out
+            )
             if action == "stop":
                 break
             assert len(payout_stack) > 0
@@ -258,12 +288,20 @@ class BanknoteStackHelperTester(BanknoteStackHelper):
         elif sum_paid_out < max(requested_payout - self.accepted_rest, 0):
             # if not enough was paid out, the payout stack must not contain
             # anything useful
-            assert len(payout_stack) == 0 or \
-                requested_payout - sum_paid_out < min(payout_stack)
-            if requested_payout <  can_payout:
-                assert False, "the request {0} was not greater than canPayout {1}, it must be satisfied at the given max. accepted rest of {2}, but only {3} was paid from stack {4}".format(requested_payout, can_payout, self.accepted_rest, sum_paid_out, payout_stack_original)
+            assert len(payout_stack) == 0 or requested_payout - sum_paid_out < min(
+                payout_stack
+            )
+            if requested_payout < can_payout:
+                assert (
+                    False
+                ), "the request {0} was not greater than canPayout {1}, it must be satisfied at the given max. accepted rest of {2}, but only {3} was paid from stack {4}".format(
+                    requested_payout,
+                    can_payout,
+                    self.accepted_rest,
+                    sum_paid_out,
+                    payout_stack_original,
+                )
         assert sum_paid_out <= requested_payout  # did not pay out too much
-
 
 
 class BanknoteStackHelperTest(unittest.TestCase):
@@ -274,17 +312,16 @@ class BanknoteStackHelperTest(unittest.TestCase):
         # stack is 2x5€ 2x50€, accepted rest 34,32€
         # -> a request 44,32€ < x < 50€ cannot be satisfied,
         test = BanknoteStackHelper(3432)
-        self.assertLessEqual(test.can_payout([500, 500, 5000, 5000]), 500+500+3432)
+        self.assertLessEqual(test.can_payout([500, 500, 5000, 5000]), 500 + 500 + 3432)
         test = BanknoteStackHelper(2167)
-        self.assertLessEqual(test.can_payout([2000, 5000]), 2000+2167)
-
+        self.assertLessEqual(test.can_payout([2000, 5000]), 2000 + 2167)
 
     def test_with_several_random_values(self):
         """unittest: calls several integrated functions of banknote stack helper as test with several random numbers"""
         seed = random.random()
         # for repeating a fixed test, override a seed value here:
         print("banknote_stack_helper random test using seed=" + repr(seed))
-        random_generator = random.Random((seed,42))
+        random_generator = random.Random((seed, 42))
         test = BanknoteStackHelperTester(2500)
         test.can_payout([5000, 10000, 10000, 2000])
 
@@ -302,7 +339,10 @@ class BanknoteStackHelperTest(unittest.TestCase):
         self.assertTrue(test1.can_payout([1001]) <= 999)
 
         # test random values and, especially hard, accepted_rest=999
-        for accepted_rest in random_lists.random_integer_list(random_generator, (1, 123456), 42) + [999] * 10:
+        for accepted_rest in (
+            random_lists.random_integer_list(random_generator, (1, 123456), 42)
+            + [999] * 10
+        ):
             test = BanknoteStackHelperTester(accepted_rest)
             for _ in xrange(2345):
                 test.unittest_payout(random_generator)

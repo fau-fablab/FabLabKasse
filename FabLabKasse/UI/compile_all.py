@@ -25,14 +25,15 @@ import subprocess
 
 def main():
     for file in os.listdir(os.path.dirname(__file__)):
-        filename = os.path.dirname(__file__) + '/' + file
-        prefix = os.path.dirname(__file__) + '/uic_generated/'
-        if fnmatch.fnmatch(filename, '*.ui'):
+        filename = os.path.dirname(__file__) + "/" + file
+        prefix = os.path.dirname(__file__) + "/uic_generated/"
+        if fnmatch.fnmatch(filename, "*.ui"):
             print file
-            uic.compileUi(file, open(prefix + file[:-2] + 'py', "w"), execute=True)
-        if fnmatch.fnmatch(filename, '*.qrc'):
+            uic.compileUi(file, open(prefix + file[:-2] + "py", "w"), execute=True)
+        if fnmatch.fnmatch(filename, "*.qrc"):
             print file
-            subprocess.call(["pyrcc4", filename, "-o", prefix + file[:-4] + '_rc.py'])
+            subprocess.call(["pyrcc4", filename, "-o", prefix + file[:-4] + "_rc.py"])
+
 
 if __name__ == "__main__":
     main()

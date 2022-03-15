@@ -36,10 +36,18 @@ def setupLogging(logfile):
     """configures the logging and logrotation"""
     my_logger = logging.getLogger()
     # rotate every day at 00:00, delete after 14 days
-    handler = logging.handlers.TimedRotatingFileHandler(logfile, when='midnight', interval=1, backupCount=14)
+    handler = logging.handlers.TimedRotatingFileHandler(
+        logfile, when="midnight", interval=1, backupCount=14
+    )
     # handler = logging.FileHandler('example.logfile')
-    handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%Y-%m-%d %H:%M:%S'))
-    my_logger.setLevel(0)  # change this to 0 to log everything, even DEBUG-1, change to DEBUG to limit the amount of useless messages
+    handler.setFormatter(
+        logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s", "%Y-%m-%d %H:%M:%S"
+        )
+    )
+    my_logger.setLevel(
+        0
+    )  # change this to 0 to log everything, even DEBUG-1, change to DEBUG to limit the amount of useless messages
     my_logger.addHandler(handler)
     consolehandler = logging.StreamHandler()  # log to stderr
     consolehandler.setLevel(0)  # log everything, even DEBUG-1
@@ -51,6 +59,7 @@ def setupSigInt():
     def sigint(num, frame):
         logging.error("killed")
         sys.exit(1)
+
     signal.signal(signal.SIGINT, sigint)
 
 
@@ -63,23 +72,32 @@ def setupGraphicalExceptHook():
 
     def myNewExceptionHook(exctype, value, tb):
         import datetime
+
         # logging.exception()
         try:
             cfg = getConfig()
             try:
-                email = cfg.get('general', 'support_mail')
+                email = cfg.get("general", "support_mail")
             except ConfigParserError:
-                logging.warning("could not read mail address from config in graphical except-hook.")
+                logging.warning(
+                    "could not read mail address from config in graphical except-hook."
+                )
                 email = "den Verantwortlichen"
             msgbox = QtGui.QMessageBox()
             txt = u"Entschuldigung, das Programm wird wegen eines Fehlers beendet."
             infotxt = u"""Wenn dir Rückgeld entgangen ist, melde dich bei {0} und gebe neben einer
-             Fehlerbeschreibung folgende Uhrzeit an:{1}.""".format(email, str(datetime.datetime.today()))
-            detailtxt = u"{0}\n{1}".format(str(datetime.datetime.today()), "".join(
-                traceback.format_exception(exctype, value, tb, limit=10)))
+             Fehlerbeschreibung folgende Uhrzeit an:{1}.""".format(
+                email, str(datetime.datetime.today())
+            )
+            detailtxt = u"{0}\n{1}".format(
+                str(datetime.datetime.today()),
+                "".join(traceback.format_exception(exctype, value, tb, limit=10)),
+            )
             logging.fatal(txt)
-            logging.fatal(u"Full exception details (stack limit 50):\n" + u"".join(
-                traceback.format_exception(exctype, value, tb, limit=50)))
+            logging.fatal(
+                u"Full exception details (stack limit 50):\n"
+                + u"".join(traceback.format_exception(exctype, value, tb, limit=50))
+            )
             msgbox.setText(txt)
             msgbox.setInformativeText(infotxt)
             msgbox.setDetailedText(detailtxt)
@@ -89,24 +107,29 @@ def setupGraphicalExceptHook():
             try:
                 logging.error("graphical excepthook failed: " + repr(e))
             except Exception:
-                logging.error("graphical excepthook failed hard,  cannot print exception (IOCHARSET problems?)")
+                logging.error(
+                    "graphical excepthook failed hard,  cannot print exception (IOCHARSET problems?)"
+                )
         sys.excepthook_old(exctype, value, tb)
         sys.exit(1)
+
     sys.excepthook = myNewExceptionHook
 
 
 def getConfig(path="./"):
     cfg = ConfigParser()
     try:
-        cfg.readfp(codecs.open(path + 'config.ini', 'r', 'utf8'))
+        cfg.readfp(codecs.open(path + "config.ini", "r", "utf8"))
     except IOError:
-        raise Exception("Cannot open configuration file. If you want to try the program and do not have a config, start ./run.py --example or just copy config.ini.example to config.ini")
+        raise Exception(
+            "Cannot open configuration file. If you want to try the program and do not have a config, start ./run.py --example or just copy config.ini.example to config.ini"
+        )
     return cfg
 
 
 def getDB():
     cfg = getConfig()
-    return sqlite3.connect(cfg.get('general', 'db_file'))
+    return sqlite3.connect(cfg.get("general", "db_file"))
 
 
 class FileLock(object):
@@ -122,4 +145,6 @@ class FileLock(object):
         try:
             portalocker.lock(self.file, portalocker.LOCK_EX | portalocker.LOCK_NB)
         except IOError:
-            raise Exception("lock " + name + " already taken, is another process already running?")
+            raise Exception(
+                "lock " + name + " already taken, is another process already running?"
+            )

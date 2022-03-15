@@ -21,11 +21,10 @@ from FabLabKasse.libs.flickcharm import FlickCharm
 
 
 class CheckCartAfterImportDialog(QtGui.QDialog, Ui_AppWarenkorb):
-    """dialog for showing the imported cart during app-import
-    """
+    """dialog for showing the imported cart during app-import"""
 
     def __init__(self, parent, shoppingBackend):
-        """ constructor
+        """constructor
 
         :param parent: parent dialog
         :param shoppingBackend: instance of a shoppingBackend
@@ -35,7 +34,9 @@ class CheckCartAfterImportDialog(QtGui.QDialog, Ui_AppWarenkorb):
         self.setupUi(self)
         # maximize window - WORKAROUND because showMaximized() doesn't work
         # when a default geometry is set in the Qt designer file
-        QtCore.QTimer.singleShot(0, lambda: self.setWindowState(QtCore.Qt.WindowMaximized))
+        QtCore.QTimer.singleShot(
+            0, lambda: self.setWindowState(QtCore.Qt.WindowMaximized)
+        )
         self.shoppingBackend = shoppingBackend
         self.charm = FlickCharm()
         self.charm.activateOn(self.table_order, disableScrollbars=False)
@@ -44,5 +45,7 @@ class CheckCartAfterImportDialog(QtGui.QDialog, Ui_AppWarenkorb):
         """update table with current order lines"""
         self.table_order.update_cart(self.shoppingBackend)
 
-        sumText = self.shoppingBackend.format_money(self.shoppingBackend.get_current_total())
+        sumText = self.shoppingBackend.format_money(
+            self.shoppingBackend.get_current_total()
+        )
         self.sumText.setText(u"Gesamtsumme {0}".format(sumText))

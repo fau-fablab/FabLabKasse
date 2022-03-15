@@ -30,9 +30,8 @@ from cashServer import CashServer
 
 
 class NV11CashServer(CashServer):
-
     def initializeDevice(self):
-        self.acceptedRest = 999   # how much money may be not paid out at payout? (default: try hard to get 10€ bills, but if a 5€ bill is too far down the stack, just stop paying out)
+        self.acceptedRest = 999  # how much money may be not paid out at payout? (default: try hard to get 10€ bills, but if a 5€ bill is too far down the stack, just stop paying out)
         self.banknoteStackHelper = BanknoteStackHelper(accepted_rest=self.acceptedRest)
         self.payoutActive = False
         self.stackingFromPayoutActive = False
@@ -47,19 +46,19 @@ class NV11CashServer(CashServer):
         # Memory corruption bug when sending payout command while another payout is still active,
         # the device then doesn't send "payout completed 10€", but "payout completed 0€"!
         # this can be reproduced by:
-            # Fill the device with 20-30 notes and then send this command
-            # print self.dev.getPayoutValues()
-            # while True:
-            #    self.dev.command([0x42], allowSoftFail=True)
-            #    self.dev.poll()
+        # Fill the device with 20-30 notes and then send this command
+        # print self.dev.getPayoutValues()
+        # while True:
+        #    self.dev.command([0x42], allowSoftFail=True)
+        #    self.dev.poll()
 
-            # example trouble data:
-            # preData=[0x01,  0xE8,  0x03,  00,  00]
-            # d=[0x7F , 0x80 , 0x15 , 0xF0 , 0xD2 , 0x01 , 0x00 , 0x00 , 0x00 , 0x00 , 0x45 , 0x55 , 0x52 , 0xDA , 0x01 , 0x00 , 0x00 , 0x00 , 0x00 , 0x45 , 0x55 , 0x52 , 0xB5 , 0xE8 , 0xB2 , 0xB8]
-            # print ESSPDevice.Response(d[3:-2])
-            # print hex(ESSPDevice.Helper.crc(d[1:-2]))
-            # import sys
-            # sys.exit(0)
+        # example trouble data:
+        # preData=[0x01,  0xE8,  0x03,  00,  00]
+        # d=[0x7F , 0x80 , 0x15 , 0xF0 , 0xD2 , 0x01 , 0x00 , 0x00 , 0x00 , 0x00 , 0x45 , 0x55 , 0x52 , 0xDA , 0x01 , 0x00 , 0x00 , 0x00 , 0x00 , 0x45 , 0x55 , 0x52 , 0xB5 , 0xE8 , 0xB2 , 0xB8]
+        # print ESSPDevice.Response(d[3:-2])
+        # print hex(ESSPDevice.Helper.crc(d[1:-2]))
+        # import sys
+        # sys.exit(0)
 
         self.dev.setEnabledChannels()
         self.dev.log("startup,  checking if idle")
@@ -67,14 +66,25 @@ class NV11CashServer(CashServer):
         while startupCounter > 0:
             startupCounter -= 1
             val = self.dev.poll()
-            if val != {'payoutActive': False, 'received': [], 'smartEmptyFinished': False, 'stackedFromPayout': False, 'dispensed': [], 'finished': True, 'acceptActive': False}:
+            if val != {
+                "payoutActive": False,
+                "received": [],
+                "smartEmptyFinished": False,
+                "stackedFromPayout": False,
+                "dispensed": [],
+                "finished": True,
+                "acceptActive": False,
+            }:
                 self.dev.warn("not idle at startup poll: " + str(val))
                 startupCounter = 10
             time.sleep(0.3)
         self.dev.log("startup finished")
 
     def getCanPayout(self):
-        return [self.banknoteStackHelper.can_payout(self.dev.getPayoutValues()), self.acceptedRest]
+        return [
+            self.banknoteStackHelper.can_payout(self.dev.getPayoutValues()),
+            self.acceptedRest,
+        ]
 
     def getCanAccept(self):
         return True
@@ -93,62 +103,106 @@ class NV11CashServer(CashServer):
             assert not self.moneyDispenseAllowed > 0
             assert not self.moneyReceiveAllowed > 0
 
-        self.dev.setEnabledChannels(upTo=self.moneyReceiveAllowed - self.moneyReceivedTotal)
+        self.dev.setEnabledChannels(
+            upTo=self.moneyReceiveAllowed - self.moneyReceivedTotal
+        )
 
         # poll device and react to response
         val = self.dev.poll()
 
-        for receivedNote in val['received']:
+        for receivedNote in val["received"]:
             self.event_receivedMoney(1, receivedNote, "main", "received")
-        for dispensedNote in val['dispensed']:
+        for dispensedNote in val["dispensed"]:
             self.event_dispensedMoney(1, dispensedNote, "main", "dispense")
 
         # do various safety checks, update self.*Active variables that mirror the device's state
         # the code is extremely careful because we can't trust the device firmware 100%
-        if val['payoutActive']:
+        if val["payoutActive"]:
             assert self.currentMode == "dispense"
             assert self.payoutActive
-        if val['received'] != []:
-            assert self.currentMode == "accept" or self.currentMode.startswith("stopping")
-        if val['dispensed'] != []:
+        if val["received"] != []:
+            assert self.currentMode == "accept" or self.currentMode.startswith(
+                "stopping"
+            )
+        if val["dispensed"] != []:
             assert self.currentMode == "dispense"
             assert self.payoutActive
             self.payoutActive = False
-        if val['stackedFromPayout']:
+        if val["stackedFromPayout"]:
             assert self.currentMode == "dispense"
             assert self.stackingFromPayoutActive
             self.stackingFromPayoutActive = False
-        if val['smartEmptyFinished']:
+        if val["smartEmptyFinished"]:
             assert self.emptyingActive
-            assert self.currentMode == "empty" or self.currentMode.startswith("stopping")
+            assert self.currentMode == "empty" or self.currentMode.startswith(
+                "stopping"
+            )
             self.emptyingActive = False
 
-        payInOutBusy = (not val['finished']) or self.payoutActive or self.stackingFromPayoutActive or val['received'] != [] or val['dispensed'] != []
+        payInOutBusy = (
+            (not val["finished"])
+            or self.payoutActive
+            or self.stackingFromPayoutActive
+            or val["received"] != []
+            or val["dispensed"] != []
+        )
         self.busy = payInOutBusy or self.emptyingActive
-        assert not (payInOutBusy and self.emptyingActive), "it is impossible to be emptying while payin/out is active"
+        assert not (
+            payInOutBusy and self.emptyingActive
+        ), "it is impossible to be emptying while payin/out is active"
 
         # pay out the next banknote, if ...
-        if (self.currentMode == "dispense"  # we are currently paying out,
-                and not self.payoutActive and val['dispensed'] == []  # previous payout operations have finished
-                and not self.stackingFromPayoutActive):  # and the device isn't busy stacking away a banknote
+        if (
+            self.currentMode == "dispense"  # we are currently paying out,
+            and not self.payoutActive
+            and val["dispensed"] == []  # previous payout operations have finished
+            and not self.stackingFromPayoutActive
+        ):  # and the device isn't busy stacking away a banknote
 
-            action = self.banknoteStackHelper.get_next_payout_action(self.dev.getPayoutValues(),  self.moneyDispenseAllowed - self.moneyDispensedTotal)
+            action = self.banknoteStackHelper.get_next_payout_action(
+                self.dev.getPayoutValues(),
+                self.moneyDispenseAllowed - self.moneyDispensedTotal,
+            )
             if action == "payout":
-                assert self.dev.tryPayout(self.moneyDispenseAllowed - self.moneyDispensedTotal) is True
+                assert (
+                    self.dev.tryPayout(
+                        self.moneyDispenseAllowed - self.moneyDispensedTotal
+                    )
+                    is True
+                )
                 self.payoutActive = True
             elif action == "stack":
                 self.dev.stackFromPayout()
                 self.stackingFromPayoutActive = True
             elif action == "stop":
-                logging.info("cannot payout any more. paid out: {0}, requested: {1}\n".format(self.moneyDispensedTotal, self.moneyDispenseAllowed))
+                logging.info(
+                    "cannot payout any more. paid out: {0}, requested: {1}\n".format(
+                        self.moneyDispensedTotal, self.moneyDispenseAllowed
+                    )
+                )
                 self.currentMode = "stopping"
             else:
                 raise AssertionError("impossible return value")
-        logging.debug(str([self.currentMode, val, self.payoutActive, self.stackingFromPayoutActive, self.moneyReceiveAllowed, self.moneyReceivedTotal, self.moneyDispenseAllowed, self.moneyDispensedTotal]) + "\n")
+        logging.debug(
+            str(
+                [
+                    self.currentMode,
+                    val,
+                    self.payoutActive,
+                    self.stackingFromPayoutActive,
+                    self.moneyReceiveAllowed,
+                    self.moneyReceivedTotal,
+                    self.moneyDispenseAllowed,
+                    self.moneyDispensedTotal,
+                ]
+            )
+            + "\n"
+        )
 
     def getSleepTime(self):
         return 0.5  # don't make this lower.
-                    # polling too fast is bad, it causes strange responses!
+        # polling too fast is bad, it causes strange responses!
+
 
 if __name__ == "__main__":
     e = NV11CashServer()

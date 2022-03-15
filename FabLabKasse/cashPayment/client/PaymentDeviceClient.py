@@ -53,8 +53,16 @@ class PaymentDeviceClient(object):
         self._reset()
         self.waitingForResponse = False
         if (sys.version_info.major, sys.version_info.minor) != (2, 7):
-            raise Exception("not running in python2.7 - please update PaymentDeviceClient to use the right python version for the payment servers")
-        args = ["/usr/bin/env", "python2.7", "-m", "FabLabKasse.cashPayment.server." + cmd, base64.b64encode(pickle.dumps(options))]
+            raise Exception(
+                "not running in python2.7 - please update PaymentDeviceClient to use the right python version for the payment servers"
+            )
+        args = [
+            "/usr/bin/env",
+            "python2.7",
+            "-m",
+            "FabLabKasse.cashPayment.server." + cmd,
+            base64.b64encode(pickle.dumps(options)),
+        ]
         logging.info("starting cashPayment server: PYTHONPATH=.. " + " ".join(args))
         self.process = nonblockingProcess(args, {"PYTHONPATH": ".."})
         self.commandline = cmd
@@ -62,7 +70,13 @@ class PaymentDeviceClient(object):
         self.lastCommand = ""
 
     def __repr__(self):
-        return "<PaymentDeviceClient(type=" + self.commandline + ", name=" + self.options["name"] + ")>"
+        return (
+            "<PaymentDeviceClient(type="
+            + self.commandline
+            + ", name="
+            + self.options["name"]
+            + ")>"
+        )
 
     def _reset(self):
         """
@@ -92,7 +106,11 @@ class PaymentDeviceClient(object):
                 following calls will be undefined
         """
         if not self.process.isAlive():
-            raise Exception("device {0} server crashed -- check cash-{1}.log. If it crashed before writing the logfile, try launching the server yourself with the commandline from gui.log ".format(self, self.options["name"]))
+            raise Exception(
+                "device {0} server crashed -- check cash-{1}.log. If it crashed before writing the logfile, try launching the server yourself with the commandline from gui.log ".format(
+                    self, self.options["name"]
+                )
+            )
         if not self.waitingForResponse:
             if self.status == "stop":
                 if self.stopped:
@@ -107,7 +125,10 @@ class PaymentDeviceClient(object):
                 self.lastSentAccept = self.requestedAccept
             elif self.status == "acceptWait":
                 # alternate between polling and (if necessary) updating the maximum accepted value
-                if self.lastSentAccept != self.requestedAccept and self.lastCommand.startswith("POLL"):
+                if (
+                    self.lastSentAccept != self.requestedAccept
+                    and self.lastCommand.startswith("POLL")
+                ):
                     cmd = "UPDATE-ACCEPT {0}".format(self.requestedAccept)
                     self.lastSentAccept = self.requestedAccept
                 else:
@@ -136,11 +157,16 @@ class PaymentDeviceClient(object):
             self.process.write(cmd + "\n")
             self.lastCommand = cmd
             self.waitingForResponse = True
-            self.lastResponseTime = monotonic_time.monotonic()  # get monotonic time. until python 3.3 we have to use this extra module because time.monotonic() is not available in older versions.
+            self.lastResponseTime = (
+                monotonic_time.monotonic()
+            )  # get monotonic time. until python 3.3 we have to use this extra module because time.monotonic() is not available in older versions.
 
         response = self.process.readline()
-        if response is None and self.waitingForResponse \
-                and monotonic_time.monotonic() - self.lastResponseTime > 50:
+        if (
+            response is None
+            and self.waitingForResponse
+            and monotonic_time.monotonic() - self.lastResponseTime > 50
+        ):
             raise Exception("device {0} server timeout (>50sec)".format(self))
         if response is not None:
             print "got response: '" + response + "'"
@@ -149,8 +175,10 @@ class PaymentDeviceClient(object):
 
             # strip prefix
             prefix = "COMMAND ANSWER:"
-            assert response.startswith(prefix), "response with wrong prefix: " + response
-            response = response[len(prefix):]
+            assert response.startswith(prefix), (
+                "response with wrong prefix: " + response
+            )
+            response = response[len(prefix) :]
             cmd = self.lastCommand
             # parse response
             if cmd.startswith("DISPENSE"):
@@ -230,7 +258,9 @@ class PaymentDeviceClient(object):
         """
         if self.status == "accept":
             # if the last sent command is not ACCEPT, we have not sent the ACCEPT command yet. this means that poll wasn't called yet.
-            assert self.lastCommand.startswith("ACCEPT"), "you must call poll() after accept() first before calling stopAccepting() !"
+            assert self.lastCommand.startswith(
+                "ACCEPT"
+            ), "you must call poll() after accept() first before calling stopAccepting() !"
 
             # the answer to ACCEPT was not yet received
             # instead of messing up everything, just wait for the answer and then send stop commands
@@ -293,7 +323,9 @@ class PaymentDeviceClient(object):
             # request is already sent, but answer not yet received
             return None
         if self.status != "idle":
-            raise Exception("possibleDispense cannot be used while dispensing or accepting")
+            raise Exception(
+                "possibleDispense cannot be used while dispensing or accepting"
+            )
         self.testDispenseAnswer = None
         self.status = "testDispense"
         return None
@@ -323,7 +355,9 @@ class PaymentDeviceClient(object):
         if self.status == "canAccept":
             return None
         if self.status != "idle":
-            raise Exception("canAccept cannot be used for the first time while dispensing or accepting")
+            raise Exception(
+                "canAccept cannot be used for the first time while dispensing or accepting"
+            )
         self.status = "canAccept"
 
     def empty(self):
@@ -377,7 +411,8 @@ class PaymentDeviceClient(object):
         self._reset()
         return r
 
-#==============================================================================
+
+# ==============================================================================
 # old demo code that is currently not working because
 # if __name__ == "__main__":
 #     if "--nv11-demo" in sys.argv:

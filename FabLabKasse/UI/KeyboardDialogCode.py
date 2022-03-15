@@ -40,7 +40,7 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
         else:
             return None
 
-    def __init__(self, parent, question=u'What: '):
+    def __init__(self, parent, question=u"What: "):
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
 
@@ -50,8 +50,16 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
         self.setWindowTitle(question)
 
         # [a-z0-9] + umlaute + sz
-        for c in list('abcdefghijklmnopqrstuvwxyz0123456789') + ['ue', 'ae', 'oe', 'sz', 'komma',
-                                                                 'dot', 'minus', 'space']:
+        for c in list("abcdefghijklmnopqrstuvwxyz0123456789") + [
+            "ue",
+            "ae",
+            "oe",
+            "sz",
+            "komma",
+            "dot",
+            "minus",
+            "space",
+        ]:
             btn = getattr(self, "pushButton_" + c)
             btn.clicked.connect(self.charKey)
 
@@ -70,7 +78,7 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
         oldtext = self.lineEdit.text()
         c = self.sender().text()
         if not c:
-            c = ' '
+            c = " "
         self.lineEdit.setText(oldtext[:pos] + c + oldtext[pos:])
 
         self.lineEdit.setCursorPosition(pos + 1)
@@ -81,13 +89,13 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
     def backspace(self):
         oldtext = self.lineEdit.text()
         pos = self.lineEdit.cursorPosition()
-        self.lineEdit.setText(oldtext[:pos - 1] + oldtext[pos:])
+        self.lineEdit.setText(oldtext[: pos - 1] + oldtext[pos:])
         self.lineEdit.setCursorPosition(pos - 1)
 
     def shift(self):
         self.caps = not self.caps
 
-        for c in list('abcdefghijklmnopqrstuvwxyz0123456789') + ['ue', 'ae', 'oe']:
+        for c in list("abcdefghijklmnopqrstuvwxyz0123456789") + ["ue", "ae", "oe"]:
             btn = getattr(self, "pushButton_" + c)
             if self.caps:
                 btn.setText(unicode(btn.text()).upper())

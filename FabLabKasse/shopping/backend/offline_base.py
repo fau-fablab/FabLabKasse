@@ -6,7 +6,14 @@ use case:
 """
 
 from abc import ABCMeta, abstractmethod  # abstract base class support
-from abstract import AbstractShoppingBackend, AbstractClient, Category, OrderLine, ProductNotFound, PrinterError
+from abstract import (
+    AbstractShoppingBackend,
+    AbstractClient,
+    Category,
+    OrderLine,
+    ProductNotFound,
+    PrinterError,
+)
 from decimal import Decimal
 from ... import scriptHelper
 from natsort import natsorted
@@ -26,11 +33,19 @@ class ProductBasedOrderLine(OrderLine):
         if comment:
             comment = u": " + comment
         self.product = product
-        self.price_per_unit = product.price  # duplicate because otherwise we get crashes from OrderLine.__init__ accessing qty.setter
-        OrderLine.__init__(self, order_line_id=None, qty=0, unit=product.unit,
-                           name=(product.name + comment), price_per_unit=product.price,
-                           price_subtotal=0,
-                           delete_if_zero_qty=(comment == ""))
+        self.price_per_unit = (
+            product.price
+        )  # duplicate because otherwise we get crashes from OrderLine.__init__ accessing qty.setter
+        OrderLine.__init__(
+            self,
+            order_line_id=None,
+            qty=0,
+            unit=product.unit,
+            name=(product.name + comment),
+            price_per_unit=product.price,
+            price_subtotal=0,
+            delete_if_zero_qty=(comment == ""),
+        )
         self.set_quantity_rounded(qty)
 
     @property
@@ -42,7 +57,9 @@ class ProductBasedOrderLine(OrderLine):
     def qty(self, value):
         assert isinstance(value, (Decimal, int))
         value = Decimal(value)
-        assert (self.product.qty_rounding == 0) or (value % self.product.qty_rounding == 0), "quantity must be a multiple of qty_rounding!"
+        assert (self.product.qty_rounding == 0) or (
+            value % self.product.qty_rounding == 0
+        ), "quantity must be a multiple of qty_rounding!"
         self._qty = value
         self.price_subtotal = self.price_per_unit * self._qty
 
@@ -61,7 +78,13 @@ class OfflineCategoryTree(object):
 
     """local storage for a tree of categories and products"""
 
-    def __init__(self, root_category_id, categories=None, products=None, generate_root_category=True):
+    def __init__(
+        self,
+        root_category_id,
+        categories=None,
+        products=None,
+        generate_root_category=True,
+    ):
         if categories is None:
             categories = []
         if products is None:
@@ -70,7 +93,9 @@ class OfflineCategoryTree(object):
         self.categories = {}
         self.products = {}
         if generate_root_category:
-            categories += [Category(categ_id=root_category_id, name="root", parent_id=None)]
+            categories += [
+                Category(categ_id=root_category_id, name="root", parent_id=None)
+            ]
 
         for i in categories:
             self.add_category(i)
@@ -79,14 +104,20 @@ class OfflineCategoryTree(object):
 
         assert self.root_category_id in self.categories, "missing root category"
         cfg = scriptHelper.getConfig()
-        assert cfg.getint('payup_methods', 'overpayment_product_id') in self.products, "missing product for overpayment"
-        assert cfg.getint('payup_methods', 'payout_impossible_product_id') in self.products,\
-            "missing product for payout_impossible"
+        assert (
+            cfg.getint("payup_methods", "overpayment_product_id") in self.products
+        ), "missing product for overpayment"
+        assert (
+            cfg.getint("payup_methods", "payout_impossible_product_id") in self.products
+        ), "missing product for payout_impossible"
 
     def add_category(self, category):
         categ_id = category.categ_id
-        assert categ_id not in self.categories, "Category {0} {1} already exists: {2}".format(
-            categ_id, repr(category.name), repr(self.categories[categ_id].name))
+        assert (
+            categ_id not in self.categories
+        ), "Category {0} {1} already exists: {2}".format(
+            categ_id, repr(category.name), repr(self.categories[categ_id].name)
+        )
         self.categories[categ_id] = category
 
     def add_product(self, product):
@@ -98,25 +129,37 @@ class OfflineCategoryTree(object):
         return self.categories[self.root_category_id]
 
     def get_subcategories(self, categ_id):
-        return self._sort_categories(filter(lambda categ: categ.parent_id == categ_id, self.categories.itervalues()))
+        return self._sort_categories(
+            filter(
+                lambda categ: categ.parent_id == categ_id, self.categories.itervalues()
+            )
+        )
 
     @staticmethod
     def simplify_searchstring(string):
         # remove silly BOM
         string = string.replace(u"\ufeff", "")
         # all whitespace is treated equal
-        string = re.sub(r'(\s+)', ' ', string, flags=re.UNICODE)
-        string = string.replace(u'\u2010', '-')  # unicode dash
+        string = re.sub(r"(\s+)", " ", string, flags=re.UNICODE)
+        string = string.replace(u"\u2010", "-")  # unicode dash
         return string.lower().strip()
 
     def _sort_products(self, product_list):
-        return natsorted(product_list, key=lambda prod: OfflineCategoryTree.simplify_searchstring(prod.name))
+        return natsorted(
+            product_list,
+            key=lambda prod: OfflineCategoryTree.simplify_searchstring(prod.name),
+        )
 
     def _sort_categories(self, categ_list):
-        return natsorted(categ_list, key=lambda cat: OfflineCategoryTree.simplify_searchstring(cat.name))
+        return natsorted(
+            categ_list,
+            key=lambda cat: OfflineCategoryTree.simplify_searchstring(cat.name),
+        )
 
     def get_products(self, categ_id):
-        return self._sort_products(filter(lambda prod: prod.categ_id == categ_id, self.products.itervalues()))
+        return self._sort_products(
+            filter(lambda prod: prod.categ_id == categ_id, self.products.itervalues())
+        )
 
     def search_products(self, searchstr):
         searchlist = OfflineCategoryTree.simplify_searchstring(searchstr).split(" ")
@@ -125,7 +168,9 @@ class OfflineCategoryTree(object):
             for keyword in searchlist:
                 if keyword == "":
                     continue
-                if not keyword in OfflineCategoryTree.simplify_searchstring(product.name):
+                if not keyword in OfflineCategoryTree.simplify_searchstring(
+                    product.name
+                ):
                     return False
             return True
 
@@ -157,7 +202,11 @@ class OfflineCategoryTree(object):
             try:
                 path.insert(0, self.categories[categ_id])
             except KeyError:
-                raise Exception("category references non-existing parent category {0}".format(categ_id))
+                raise Exception(
+                    "category references non-existing parent category {0}".format(
+                        categ_id
+                    )
+                )
             categ_id = self.categories[categ_id].parent_id
         return path
 
@@ -193,7 +242,7 @@ class Order(object):
         del self._lines[self._idx_from_id(order_line_id)]
 
     def add_order_line(self, product, qty, comment=None):
-        """ add a Product() object with specified quantity to the cart"""
+        """add a Product() object with specified quantity to the cart"""
         assert not self._finished, "finished orders may not be modified"
         assert comment is None or isinstance(comment, basestring)
         self._lines.append(ProductBasedOrderLine(product, qty, comment))
@@ -214,15 +263,19 @@ class Order(object):
 class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
 
     """manages products, categories and orders (cart)"""
+
     __metaclass__ = ABCMeta
 
     def __init__(self, cfg, categories, products, generate_root_category=False):
         super(AbstractOfflineShoppingBackend, self).__init__(cfg)
         self._current_order = None
 
-        self.tree = OfflineCategoryTree(root_category_id=0,
-                                        categories=categories,
-                                        products=products, generate_root_category=generate_root_category)
+        self.tree = OfflineCategoryTree(
+            root_category_id=0,
+            categories=categories,
+            products=products,
+            generate_root_category=generate_root_category,
+        )
         self.orders = []
 
     # ==============================
@@ -230,7 +283,7 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
     # ==============================
 
     def get_root_category(self):
-        """ return id of root category """
+        """return id of root category"""
         return 0
 
     def get_subcategories(self, current_category):
@@ -274,7 +327,10 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
             matching_product = []
 
         # 2. search by string
-        return (self.tree.search_categories(searchstr), matching_product + self.tree.search_products(searchstr))
+        return (
+            self.tree.search_categories(searchstr),
+            matching_product + self.tree.search_products(searchstr),
+        )
 
     # ==============================
     # order handling
@@ -312,11 +368,11 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
             raise KeyError("invalid _current_order index. this must not happen.")
 
     def get_current_order(self):
-        """ get selected order id (or return 0 if switching between multiple orders is not supported) """
+        """get selected order id (or return 0 if switching between multiple orders is not supported)"""
         return self._current_order
 
     def get_order_line(self, order_line_id):
-        """ get order line of current order """
+        """get order line of current order"""
         return self._get_current_order_obj().get_order_line(order_line_id)
 
     def get_order_lines(self):
@@ -345,7 +401,11 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
     # ==============================
 
     def pay_order(self, method):
-        assert method.amount_paid - method.amount_returned == self.get_current_total(), "Paid amount does not match current total. Payment method returned: {}, expected total: {}, current order: {} ".format(method, repr(self.get_current_total()), repr(self.get_order_lines()))
+        assert (
+            method.amount_paid - method.amount_returned == self.get_current_total()
+        ), "Paid amount does not match current total. Payment method returned: {}, expected total: {}, current order: {} ".format(
+            method, repr(self.get_current_total()), repr(self.get_order_lines())
+        )
         self._get_current_order_obj().set_finished()
         self._store_payment(method)
 
@@ -377,9 +437,17 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
 
 class Client(AbstractClient):
 
-    """ a client that can pay by pin """
+    """a client that can pay by pin"""
 
-    def __init__(self, client_id=None, name="", pin=None, debt=None, debt_limit=None, is_admin=None):
+    def __init__(
+        self,
+        client_id=None,
+        name="",
+        pin=None,
+        debt=None,
+        debt_limit=None,
+        is_admin=None,
+    ):
         AbstractClient.__init__(self, client_id, name)
         if debt is not None:
             self._debt = debt
@@ -396,6 +464,6 @@ class Client(AbstractClient):
 
     def get_debt_limit(self):
         return self._debt_limit
-    
+
     def is_admin(self):
         return self._admin

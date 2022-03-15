@@ -5,7 +5,7 @@ import os
 
 class Error(Exception):
 
-    """ Base class for ESC/POS errors """
+    """Base class for ESC/POS errors"""
 
     def __init__(self, msg, status=None):
         Exception.__init__(self)
@@ -16,6 +16,7 @@ class Error(Exception):
 
     def __str__(self):
         return self.msg
+
 
 # Result/Exit codes
 # 0  = success
@@ -28,7 +29,6 @@ class Error(Exception):
 
 
 class BarcodeTypeError(Error):
-
     def __init__(self, msg=""):
         Error.__init__(self, msg)
         self.msg = msg
@@ -39,7 +39,6 @@ class BarcodeTypeError(Error):
 
 
 class BarcodeSizeError(Error):
-
     def __init__(self, msg=""):
         Error.__init__(self, msg)
         self.msg = msg
@@ -50,7 +49,6 @@ class BarcodeSizeError(Error):
 
 
 class BarcodeCodeError(Error):
-
     def __init__(self, msg=""):
         Error.__init__(self, msg)
         self.msg = msg
@@ -61,7 +59,6 @@ class BarcodeCodeError(Error):
 
 
 class ImageSizeError(Error):
-
     def __init__(self, msg=""):
         Error.__init__(self, msg)
         self.msg = msg
@@ -72,7 +69,6 @@ class ImageSizeError(Error):
 
 
 class TextError(Error):
-
     def __init__(self, msg=""):
         Error.__init__(self, msg)
         self.msg = msg
@@ -83,7 +79,6 @@ class TextError(Error):
 
 
 class CashDrawerError(Error):
-
     def __init__(self, msg=""):
         Error.__init__(self, msg)
         self.msg = msg

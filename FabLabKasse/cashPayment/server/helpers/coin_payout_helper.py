@@ -42,6 +42,7 @@ def get_possible_payout(coins, max_number_of_coins=15):
         especially in cooperation with other devices (e.g. banknotes + coins).
     :return: as defined by :meth:`FabLabKasse.cashPayment.server.getCanPayout`
     """
+
     def is_sorted(iterable, reverse=False):
         """
         check if a list is sorted
@@ -50,8 +51,10 @@ def get_possible_payout(coins, max_number_of_coins=15):
         :rtype: bool
         """
         return sorted(iterable, reverse=reverse) == iterable
-    assert is_sorted([value for (value, count) in coins], reverse=True), \
-        "Coins must be sorted descending by value"
+
+    assert is_sorted(
+        [value for (value, count) in coins], reverse=True
+    ), "Coins must be sorted descending by value"
     total_amount = 0
     previous_coin_value = None
 

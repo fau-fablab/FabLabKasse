@@ -22,7 +22,7 @@ import sys
 import unittest
 
 if __name__ == "__main__":
-    suite = unittest.TestLoader().discover('.', '*.py')
+    suite = unittest.TestLoader().discover(".", "*.py")
 
     testresult = unittest.TextTestRunner(verbosity=1).run(suite)
     sys.exit(0 if testresult.wasSuccessful() else 1)

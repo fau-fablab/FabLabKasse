@@ -1,12 +1,13 @@
 #!/usr/bin/python
-'''
+"""
 @author: Manuel F Martinez <manpaz@bashlinux.com>
 @organization: Bashlinux
 @copyright: Copyright (c) 2012 Bashlinux
 @license: GPL
-'''
+"""
 from __future__ import absolute_import
 from __future__ import print_function
+
 # import usb.core
 # import usb.util
 # import serial
@@ -32,7 +33,7 @@ from .exceptions import *
 #        self.interface = interface
 #        self.in_ep     = in_ep
 #        self.out_ep    = out_ep
-#	self.open()
+# 	self.open()
 #
 #
 #    def open(self):
@@ -108,7 +109,7 @@ from .exceptions import *
 
 class Network(Escpos):
 
-    """ Define Network printer """
+    """Define Network printer"""
 
     def __init__(self, host, port=9100):
         """
@@ -120,7 +121,7 @@ class Network(Escpos):
         self.open()
 
     def open(self):
-        """ Open TCP socket and set it as escpos device """
+        """Open TCP socket and set it as escpos device"""
         self.device = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.device.connect((self.host, self.port))
 
@@ -128,17 +129,17 @@ class Network(Escpos):
             print("Could not open socket for %s" % self.host)
 
     def _raw(self, msg):
-        """ Print any command sent in raw format """
+        """Print any command sent in raw format"""
         self.device.send(msg)
 
     def __del__(self):
-        """ Close TCP connection """
+        """Close TCP connection"""
         self.device.close()
 
 
 class File(Escpos):
 
-    """ Define Generic file printer """
+    """Define Generic file printer"""
 
     def __init__(self, devfile="/dev/usb/lp0"):
         """
@@ -148,16 +149,16 @@ class File(Escpos):
         self.open()
 
     def open(self):
-        """ Open system file """
+        """Open system file"""
         self.device = open(self.devfile, "wb")
 
         if self.device is None:
             print("Could not open the specified file %s" % self.devfile)
 
     def _raw(self, msg):
-        """ Print any command sent in raw format """
+        """Print any command sent in raw format"""
         self.device.write(msg)
 
     def __del__(self):
-        """ Close system file """
+        """Close system file"""
         self.device.close()

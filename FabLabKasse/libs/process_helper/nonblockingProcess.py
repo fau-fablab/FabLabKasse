@@ -28,8 +28,9 @@ class nonblockingProcess(object):
     """non-blocking subprocess, based on asyncproc"""
 
     def __init__(self, cmd, env=None):
-        self.process = asyncproc.Process(cmd, stderr=file("/dev/null", "w"),
-                                         env=env or {})
+        self.process = asyncproc.Process(
+            cmd, stderr=file("/dev/null", "w"), env=env or {}
+        )
         self._read_buffer = ""
 
     def write(self, string):
@@ -45,7 +46,7 @@ class nonblockingProcess(object):
         end = self._read_buffer.find("\n")
         line = self._read_buffer[0:end]
         # remove line from buffer
-        self._read_buffer = self._read_buffer[end + 2:]
+        self._read_buffer = self._read_buffer[end + 2 :]
         return line
 
     def hasLine(self):
@@ -53,7 +54,7 @@ class nonblockingProcess(object):
         return "\n" in self._read_buffer
 
     def isAlive(self):
-        return (self.process.wait(os.WNOHANG) == None)
+        return self.process.wait(os.WNOHANG) == None
 
 
 def demo():
@@ -71,6 +72,7 @@ def demo():
         time.sleep(1)
         print "read result:", k.readline()
         print "still alive:", k.isAlive()
+
 
 if __name__ == "__main__":
     demo()

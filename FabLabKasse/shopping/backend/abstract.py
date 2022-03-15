@@ -61,7 +61,11 @@ def float_to_decimal(number, digits):
     if not abs(number) < 10 ** (10 + digits):
         raise ValueError("cannot precisely convert such a large float to Decimal")
     if not abs(float(result) - float(number)) < (10 ** -(digits + 3)):
-        raise ValueError("attempted inaccurate conversion from {0} to {1}".format(repr(number), repr(result)))
+        raise ValueError(
+            "attempted inaccurate conversion from {0} to {1}".format(
+                repr(number), repr(result)
+            )
+        )
     return result
 
 
@@ -78,7 +82,7 @@ def format_qty(qty):
     s = unicode(float(qty))
     if s.endswith(".0"):
         s = s[:-2]
-    s = s.replace(".", locale.localeconv()['decimal_point'])
+    s = s.replace(".", locale.localeconv()["decimal_point"])
     return s
 
 
@@ -110,12 +114,12 @@ def format_money(amount):
     >>> format_money(Decimal('5.8899'))
     u'5,89 \u20ac'
     """
-    formatted = u'{0:.3f}'.format(amount)
+    formatted = u"{0:.3f}".format(amount)
 
     if formatted.endswith("0"):
         formatted = formatted[:-1]
 
-    return u'{0} €'.format(formatted).replace('.', ',')
+    return u"{0} €".format(formatted).replace(".", ",")
 
 
 class Category(object):
@@ -127,7 +131,9 @@ class Category(object):
         self.parent_id = parent_id
 
     def __repr__(self):
-        return "Category({0}, {1}, {2})".format(self.categ_id, repr(self.name), self.parent_id)
+        return "Category({0}, {1}, {2})".format(
+            self.categ_id, repr(self.name), self.parent_id
+        )
 
 
 class Product(object):
@@ -159,7 +165,17 @@ class Product(object):
     :type qty_rounding: int | Decimal
     """
 
-    def __init__(self, prod_id, name, price, unit, location, categ_id=None, qty_rounding=0, text_entry_required=False):
+    def __init__(
+        self,
+        prod_id,
+        name,
+        price,
+        unit,
+        location,
+        categ_id=None,
+        qty_rounding=0,
+        text_entry_required=False,
+    ):
 
         self.prod_id = prod_id
         self.name = name
@@ -197,11 +213,22 @@ class OrderLine(object):
        [ usually True, set to False for products that also may as comment limes costing nothing ]
     """
 
-    def __init__(self, order_line_id, qty, unit, name, price_per_unit, price_subtotal, delete_if_zero_qty=True):
+    def __init__(
+        self,
+        order_line_id,
+        qty,
+        unit,
+        name,
+        price_per_unit,
+        price_subtotal,
+        delete_if_zero_qty=True,
+    ):
 
         self.order_line_id = order_line_id
         if order_line_id is None:
-            self.order_line_id = next(_id_counter)  # may cause problems after ca. 2**30 calls because QVariant in gui somewhere converts values to int32. but who cares...
+            self.order_line_id = next(
+                _id_counter
+            )  # may cause problems after ca. 2**30 calls because QVariant in gui somewhere converts values to int32. but who cares...
         self.qty = qty
         self.unit = unit
         self.name = name
@@ -212,34 +239,51 @@ class OrderLine(object):
         self.delete_if_zero_qty = delete_if_zero_qty
 
     def __unicode__(self):
-        return u"{0} {1} {2} = {3}".format(format_qty(self.qty), self.unit, self.name, format_money(self.price_subtotal))
+        return u"{0} {1} {2} = {3}".format(
+            format_qty(self.qty),
+            self.unit,
+            self.name,
+            format_money(self.price_subtotal),
+        )
 
     def __repr__(self):
-        return "<{0}(id={1}, qty={2}, unit={3}, name={4}, price_per_unit={5}, price_subtotal={6})>".format(self.__class__.__name__, repr(self.order_line_id), repr(self.qty), repr(self.unit), repr(self.name), repr(self.price_per_unit), repr(self.price_subtotal))
+        return "<{0}(id={1}, qty={2}, unit={3}, name={4}, price_per_unit={5}, price_subtotal={6})>".format(
+            self.__class__.__name__,
+            repr(self.order_line_id),
+            repr(self.qty),
+            repr(self.unit),
+            repr(self.name),
+            repr(self.price_per_unit),
+            repr(self.price_subtotal),
+        )
 
 
 class DebtLimitExceeded(Exception):
 
     """exception raised by pay_order_on_client: order not paid because
     the debt limit would have been exceeded"""
+
     pass
 
 
 class ProductNotFound(Exception):
 
     """requested product not found"""
+
     pass
 
 
 class PrinterError(Exception):
 
     """cannot print receipt"""
+
     pass
 
 
 class AbstractShoppingBackend(object):
 
     """manages products, categories and orders (cart)"""
+
     __metaclass__ = ABCMeta
 
     def __init__(self, cfg):
@@ -269,7 +313,7 @@ class AbstractShoppingBackend(object):
         >>> AbstractShoppingBackend.round_money(Decimal('0.004'))
         Decimal('0.00')
         """
-        value = Decimal(value).quantize(Decimal('1.00'), rounding=ROUND_HALF_UP)
+        value = Decimal(value).quantize(Decimal("1.00"), rounding=ROUND_HALF_UP)
         return value
 
     # ====================================
@@ -278,18 +322,17 @@ class AbstractShoppingBackend(object):
 
     @abstractmethod
     def get_root_category(self):
-        """ return id of root category """
+        """return id of root category"""
         pass
 
     @abstractmethod
     def get_subcategories(self, current_category):
-        """return list(Category) of subclasses of the given category-id.
-        """
+        """return list(Category) of subclasses of the given category-id."""
         pass
 
     @abstractmethod
     def get_category_path(self, current_category):
-        """ return the category path from the root to the current category,
+        """return the category path from the root to the current category,
         *excluding* the root category
 
         [child_of_root, ..., parent_of_current, current_category]
@@ -335,22 +378,22 @@ class AbstractShoppingBackend(object):
 
     @abstractmethod
     def create_order(self):
-        """ create a new order and return its id"""
+        """create a new order and return its id"""
         pass
 
     @abstractmethod
     def delete_current_order(self):
-        """ delete currently selected order, implies set_current_order(None) """
+        """delete currently selected order, implies set_current_order(None)"""
         pass
 
     @abstractmethod
     def set_current_order(self, order_id):
-        """ switch to another order (when the backend supports multiple orders) """
+        """switch to another order (when the backend supports multiple orders)"""
         pass
 
     @abstractmethod
     def get_current_order(self):
-        """ get selected order (or return 0 if switching between multiple orders is not supported) """
+        """get selected order (or return 0 if switching between multiple orders is not supported)"""
         pass
 
     @abstractmethod
@@ -363,7 +406,7 @@ class AbstractShoppingBackend(object):
 
     @abstractmethod
     def get_order_line(self, order_line_id):
-        """ get order line of current order """
+        """get order line of current order"""
         pass
 
     def get_current_total(self):
@@ -391,10 +434,10 @@ class AbstractShoppingBackend(object):
 
     @abstractmethod
     def update_quantity(self, order_line_id, amount):
-        """ change quantity of order-line.
+        """change quantity of order-line.
 
         if not all float values are allowed,
-        round upvalue to the next possible one """
+        round upvalue to the next possible one"""
         pass
 
     def product_requires_text_entry(self, prod_id):
@@ -450,15 +493,15 @@ class AbstractShoppingBackend(object):
         debt_limit = client.get_debt_limit()
         if new_debt > debt_limit:
             try:
-                email = self.cfg.get('general', 'support_mail')
+                email = self.cfg.get("general", "support_mail")
             except ConfigParserError:
                 email = u"einen zuständigen Betreuer"
             raise DebtLimitExceeded(
                 u"Der Kontostand wäre mit dieser Buchung über seinem Limit.\n"
                 u"Aktuelles Guthaben: {0:.2f}\n"
                 u"Schuldengrenze für dieses Konto: {1:.2f}\n\n"
-                u"Bie Fragen wende dich bitte an {2}."
-                .format(-debt, debt_limit, email))
+                u"Bie Fragen wende dich bitte an {2}.".format(-debt, debt_limit, email)
+            )
 
         self._pay_order_on_client_unchecked(client)
 
@@ -476,12 +519,12 @@ class AbstractShoppingBackend(object):
     def list_clients(self):
         """returns all selectable clients in a dict {id: Client(id), ...}"""
         pass
-    
+
     @abstractmethod
     def add_client(self, name, email, address, pin, comment, debt_limit):
-        """ creates new client and returns ID on success """
+        """creates new client and returns ID on success"""
         pass
-    
+
     @abstractmethod
     def print_receipt(self, order_id):
         """print the receipt for a given, already paid order_id
@@ -494,7 +537,8 @@ class AbstractShoppingBackend(object):
 
 class AbstractClient(object):
 
-    """ a client that can pay by pin """
+    """a client that can pay by pin"""
+
     __metaclass__ = ABCMeta
 
     @abstractmethod
@@ -514,7 +558,7 @@ class AbstractClient(object):
     def get_debt_limit(self):
         """how much is the limit for the debt that may not be exceeded"""
         return 0
-    
+
     def is_admin(self):
         """may this user perform administrative tasks (add new clients)?"""
         return False
@@ -526,9 +570,10 @@ def basicUnitTests(shopping_backend):  # for implentations
     shopping_backend.search_product(u"öläöäl")
     shopping_backend.search_product(u"       ")
 
+
 def load_tests(loader, tests, ignore):
     """loader function to load the doctests in this module into unittest"""
-    tests.addTests(doctest.DocTestSuite('FabLabKasse.shopping.backend.abstract'))
+    tests.addTests(doctest.DocTestSuite("FabLabKasse.shopping.backend.abstract"))
     return tests
 
 
@@ -547,7 +592,12 @@ class AbstractShoppingBackendTest(unittest.TestCase):
         for i in range(1000):
             # round up 0.005  -> 0.01
             reference = (i + 1) * Decimal("0.01")
-            self.assertEqual(AbstractShoppingBackend.round_money(Decimal("0.005") + Decimal("0.01") * i), reference)
+            self.assertEqual(
+                AbstractShoppingBackend.round_money(
+                    Decimal("0.005") + Decimal("0.01") * i
+                ),
+                reference,
+            )
 
 
 if __name__ == "__main__":
