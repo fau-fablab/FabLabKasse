@@ -3,7 +3,6 @@
 
 
 # setup a VM using Vagrant which installs "kiosk mode" FabLabKasse setup.
-# Known bug: the display resolution is too small because Virtualbox guest extensions are missing.
 
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
