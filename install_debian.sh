@@ -24,7 +24,8 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get -y install git
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python-pip python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-qrcode python-docopt python-requests python-simplejson python-sphinx
 sudo pip install -r requirements.txt
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install xserver-xorg git nodm ssh x11-apps xterm kde-style-oxygen fonts-crosextra-carlito curl
-
+# try to install xrandr command
+apt-get -y install x11-xserver-utils || true
 # Setup user and 'kiosk mode' desktop manager that autostarts FabLabKasse
 $RUNNING_IN_VAGRANT && INSTALL_USER=vagrant || INSTALL_USER=kasse
 $RUNNING_IN_VAGRANT || adduser kasse --disabled-password # not used in Vagrant, but in real system

@@ -36,7 +36,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 import dateutil.parser
 import csv
-from io import StringIO
+import StringIO # FIXME: this won't work for python3, where StringIO.StringIO seems to have moved to io.StringIO. For some reason, io.StringIO gives errors work under python2.7.
 import codecs
 import re
 import sys
@@ -1306,7 +1306,7 @@ def main():
     elif args.action == 'receipt':
         print(args.receipt.receipt(header=cfg.get('receipt', 'header'),
                                    footer=cfg.get('receipt', 'footer'),
-                                   export=args.export))
+                                   export=args.export).encode("UTF-8"))
         if args.print_receipt:
             args.receipt.print_receipt(cfg)
 
@@ -1380,7 +1380,7 @@ def main():
             )
 
             # PIN
-            print("[i] zufällige PIN-Vorschläge: {0:04} {1:04} {2:04}".format(
+            print("[i] zufaellige PIN-Vorschlaege: {0:04} {1:04} {2:04}".format(
                 random.randint(1, 9999),
                 random.randint(1, 9999),
                 random.randint(1, 9999)))
@@ -1473,7 +1473,7 @@ def main():
 
         elif args.client_action == 'show':
 
-            print(kunde.to_string(short=not args.transactions, cur=k.cur))
+            print(kunde.to_string(short=not args.transactions, cur=k.cur).encode("UTF-8"))
 
             print("Kontostand: " + moneyfmt(kunde.summe) + ' EUR')
 

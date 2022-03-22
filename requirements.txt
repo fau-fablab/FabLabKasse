@@ -27,4 +27,4 @@ argcomplete
 sphinx_rtd_theme
 
 #faucardpayment
-enum34
+enum34==1.1.6

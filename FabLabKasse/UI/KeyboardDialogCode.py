@@ -40,7 +40,7 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
         else:
             return None
 
-    def __init__(self, parent, question='What: '):
+    def __init__(self, parent, question=u'What: '):
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
 

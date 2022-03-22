@@ -447,18 +447,20 @@ class FAUcardThread(QtCore.QObject):
         lost = False
 
         value = []
-
+        
+        # 1. Try to decrease balance
         while retry:
             retry = False
             self.set_cancel_button_enabled.emit(True)   # User must be able to abort if he decides to
-            # 1. Try to decrease balance
             try:
                 self.check_user_abort("decreasing balance: User Aborted")  # Will only be executed if decrease command has not yet been executed
+                logging.debug("FAUcard: Trying to decrease balance")
                 value = self.pos.decrease_card_balance_and_token(self.amount_cents, self.card_number)
 
             # Catch ResponseError if not Card on Reader and retry
             except magpos.ResponseError as e:
                 if e.code is magpos.codes.NO_CARD:
+                    logging.info("FAUcard: No card, retrying...")
                     self.pos.response_ack()
                     retry = True
                     continue
@@ -467,7 +469,7 @@ class FAUcardThread(QtCore.QObject):
             # 1.b Connection error
             except (magpos.serial.SerialException, magpos.ConnectionTimeoutError, IOError), e:
                 logging.warning("FAUcardThread: {0}".format(e))
-                self.Info = Info.con_error
+                self.info = Info.con_error
                 self.log.set_status(self.status, self.info)
                 self.response_ready.emit([Info.con_error])
                 lost = True
@@ -480,11 +482,12 @@ class FAUcardThread(QtCore.QObject):
 
             # if connection lost (1.b)
             if lost:
+                logging.warning("FAUcard: connection lost (1.b)")
                 value = []
                 while lost:
                     lost = False
 
-                    # 2 Try to reastablish connect
+                    logging.debug("FAUcard: 2 Try to reastablish connect")
                     try:
                         # release serial port
                         self.pos.close()
@@ -502,35 +505,37 @@ class FAUcardThread(QtCore.QObject):
                     except (magpos.serial.SerialException, magpos.ConnectionTimeoutError, IOError):
                         lost = True
 
-                self.Info = Info.con_back
+                self.info = Info.con_back
                 self.response_ready.emit([Info.con_back])
 
                 # 3. Check last payment details
                 if value[1] == self.card_number and value[2] == self.amount_cents:
                     if value[0] == magpos.codes.OK:
-                        # 3.a The payment was successfully executed
+                        logging.info("FAUcard: 3.a The payment was successfully executed")
                         value[0] = value[1]
                         value[1] = self.old_balance
                         value[2] = self.old_balance - self.amount_cents
                         break
                     else:
-                        # 3.b The payment aborted on error
+                        logging.warning("FAUcard: 3.b The payment aborted on error")
                         self.response_ready.emit([Info.unknown_error])
                         self.info = Info.unknown_error
                         self.quit()
                         return
                 else:
-                    # 3.b The transaction has not been executed
+                    logging.info("FAUcard: 3.b The transaction has not been executed")
                     retry = True
                     continue
 
         # 5. Check if payment was correct and log it
         if value[0] == self.card_number and value[1] == self.old_balance and (value[2]+self.amount_cents) == self.old_balance:
+            logging.info("FAUCard: payment correct, writing to log")
             self.status = Status.decreasing_done
             self.info = Info.OK
             self.log.set_status(self.status, self.info)
             new_balance = value[2]
         else:
+            logging.error("FAUCard: Payment went wrong (double booking, wrong amount, or similar error). This is a serious error. Check kassenbuch, the MagPosLog database, and gui.log to find out what exactly went wrong.")
             raise magpos.TransactionError(value[0], value[1], value[2], self.amount_cents)
 
 
