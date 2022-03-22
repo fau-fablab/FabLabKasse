@@ -32,6 +32,12 @@ export QT_PLUGIN_PATH=/usr/lib/kde4/plugins/
 xsetroot -solid blue
 xeyes -geometry 300x200+600+400 &
 
+# if running in VirtualBox, set screen resolution
+if systemd-detect-virt | grep -q oracle; then
+    echo "Running in VirtualBox. setting screen resolution." >&2
+    DISPLAY=:0 xrandr --output VGA-1 --mode 1280x1024 || true
+fi
+
 # terminal window showing log output
 xterm ~/FabLabKasse/FabLabKasse/scripts/xsession-tail-helper.sh &
 
