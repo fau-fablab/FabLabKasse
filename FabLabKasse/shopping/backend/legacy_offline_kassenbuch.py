@@ -24,7 +24,7 @@ import logging
 from abstract import Product, Category, PrinterError
 from offline_base import AbstractOfflineShoppingBackend, Client
 from decimal import Decimal
-from ..payment_methods import ManualCashPayment, AutoCashPayment, FAUCardPayment
+from ..payment_methods import ManualCashPayment, FAUCardPayment
 from ... import scriptHelper
 from ...kassenbuch import Kasse, Rechnung, Buchung, Kunde
 from ...produkt import Produkt
@@ -140,8 +140,6 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         origin = u"Besucher"
         if isinstance(method, ManualCashPayment):
             destination = u"Handkasse"
-        elif isinstance(method, AutoCashPayment):
-            destination = u"Automatenkasse"
         elif isinstance(method, FAUCardPayment):
             destination = u"FAUKarte"
         else:

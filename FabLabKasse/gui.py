@@ -18,20 +18,6 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-# TODOs:
-# * Weitere Bezahlmethoden implementieren
-#   * Kundenkonten
-#   * Bargeld (abgezählt)
-#   * FAUcard
-# * Über-/Unterzahlungen verarbeiten
-# * Userinterface Verbessern
-#   * Katergorienauswahl intuitiver machen (man weiß nicht das es quasi-knöpfe sind)
-#   * Kategorienpfad besser gestalten
-# * Statistik Teil von master importieren
-# * mehrer Tabs für offene sale.orders (und automatischer import beim start)
-# * Neustart wenn aktuelle session geschlossen wurde (regelmäßiger test?)
-#   Geht das überhaupt bevor die alte session gebucht wurde?
-
 import sys
 import re
 import locale
@@ -295,21 +281,6 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # Give focus to lineEdit
         self.lineEdit.setFocus()
 
-        # Loading dialog for cash payment system
-        self.cashPayment = PaymentDevicesManager(cfg)
-        self.startupProgress = QtGui.QProgressDialog(self)
-        self.startupProgress.setMaximum(0)
-        self.startupProgress.setCancelButton(None)
-        self.startupProgress.setWindowModality(QtCore.Qt.WindowModal)
-        self.startupProgress.setLabelText(u"Initialisiere Bezahlsystem")
-        self.startupProgress.setValue(0)
-        self.startupProgress.show()
-
-        self.cashPollTimer = QtCore.QTimer()
-        self.cashPollTimer.setInterval(500)  # start with fast interval, later reduced
-        self.cashPollTimer.timeout.connect(self.pollCashDevices)
-        self.cashPollTimer.start()
-
         # start and configure idle reset for category view
         if cfg.has_option("idle_reset", "enabled"):
             if cfg.getboolean("idle_reset", "enabled"):
@@ -405,41 +376,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
         if not checkServiceModeEnabled():
             return
-        dialog = QtGui.QMessageBox(self)
-        dialog.setText(u"Ausleeren aktivieren? (Nein für nachfüllen/Abbruch)")
-        dialog.addButton(QtGui.QMessageBox.No)
-        dialog.addButton(QtGui.QMessageBox.Yes)
-        dialog.setDefaultButton(QtGui.QMessageBox.No)
-        dialog.setEscapeButton(QtGui.QMessageBox.No)
-        self.serviceProgress = QtGui.QProgressDialog(self)
-        self.serviceProgress.setMaximum(0)
-        self.serviceProgress.setWindowModality(QtCore.Qt.WindowModal)
-        self.serviceProgress.setLabelText(u"Hier könnte Ihre Werbung stehen.")
-        self.serviceProgress.setValue(0)
-        self.serviceModeCanceled = False
-        self.serviceTimer = QtCore.QTimer()
-        self.serviceTimer.setInterval(500)
-        self.serviceModeAction = "accept"
 
-        def start():
-            self.serviceProgress.canceled.connect(self.serviceModeCancel)
-            self.serviceProgress.show()
-            self.serviceTimer.timeout.connect(self.pollServiceMode)
-            self.serviceTimer.start()
-            if self.serviceModeAction == "empty":
-                self.cashPayment.empty()
-            elif self.serviceModeAction == "accept":
-                self.cashPayment.payin(requested=999999, maximum=999999)
-
-        if dialog.exec_() == QtGui.QMessageBox.Yes:
-            self.serviceModeAction = "empty"
-            start()
-            return
-        dialog.setText(u"Nachfüllen aktivieren?")
-        if dialog.exec_() == QtGui.QMessageBox.Yes:
-            self.serviceModeAction = "accept"
-            start()
-            return
         dialog.setText(u"Automat sperren?")
         if dialog.exec_() != QtGui.QMessageBox.Yes:
             return
@@ -453,66 +390,6 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             dialog.exec_()
             if checkServiceModeEnabled(showErrorMessage=False):
                 return
-
-    # Cancel button was pressed: exit manual-empty mode and wait for it to finish
-    def serviceModeCancel(self):
-        # do not run this function twice
-        if self.serviceModeCanceled:
-            return
-        self.serviceModeCanceled = True
-        if self.serviceModeAction == "empty":
-            self.cashPayment.stopEmptying()
-        elif self.serviceModeAction == "accept":
-            self.cashPayment.abortPayin()
-        else:
-            assert False
-
-        # show the progress dialog again, but without cancel button
-        self.serviceProgress.setCancelButton(None)
-        self.serviceProgress.show()
-        # dialog will be closed by pollServiceMode when everything is finished
-
-    def pollServiceMode(self):
-        self.cashPayment.poll()
-        self.serviceProgress.setLabelText(self.cashPayment.statusText())
-        a = self.cashPayment.getFinalAmount()
-        if a is None:
-            # noch nicht fertig
-            return
-        self.serviceTimer.stop()
-        self.serviceProgress.cancel()
-
-        def formatCent(
-            x,
-        ):  # TODO deduplicate, this is copied from PaymentDevicesManager
-            return u"{:.2f}\u2009€".format(float(x) / 100).replace(
-                ".", locale.localeconv()["decimal_point"]
-            )
-
-        if self.serviceModeAction == "empty":
-            text = u"Servicemodus manuell ausgeleert: {} "
-        elif self.serviceModeAction == "accept":
-            text = u"Servicemodus manuell eingefüllt: {} - Die Einzahlungen werden nicht im Kassenbuch verbucht, aber im Bargeldbestand."
-        text = text.format(formatCent(a))
-        logging.info(text)
-        QtGui.QMessageBox.warning(
-            self,
-            "Service mode {0}".format(self.serviceModeAction),
-            text + u" \nBitte Bargeld- und Kassenstand per CLI prüfen.",
-        )
-
-    def pollCashDevices(self):
-        self.cashPayment.poll()
-        if not self.cashPayment.startingUp() and not self.startupProgress.wasCanceled():
-            # hide "payment startup" dialog as soon as as starting up is finished
-            logging.info("cashPayment startup done")
-            self.startupProgress.cancel()
-            # lower poll frequency because the startup is finished
-            # (PayupCashDialog also polls on its own at a faster rate)
-            self.cashPollTimer.setInterval(2000)
-            # we do not stop polling entirely so that crashes of the
-            # CashPaymentClients are reported in time and not much later after
-            # the user has completely entered his basket and started paying
 
     def changeProductCategory(self, category):
         # if search was done before, switch from keyboard to basket view

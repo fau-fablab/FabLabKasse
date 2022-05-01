@@ -13,9 +13,8 @@ edit config.ini:
         ./run.py
 
 - play around, try to crash it
-  - schauen ob alles korrekt in kassenbuch.py und cash.py auftaucht
+  - schauen ob alles korrekt in kassenbuch.py auftaucht
     - Kundenzahlung
-    - Bargeldzahlung (automat.)
     - Bargeldzahlung (manuell)
 
   - dabei jeweils die Fälle:
@@ -44,15 +43,11 @@ Showstoppers before going public
  - refactor receipt printing: copy code from kassenbuch and modify it to create a global implementation, change legacy_offline_kassenbuch backend to use global implementation
 
  - BUGS:
-ganz selten Crash (zufallsabhängig?) beim Mülleimer-Button (in Zusammenhang mit Kommentar? oder auch nicht...) -- order_line_id nicht mehr gültig
 
  - seems to hang (no activity indication) when printing receipt is waiting for timeout
 receipt print network timeout is way too high, the printer will be on a LAN!
 
  - Kundenliste nicht sinnvoll bedienbar bei >10 Kunden (Dropdown Scrollen doof - besser ListWidget + flickcharm)
-
- - TODO:
-cash -> MDB testen, wenn man zwischen dev.poll() mehrere Münzen einwirft [bzw. in Logs nachschauen dass dieser Fall schonmal erfolgreich auftrat]
 
 # NICE TO HAVE
 

@@ -37,7 +37,6 @@ Have fun and give feedback!
 
 (assuming the example config settings)
 
-- automated cash payment: uncomment the device1_... example entries in config.ini to add a simulated cash device accepting and dispensing 10€ notes randomly
 - receipt printing: run `./tools/dummy-printserver` to roughly see how a receipt printer's output would look [please note that receipt printing is not yet implemented on all shopping backends]
 
 # Debugging

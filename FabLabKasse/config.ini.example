@@ -71,8 +71,6 @@ logo = FAU_FABLAB_kassenlogo.png
 
 [payup_methods]
 ; Enabled payment methods
-; usually you want either cash or cash_manual, not both...
-cash = on
 cash_manual = on
 FAUcard = off
 client = on
@@ -81,21 +79,6 @@ client = on
 overpayment_product_id=9999
 ; "Payout impossible" (user wanted to abort, but some part could not be paid back)
 payout_impossible_product_id=9994
-
-[cash_payment]
-; only used when cash=on in [payup_methods]
-; devices (*.py files in cashPayment/server/)
-; please read README_cashPayment.md ! larger devices first, because they are used first for payout.
-;device1=exampleServer
-;device1_name=example1
-;device2=mdbCoinChanger
-;device2_name=muenz
-;device2_port=/dev/ttyACM123
-;device3_port=hwgrep://USB\ VID\:PID\=10c4\:ea60\ SNR\=0001
-; and options
-;device1_foo=baz
-;device2=blab
-;...
 
 [openerp]
 server = xn--eichhrnchen-vfb.fablab.fau.de

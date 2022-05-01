@@ -142,7 +142,6 @@ def main():
         {
             "db_file": "production.sqlite3",
             "request_backup": "off",
-            "cash": "off",
             "cash_manual": "off",
             "FAUcard": "off",
             "invoice": "off",

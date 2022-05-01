@@ -76,14 +76,6 @@ FabLabKasse.UI.PaymentMethodDialogCode module
     :undoc-members:
     :show-inheritance:
 
-FabLabKasse.UI.PayupCashDialogCode module
------------------------------------------
-
-.. automodule:: FabLabKasse.UI.PayupCashDialogCode
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 FabLabKasse.UI.PayupManualDialogCode module
 -------------------------------------------
 

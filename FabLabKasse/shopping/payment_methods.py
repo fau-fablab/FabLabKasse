@@ -39,7 +39,6 @@ from abc import ABCMeta, abstractmethod  # abstract base class support
 from PyQt4 import QtGui
 from decimal import Decimal
 from ..UI.ClientDialogCode import SelectClientDialog
-from ..UI.PayupCashDialogCode import PayupCashDialog
 from ..UI.PayupManualDialogCode import PayupManualDialog
 from .. import scriptHelper
 from FabLabKasse.shopping.backend.abstract import DebtLimitExceeded
@@ -332,32 +331,6 @@ class ManualCashPayment(AbstractPaymentMethod):
         self.print_receipt = True
 
 
-class AutoCashPayment(AbstractPaymentMethod):
-    "Pay in cash, using payin and payout devices. See also :ref:`cash_payment`"
-
-    @staticmethod
-    def is_enabled(cfg):
-        return cfg.getboolean("payup_methods", "cash")
-
-    def show_thankyou(self):
-        pass  # we already show our own thankyou message in the dialog.
-
-    @staticmethod
-    def get_title():
-        return "Bargeld"
-
-    def _show_dialog(self):
-        pay_diag = PayupCashDialog(
-            parent=self.parent, amount_total=self.amount_to_pay, cfg=self.cfg
-        )
-        ok = bool(pay_diag.exec_())
-        paid_amount = pay_diag.getPaidAmount()
-        self.amount_paid = paid_amount  # TODO add amount_returned
-        self.amount_returned = Decimal(0)  # TODO read from dialog
-        self.successful = ok
-        self.print_receipt = True
-
-
 class FAUCardPayment(AbstractPaymentMethod):
     "Pay using the FAU-Magnacard using the FauCardPayment-Plugin which is not available to public."
 
@@ -387,4 +360,4 @@ class FAUCardPayment(AbstractPaymentMethod):
             finish_log()
 
 
-PAYMENT_METHODS = [FAUCardPayment, AutoCashPayment, ManualCashPayment, ClientPayment]
+PAYMENT_METHODS = [FAUCardPayment, ManualCashPayment, ClientPayment]
