@@ -6,8 +6,7 @@ jobs:
   black-code-style:
     runs-on: ubuntu-latest
     steps:
-      - run: pip install --upgrade --user "click==7.0"  # workaround for broken black dependency
       - uses: actions/checkout@v2
       - uses: psf/black@stable
         with:
-          version: "21.9b0"
+          version: "21.9b0 click==7.0"  # dirty hack for broken dependency
