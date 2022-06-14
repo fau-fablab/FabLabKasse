@@ -14,11 +14,13 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-
-echo "WORKAROUND FOR TOUCHSCREEN _ AAAAAH why does xinput_calibrate not work as it should?"
-# set hardcoded calibration matrix, repeat every few second to allow for reconnects
-( while true; do xinput set-prop "EloTouchSystems,Inc Elo TouchSystems 2216 AccuTouch® USB Touchmonitor Interface" --type=float "Coordinate Transformation Matrix" 1.215 0 -.085 0 -1.29 1.13 0 0 1 || true; sleep 2; done ) &
-
+if systemd-detect-virt | grep -q oracle; then
+    true
+else
+    echo "WORKAROUND FOR TOUCHSCREEN _ AAAAAH why does xinput_calibrate not work as it should?"
+    # set hardcoded calibration matrix, repeat every few second to allow for reconnects
+    ( while true; do xinput set-prop "EloTouchSystems,Inc Elo TouchSystems 2216 AccuTouch® USB Touchmonitor Interface" --type=float "Coordinate Transformation Matrix" 1.215 0 -.085 0 -1.29 1.13 0 0 1 || true; sleep 2; done ) &
+fi
 
 # Workaround: set resolution for VirtualBox to something that is large enough for the GUI and small enough to fit on a typical notebook monitor in non-fullscreen mode.
 # only executed if the current resolution is 800x600
