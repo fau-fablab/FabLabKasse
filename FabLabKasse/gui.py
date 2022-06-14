@@ -39,7 +39,6 @@ from UI.KeyboardDialogCode import KeyboardDialog
 
 import scriptHelper
 
-from shopping.cart_from_app.cart_gui import MobileAppCartGUI
 
 if __name__ == "__main__":
     # switching to german:
@@ -296,10 +295,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                         "Automatic reset on idle is disabled since idleTracker returned `disabled`."
                     )
 
-        self.pushButton_load_cart_from_app.setVisible(
-            cfg.has_option("mobile_app", "enabled")
-            and cfg.getboolean("mobile_app", "enabled")
-        )
+        self.pushButton_load_cart_from_app.setVisible(False) # FIXME: remove useless button
 
     def restart(self):
         # Ask if restart is okay
@@ -640,10 +636,6 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             self.updateOrder()
             self.on_start_clicked()
         return paymentmethod.successful
-
-    def payViaApp(self):
-        p = MobileAppCartGUI(self, cfg)
-        p.execute()
 
     def getSelectedOrderLineId(self):
         order_idx = self.table_order.currentIndex()

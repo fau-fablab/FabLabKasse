@@ -25,14 +25,6 @@ FabLabKasse.UI.uic_generated.KeyboardDialog module
     :undoc-members:
     :show-inheritance:
 
-FabLabKasse.UI.uic_generated.LoadFromMobileAppDialog module
------------------------------------------------------------
-
-.. automodule:: FabLabKasse.UI.uic_generated.LoadFromMobileAppDialog
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 FabLabKasse.UI.uic_generated.PaymentMethodDialog module
 -------------------------------------------------------
 

@@ -44,14 +44,6 @@ FabLabKasse.UI.KeyboardDialogCode module
     :undoc-members:
     :show-inheritance:
 
-FabLabKasse.UI.LoadFromMobileAppDialogCode module
--------------------------------------------------
-
-.. automodule:: FabLabKasse.UI.LoadFromMobileAppDialogCode
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 FabLabKasse.UI.MyQLineEdit module
 ---------------------------------
 

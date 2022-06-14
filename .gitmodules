@@ -1,4 +1,0 @@
-[submodule "FabLabKasse/libs/naughtystrings"]
-	path = FabLabKasse/libs/naughtystrings
-	url = https://github.com/minimaxir/big-list-of-naughty-strings.git
-	branch = master
