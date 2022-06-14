@@ -3,9 +3,10 @@ name: Black Code Style
 on: [push, pull_request]
 
 jobs:
-  lint:
+  black-code-style:
     runs-on: ubuntu-latest
     steps:
+      - run: pip install --upgrade --user "click==7.0"  # workaround for broken black dependency
       - uses: actions/checkout@v2
       - uses: psf/black@stable
         with:
