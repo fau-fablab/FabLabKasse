@@ -50,7 +50,7 @@ try:
 except ImportError:
     pass  # it's also working without argcomplete
 
-import libs.escpos.printer as escpos_printer
+import escpos.printer as escpos_printer
 import scriptHelper
 
 
