@@ -29,7 +29,6 @@ from PyQt4 import QtGui, QtCore, Qt
 import functools
 from ConfigParser import Error as ConfigParserError
 
-from libs.flickcharm import FlickCharm
 from libs.pxss import pxss
 from FabLabKasse.UI.GUIHelper import resize_table_columns
 
@@ -99,11 +98,6 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         cfg.getint("payup_methods", "overpayment_product_id")
         cfg.getint("payup_methods", "payout_impossible_product_id")
 
-        # enable kinetic scrolling by touch-and-drag
-        self.charm = FlickCharm()
-        self.charm.activateOn(self.table_order, disableScrollbars=False)
-        self.charm.activateOn(self.table_products, disableScrollbars=False)
-        self.charm.activateOn(self.list_categories, disableScrollbars=False)
 
         for table in [self.table_products, self.table_order]:
             # forbid resizing columns

@@ -7,11 +7,12 @@ if [ $(dirname ${BASH_SOURCE[0]}) != "." ]
 fi
 
 ###### flickcharm ########
-cd FabLabKasse/libs/flickcharm/
-git remote set-url origin https://github.com/fau-fablab/flickcharm-python.git
-git remote set-url --push origin git@github.com:fau-fablab/flickcharm-python.git
+# (no longer used)
+#cd FabLabKasse/libs/flickcharm/
+#git remote set-url origin https://github.com/fau-fablab/flickcharm-python.git
+#git remote set-url --push origin git@github.com:fau-fablab/flickcharm-python.git
 
-echo "configured submodule flickcharm:"
+#echo "configured submodule flickcharm:"
 git remote -v
 
 cd ../../../

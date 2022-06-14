@@ -9,7 +9,6 @@ Subpackages
 .. toctree::
 
     FabLabKasse.libs.escpos
-    FabLabKasse.libs.flickcharm
     FabLabKasse.libs.process_helper
     FabLabKasse.libs.pxss
 

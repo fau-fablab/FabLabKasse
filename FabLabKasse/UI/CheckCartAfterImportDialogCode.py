@@ -17,7 +17,6 @@
 
 from PyQt4 import QtGui, QtCore
 from FabLabKasse.UI.uic_generated.CheckCartAfterImportDialog import Ui_AppWarenkorb
-from FabLabKasse.libs.flickcharm import FlickCharm
 
 
 class CheckCartAfterImportDialog(QtGui.QDialog, Ui_AppWarenkorb):
@@ -38,8 +37,6 @@ class CheckCartAfterImportDialog(QtGui.QDialog, Ui_AppWarenkorb):
             0, lambda: self.setWindowState(QtCore.Qt.WindowMaximized)
         )
         self.shoppingBackend = shoppingBackend
-        self.charm = FlickCharm()
-        self.charm.activateOn(self.table_order, disableScrollbars=False)
 
     def update(self):
         """update table with current order lines"""
