@@ -49,14 +49,6 @@ FabLabKasse.UI.uic_generated.SelectClientDialog module
     :undoc-members:
     :show-inheritance:
 
-FabLabKasse.UI.uic_generated.StatisticsDialog module
-----------------------------------------------------
-
-.. automodule:: FabLabKasse.UI.uic_generated.StatisticsDialog
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 FabLabKasse.UI.uic_generated.icons_rc module
 --------------------------------------------
 
