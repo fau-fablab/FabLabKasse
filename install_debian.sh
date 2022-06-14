@@ -37,7 +37,7 @@ echo "NODM_USER=$INSTALL_USER" | sudo tee -a /etc/default/nodm
 # modemmanager interferes with serial port devices:
 sudo apt-get -y remove modemmanager
 
-rm /home/$INSTALL_USER/.xsession || true
+rm -f /home/$INSTALL_USER/.xsession
 if $RUNNING_IN_VAGRANT; then
 	[ -d /home/$INSTALL_USER/FabLabKasse ] || ln -s /vagrant /home/$INSTALL_USER/FabLabKasse
 else
