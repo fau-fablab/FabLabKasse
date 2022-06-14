@@ -130,30 +130,45 @@ def printFiltered(
     sumUnitsFiltered = {}
     for item in consumption:
         sumFiltered += item["money"]
-        print(u"{0} \t {1:.2f} € \t {2}\t{3}".format(
-            item["plu"], item["money"], item["description"], formatUnits(item["units"])
-        ))
+        print(
+            u"{0} \t {1:.2f} € \t {2}\t{3}".format(
+                item["plu"],
+                item["money"],
+                item["description"],
+                formatUnits(item["units"]),
+            )
+        )
         for (unit, number) in item["units"].items():
             if unit not in sumUnitsFiltered:
                 sumUnitsFiltered[unit] = 0
             sumUnitsFiltered[unit] += number
-    print("name *" + filterStr + "*:\t{0} €\tGesamt\tSumme über Einheiten:\t{1}\t{2}".format(
-        sumFiltered,
-        round(sum(sumUnitsFiltered.values()), 2),
-        formatUnits(sumUnitsFiltered),
-    ))
+    print(
+        "name *"
+        + filterStr
+        + "*:\t{0} €\tGesamt\tSumme über Einheiten:\t{1}\t{2}".format(
+            sumFiltered,
+            round(sum(sumUnitsFiltered.values()), 2),
+            formatUnits(sumUnitsFiltered),
+        )
+    )
     if scaleFactor != 1:
-        print("name *" + filterStr + "*:\t{0} €\tGesamt *{1} hochgerechnet\tSumme über Einheiten:\t{2}\t{3}".format(
-            round(float(sumFiltered) * scaleFactor, 2),
-            scaleFactor,
-            round(float(sum(sumUnitsFiltered.values())) * scaleFactor, 2),
-            formatUnits(sumUnitsFiltered, scaleFactor),
-        ))
+        print(
+            "name *"
+            + filterStr
+            + "*:\t{0} €\tGesamt *{1} hochgerechnet\tSumme über Einheiten:\t{2}\t{3}".format(
+                round(float(sumFiltered) * scaleFactor, 2),
+                scaleFactor,
+                round(float(sum(sumUnitsFiltered.values())) * scaleFactor, 2),
+                formatUnits(sumUnitsFiltered, scaleFactor),
+            )
+        )
     print("")
 
 
 if __name__ == "__main__":
-    print("warning: this script operates on snapshotOhnePins.sqlite3 and not on the fresh database!")
+    print(
+        "warning: this script operates on snapshotOhnePins.sqlite3 and not on the fresh database!"
+    )
     k = kassenbuch.Kasse("snapshotOhnePins.sqlite3")
     if sys.getdefaultencoding() != "utf-8":
         # hack around python2.7 problems
@@ -172,13 +187,17 @@ if __name__ == "__main__":
 
     dauer = rechnungen[-1].datum - rechnungen[0].datum
     hochrechnenFaktor = round(365.0 / dauer.days, 2)
-    print("Auswertung von {0} bis {1}, {2} Tage, Faktor für 1 Jahr: *{3}".format(
-        rechnungen[0].datum, rechnungen[-1].datum, dauer.days, hochrechnenFaktor
-    ))
+    print(
+        "Auswertung von {0} bis {1}, {2} Tage, Faktor für 1 Jahr: *{3}".format(
+            rechnungen[0].datum, rechnungen[-1].datum, dauer.days, hochrechnenFaktor
+        )
+    )
     tageSeitLetzterRechnung = (datetime.datetime.now() - rechnungen[-1].datum).days
     print("{0} Tage seit letzter Rechnung".format(tageSeitLetzterRechnung))
     if tageSeitLetzterRechnung > 5:
-        print("ACHTUNG: Datenbank ist alt! Bitte neuen Snapshot erstellen (letzte Rechnung aelter als 5 Tage).")
+        print(
+            "ACHTUNG: Datenbank ist alt! Bitte neuen Snapshot erstellen (letzte Rechnung aelter als 5 Tage)."
+        )
 
     kunden = k.kunden
 
@@ -305,9 +324,11 @@ if __name__ == "__main__":
     printFiltered(consumption, u"DIN", scaleFactor=hochrechnenFaktor)
 
     fraesenstart = datetime.datetime(2014, 0o5, 10, 12, 00)
-    print("Achtung anderer Faktor für Fräse, weil erst etwa ab {0} in Betrieb:".format(
-        fraesenstart
-    ))
+    print(
+        "Achtung anderer Faktor für Fräse, weil erst etwa ab {0} in Betrieb:".format(
+            fraesenstart
+        )
+    )
     printFiltered(
         consumption,
         u"Fräs",
@@ -332,11 +353,13 @@ if __name__ == "__main__":
                         break
                 if foundWord:
                     summe += float(p["anzahl"] * p["einzelpreis"])
-        print("{0}:  {1} , hochgerechnet {2} ".format(
-            searchwords,
-            summe,
-            summe * 365.0 / (rechnungen[-1].datum - rechnungen[0].datum).days,
-        ))
+        print(
+            "{0}:  {1} , hochgerechnet {2} ".format(
+                searchwords,
+                summe,
+                summe * 365.0 / (rechnungen[-1].datum - rechnungen[0].datum).days,
+            )
+        )
 
     printFilteredFreiePreiseingabe(rechnungen, ["flat"])
     printFilteredFreiePreiseingabe(

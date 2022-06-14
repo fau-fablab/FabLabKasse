@@ -99,7 +99,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         AbstractOfflineShoppingBackend.__init__(
             self, cfg, categories, products, generate_root_category=True
         )
-        
+
     def add_client(self, name, email, address, pin, comment, debt_limit):
         # not implemented
         pass

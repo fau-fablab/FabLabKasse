@@ -69,7 +69,9 @@ import importlib
 if __name__ == "__main__":
     backendname = cfg.get("backend", "backend")
 else:
-    print("WARNING: gui.py: fake import for documentation active, instead of conditional import of backend")
+    print(
+        "WARNING: gui.py: fake import for documentation active, instead of conditional import of backend"
+    )
     backendname = "dummy"
 
 ShoppingBackend = shopping_backend_factory(backendname)
@@ -297,7 +299,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                         "Automatic reset on idle is disabled since idleTracker returned `disabled`."
                     )
 
-        self.pushButton_load_cart_from_app.setVisible(False) # FIXME: remove useless button
+        self.pushButton_load_cart_from_app.setVisible(
+            False
+        )  # FIXME: remove useless button
 
     def restart(self):
         # Ask if restart is okay
@@ -906,7 +910,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 def main():
     if "--debug" in sys.argv:
         print("waiting for debugger")
-        print("please open winpdb [does also work on linux despite the name],\n set password to 'gui'\n, attach")
+        print(
+            "please open winpdb [does also work on linux despite the name],\n set password to 'gui'\n, attach"
+        )
         print("(or use run.py --debug which does everything for you)")
         import rpdb2
 

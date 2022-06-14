@@ -20,7 +20,7 @@ def query_yes_no():
         if choice in truthtable:
             return truthtable[choice]
         else:
-            print ("\nPlease respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
+            print("\nPlease respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
 
 
 def valid_date(s):
@@ -57,18 +57,22 @@ def verify_sum(curKb, start, end, magposSum):
             if (
                 isinstance(row[1], (str, unicode)) and "Nachtrag" in row[1]
             ):  # Found possible Manual Transfer to fix crash of Kassenterminal, ask to skip
-                print('Found possible Fix: Kassenbuch Entry: Amount {0} at time {1} contains comment "{2}". Ignore the amount in verification? (y/n)\n'.format(
-                    unicode(row[0]), row[2], row[1]
-                ))
+                print(
+                    'Found possible Fix: Kassenbuch Entry: Amount {0} at time {1} contains comment "{2}". Ignore the amount in verification? (y/n)\n'.format(
+                        unicode(row[0]), row[2], row[1]
+                    )
+                )
                 if query_yes_no() == True:  # Skip this
                     continue
 
             kbSumme += Decimal(row[0]).quantize(Decimal(".01"))
 
         if kbSumme != magposSum:
-            print("Sum Difference: MagPos: {0} \tKassenbuch: {1}".format(
-                magposSum, kbSumme
-            ))
+            print(
+                "Sum Difference: MagPos: {0} \tKassenbuch: {1}".format(
+                    magposSum, kbSumme
+                )
+            )
         else:
             print("No Sum Difference between MagPosLog and Kassenbuch")
         return kbSumme == magposSum
@@ -213,9 +217,11 @@ if __name__ == "__main__":
 
             # There should only be one result. Otherwise throw exception.
             if safetyCounter == 0:
-                print("An Error occured: Query for amount {0} at timestamp {1} failed. Please verify that proceeding is ok! (y/n)\n".format(
-                    unicode(amount), timestamp
-                ))
+                print(
+                    "An Error occured: Query for amount {0} at timestamp {1} failed. Please verify that proceeding is ok! (y/n)\n".format(
+                        unicode(amount), timestamp
+                    )
+                )
                 if query_yes_no() == False:  # Abort if choice
                     print("Cancled log generation")
                     outputfile.close()
@@ -327,9 +333,9 @@ if __name__ == "__main__":
             for payment in nonbookedlist:
                 outputfile.write(u"{0} {1}\n".format(nb_cnt, payment))
                 nb_cnt = nb_cnt + 1
-        print(u"Ignored {} EUR (negative means missing bookings)".format(
-            unicode(ignored)
-        ))
+        print(
+            u"Ignored {} EUR (negative means missing bookings)".format(unicode(ignored))
+        )
     except IOError as e:
         print("ERROR: Saving CSV and / or Summary failed")
         print("IOERROR: {0}".format(e))
