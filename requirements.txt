@@ -12,6 +12,8 @@ natsort
 monotonic
 oerplib  # only for connection to OpenERP/odoo
 portalocker==0.5.6
+future
+configparser  # backport of the py3 configparser
 
 python-escpos==2.2.0
 
