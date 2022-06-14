@@ -35,14 +35,6 @@ FabLabKasse.shopping.backend.legacy_offline_kassenbuch module
     :undoc-members:
     :show-inheritance:
 
-FabLabKasse.shopping.backend.oerp module
-----------------------------------------
-
-.. automodule:: FabLabKasse.shopping.backend.oerp
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 FabLabKasse.shopping.backend.offline_base module
 ------------------------------------------------
 

@@ -30,7 +30,6 @@ Code structure overview
     - abstract: abstract base class
     - offline_base: abstract base class for backends that read products only once at the start and keep the cart in memory; as opposed to a always-online system that has its whole state somewhere in the cloud
     - dummy: has some fake products, just silently accepts all payments without storing them somewhere
-    - oerp: OpenERP / odoo implementation, still needs testing.
     - legacy_offline_kassenbuch: backend with product importing from a python script, SQLite based double-entry bookkeeping, contains many german database field names and is therefore marked as legacy. With some re-writing it would make a decent SQLite backend. Has a management CLI kassenbuch.py in the main folder.
 
   - payment_methods: different methods of payment like manual cash entry, cashless payment, charge on client account, ...

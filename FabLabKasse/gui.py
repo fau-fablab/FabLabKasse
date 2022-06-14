@@ -55,7 +55,7 @@ def shopping_backend_factory(backendname):
     :return: ShoppingBackend instance
     :rtype: shopping.backend.abstract.AbstractShoppingBackend
     """
-    assert backendname in ["dummy", "oerp", "legacy_offline_kassenbuch"]
+    assert backendname in ["dummy", "legacy_offline_kassenbuch"]
     # TODO there are probably nicer forms than the following import hack-magic
     shopping_backend_module = importlib.import_module(
         "FabLabKasse.shopping.backend." + backendname
@@ -97,7 +97,6 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # TODO check at startup for all cfg.get* calls
         cfg.getint("payup_methods", "overpayment_product_id")
         cfg.getint("payup_methods", "payout_impossible_product_id")
-
 
         for table in [self.table_products, self.table_order]:
             # forbid resizing columns
