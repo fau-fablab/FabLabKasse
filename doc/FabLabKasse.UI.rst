@@ -19,13 +19,6 @@ FabLabKasse.UI.ClientDialogCode module
     :undoc-members:
     :show-inheritance:
 
-FabLabKasse.UI.CheckCartAfterImportDialogCode module
-----------------------------------------------------
-
-..automodule:: FabLabKasse.UI.CheckCartAfterImportDialogCode
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 FabLabKasse.UI.GUIHelper module
 -------------------------------
