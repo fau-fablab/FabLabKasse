@@ -14,13 +14,6 @@ hide_cursor = off
 ; Allow receipt printing (on user request)
 receipt = yes
 
-; Collect user statistics
-; currently not implemented
-collect_stats = yes
-collect_userids = no ; if stats are collect, should userids also be read from serial interface
-userid_serial_interface = test123 ; path to sercial interface
-
-
 [backend]
 ; which payment is used for products, categories, order storage, ...
 backend=dummy
