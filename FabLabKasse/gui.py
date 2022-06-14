@@ -38,7 +38,6 @@ from UI.PaymentMethodDialogCode import PaymentMethodDialog
 from UI.KeyboardDialogCode import KeyboardDialog
 
 import scriptHelper
-from cashPayment.client.PaymentDevicesManager import PaymentDevicesManager
 
 from shopping.cart_from_app.cart_gui import MobileAppCartGUI
 
