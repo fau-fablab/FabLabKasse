@@ -55,7 +55,9 @@ fi
 # the OpenERP import requires a german locale -- add it.
 echo 'de_DE.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen
 # cd /usr/share/locales && sudo ./install-language-pack de_DE
-sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+#sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+sudo locale-gen
+locale -a
 
 # allow shutdown/reboot for any user
 sudo cp /home/$INSTALL_USER/FabLabKasse/FabLabKasse/tools/sudoers.d/kassenterm-reboot-shutdown /etc/sudoers.d/
