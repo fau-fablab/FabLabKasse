@@ -3,11 +3,12 @@
 #
 
 
+from __future__ import absolute_import
 import sqlite3
 from datetime import datetime
 from decimal import Decimal
 
-from faucardStates import Status, Info
+from .faucardStates import Status, Info
 import logging
 
 

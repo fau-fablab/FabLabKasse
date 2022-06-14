@@ -19,10 +19,11 @@
 
 """offline dummy backend
 """
+from __future__ import absolute_import
 
 import logging
-from abstract import Product, Category
-from offline_base import AbstractOfflineShoppingBackend, Client
+from .abstract import Product, Category
+from .offline_base import AbstractOfflineShoppingBackend, Client
 from decimal import Decimal
 
 

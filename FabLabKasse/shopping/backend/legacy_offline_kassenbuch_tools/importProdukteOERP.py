@@ -6,6 +6,7 @@
 
 # Dependencies
 
+from __future__ import print_function
 import sys
 import os
 import oerplib
@@ -55,11 +56,11 @@ def categ_id_to_list_of_names(c_id, oerp, cfg):
 
 
 def importProdukteOERP(data, oerp, cfg):
-    print "OERP Import"
+    print("OERP Import")
     prod_ids = oerp.search("product.product", [("default_code", "!=", False)])
-    print "reading {0} products from OERP, this may take some minutes...".format(
+    print("reading {0} products from OERP, this may take some minutes...".format(
         len(prod_ids)
-    )
+    ))
     prods = oerp.read(
         "product.product",
         prod_ids,
@@ -108,7 +109,7 @@ def saveToDir(data, outputdir):
     for g in data.keys():
         filename = g.replace("/", "__") + ".txt"
         files_written.append(filename)
-        print filename
+        print(filename)
         with open(outputdir + filename, "w") as f:
             # In Datei schreiben
             def formatiereOutput(d):
@@ -124,7 +125,7 @@ def saveToDir(data, outputdir):
 
     for f in os.listdir(outputdir):
         if f.endswith(".txt") and f not in files_written:
-            print "removing stale file {0}".format(f)
+            print("removing stale file {0}".format(f))
             os.unlink(outputdir + f)
 
 
@@ -134,8 +135,8 @@ def main():
     reload(sys).setdefaultencoding("UTF-8")  # somehow doesn't work
 
     if sys.stdout.encoding != "UTF-8":
-        print sys.stdout.encoding
-        print >> sys.stderr, "please use a UTF-8 locale, e.g. LANG=en_US.UTF-8"
+        print(sys.stdout.encoding)
+        print("please use a UTF-8 locale, e.g. LANG=en_US.UTF-8", file=sys.stderr)
         exit(1)
 
     cfg = ConfigParser(

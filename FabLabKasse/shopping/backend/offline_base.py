@@ -4,9 +4,10 @@ use case:
 - categories and products are only loaded once at startup and then kept RAM for the whole application time.
 - the carts are stored in RAM
 """
+from __future__ import absolute_import
 
 from abc import ABCMeta, abstractmethod  # abstract base class support
-from abstract import (
+from .abstract import (
     AbstractShoppingBackend,
     AbstractClient,
     Category,

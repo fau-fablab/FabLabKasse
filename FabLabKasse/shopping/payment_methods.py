@@ -295,7 +295,7 @@ class ClientPayment(AbstractClientPaymentMethod):
                     self.shopping_backend.format_money(-new_debt)
                 ),
             )
-        except DebtLimitExceeded, e:
+        except DebtLimitExceeded as e:
             self.successful = False
             self._end_of_payment()
             msgBox = QtGui.QMessageBox(self.parent)

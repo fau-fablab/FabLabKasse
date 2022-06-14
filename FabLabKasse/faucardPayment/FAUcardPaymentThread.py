@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 #
 
+from __future__ import print_function
+from __future__ import absolute_import
 import codecs
 import logging
 import sqlite3
@@ -9,16 +11,16 @@ from PyQt4 import QtCore, Qt
 from decimal import Decimal
 from datetime import datetime
 
-from faucardStates import Status, Info
-from MagPosLog import MagPosLog
+from .faucardStates import Status, Info
+from .MagPosLog import MagPosLog
 from ..shopping.backend.abstract import float_to_decimal
 
 
 try:  # Test if interface is available
     from magpos import magpos, codes
 except ImportError as e:  # Load Dummy otherwise
-    print e
-    from dinterface import magpos, codes
+    print(e)
+    from .dinterface import magpos, codes
 
 from FabLabKasse import scriptHelper
 from ConfigParser import ConfigParser
@@ -523,7 +525,7 @@ class FAUcardThread(QtCore.QObject):
                 magpos.serial.SerialException,
                 magpos.ConnectionTimeoutError,
                 IOError,
-            ), e:
+            ) as e:
                 logging.warning("FAUcardThread: {0}".format(e))
                 self.info = Info.con_error
                 self.log.set_status(self.status, self.info)

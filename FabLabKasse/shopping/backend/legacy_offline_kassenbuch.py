@@ -19,10 +19,12 @@
 
 """adapter to legacy offline sqlite code ("Kasssenbuch", partly in german)
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import logging
-from abstract import Product, Category, PrinterError
-from offline_base import AbstractOfflineShoppingBackend, Client
+from .abstract import Product, Category, PrinterError
+from .offline_base import AbstractOfflineShoppingBackend, Client
 from decimal import Decimal
 from ..payment_methods import ManualCashPayment, FAUCardPayment
 from ... import scriptHelper
@@ -186,7 +188,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
                 produkt_ref="9996",
             )
         assert rechnung.summe == total
-        print rechnung.positionen
+        print(rechnung.positionen)
         return rechnung
 
     def print_receipt(self, order_id):
@@ -196,7 +198,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         ), "given order is not ready for printing the receipt"
         try:
             order.rechnung_for_receipt.print_receipt(cfg=scriptHelper.getConfig())
-        except socket.error, e:
+        except socket.error as e:
             raise PrinterError("Socket error: " + str(e))
 
     def get_orders(self):

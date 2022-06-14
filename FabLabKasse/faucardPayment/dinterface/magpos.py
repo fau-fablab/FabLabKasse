@@ -2,9 +2,10 @@
 """
 pymagpos -- MagnaCarta POS protocol (minimal robust implementation)
 """
+from __future__ import absolute_import
 
 import serial
-import codes
+from . import codes
 import logging
 import time
 

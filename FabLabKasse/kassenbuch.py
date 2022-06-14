@@ -29,6 +29,7 @@ Kassenbuch Backend mit doppelter Buchführung.
 
 from __future__ import print_function
 from __future__ import unicode_literals
+from __future__ import absolute_import
 
 import sqlite3
 import argparse
@@ -51,7 +52,7 @@ except ImportError:
     pass  # it's also working without argcomplete
 
 import escpos.printer as escpos_printer
-import scriptHelper
+from . import scriptHelper
 
 
 def moneyfmt(value, places=2, curr="", sep=".", dp=",", pos="", neg="-", trailneg=""):

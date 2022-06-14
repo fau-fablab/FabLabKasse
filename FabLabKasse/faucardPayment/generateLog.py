@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import argparse
 from datetime import datetime, timedelta
 import sqlite3
@@ -56,24 +57,24 @@ def verify_sum(curKb, start, end, magposSum):
             if (
                 isinstance(row[1], (str, unicode)) and "Nachtrag" in row[1]
             ):  # Found possible Manual Transfer to fix crash of Kassenterminal, ask to skip
-                print 'Found possible Fix: Kassenbuch Entry: Amount {0} at time {1} contains comment "{2}". Ignore the amount in verification? (y/n)\n'.format(
+                print('Found possible Fix: Kassenbuch Entry: Amount {0} at time {1} contains comment "{2}". Ignore the amount in verification? (y/n)\n'.format(
                     unicode(row[0]), row[2], row[1]
-                )
+                ))
                 if query_yes_no() == True:  # Skip this
                     continue
 
             kbSumme += Decimal(row[0]).quantize(Decimal(".01"))
 
         if kbSumme != magposSum:
-            print "Sum Difference: MagPos: {0} \tKassenbuch: {1}".format(
+            print("Sum Difference: MagPos: {0} \tKassenbuch: {1}".format(
                 magposSum, kbSumme
-            )
+            ))
         else:
-            print "No Sum Difference between MagPosLog and Kassenbuch"
+            print("No Sum Difference between MagPosLog and Kassenbuch")
         return kbSumme == magposSum
 
     except sqlite3.OperationalError as e:
-        print "Failed to verify sum: {0}".format(e)
+        print("Failed to verify sum: {0}".format(e))
         return False
     return False
 
@@ -130,12 +131,12 @@ if __name__ == "__main__":
     try:
         args = parser.parse_args()
     except argparse.ArgumentTypeError as e:
-        print "ERROR: ArgumentTypeError '{0}'".format(e)
-        print "Please refer argument format to given example in -help"
+        print("ERROR: ArgumentTypeError '{0}'".format(e))
+        print("Please refer argument format to given example in -help")
         raise
     except argparse.ArgumentError as e:
-        print "ERROR: ArgumentParsing failed '{0}'".format(e)
-        print "Please check if all arguments are valid"
+        print("ERROR: ArgumentParsing failed '{0}'".format(e))
+        print("Please check if all arguments are valid")
         raise
 
     startdate = args.startdate + timedelta(milliseconds=0)
@@ -147,11 +148,11 @@ if __name__ == "__main__":
 
     if args.ignore:
         for card in args.ignore:
-            print "Ignoring card number: {}".format(card)
+            print("Ignoring card number: {}".format(card))
 
     # cfg = scriptHelper.getConfig()
 
-    print "Building Summary from {0} to {1}".format(startdate, enddate)
+    print("Building Summary from {0} to {1}".format(startdate, enddate))
 
     try:
         con = sqlite3.connect(args.file)
@@ -166,7 +167,7 @@ if __name__ == "__main__":
         curKb = conKb.cursor()
         conKb.text_factory = unicode
     except sqlite3.OperationalError as e:
-        print "ERROR: {0}".format(e)
+        print("ERROR: {0}".format(e))
         raise
 
     try:
@@ -212,11 +213,11 @@ if __name__ == "__main__":
 
             # There should only be one result. Otherwise throw exception.
             if safetyCounter == 0:
-                print "An Error occured: Query for amount {0} at timestamp {1} failed. Please verify that proceeding is ok! (y/n)\n".format(
+                print("An Error occured: Query for amount {0} at timestamp {1} failed. Please verify that proceeding is ok! (y/n)\n".format(
                     unicode(amount), timestamp
-                )
+                ))
                 if query_yes_no() == False:  # Abort if choice
-                    print "Cancled log generation"
+                    print("Cancled log generation")
                     outputfile.close()
                     con.close()
                     quit()
@@ -269,7 +270,7 @@ if __name__ == "__main__":
             firstbooking = startdate
         if lastbooking is None:  # Did not find any data
             lastbooking = enddate
-        print "first: {}".format(firstbooking)
+        print("first: {}".format(firstbooking))
 
         if args.detail is True:
             # Open detailed positons csv file
@@ -318,7 +319,7 @@ if __name__ == "__main__":
             outputfile.write(
                 u"Der Betrag im MagposLog entspricht dem im Kassenbuch: NEIN\n"
             )
-            print "VERIFY SUM FAILED"
+            print("VERIFY SUM FAILED")
 
         if nonbookedlist != []:
             outputfile.write(u"Some Payments were not booked:\n")
@@ -326,10 +327,10 @@ if __name__ == "__main__":
             for payment in nonbookedlist:
                 outputfile.write(u"{0} {1}\n".format(nb_cnt, payment))
                 nb_cnt = nb_cnt + 1
-        print u"Ignored {} EUR (negative means missing bookings)".format(
+        print(u"Ignored {} EUR (negative means missing bookings)".format(
             unicode(ignored)
-        )
+        ))
     except IOError as e:
-        print "ERROR: Saving CSV and / or Summary failed"
-        print "IOERROR: {0}".format(e)
+        print("ERROR: Saving CSV and / or Summary failed")
+        print("IOERROR: {0}".format(e))
         raise

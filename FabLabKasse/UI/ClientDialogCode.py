@@ -16,10 +16,11 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 from PyQt4 import QtGui, QtCore
 from .uic_generated.SelectClientDialog import Ui_SelectClientDialog
 import re
-from KeyboardDialogCode import KeyboardDialog
+from .KeyboardDialogCode import KeyboardDialog
 from .. import scriptHelper
 import random
 from ConfigParser import Error as ConfigParserError

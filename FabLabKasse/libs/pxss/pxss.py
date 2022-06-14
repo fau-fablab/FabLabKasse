@@ -25,6 +25,7 @@
 # modifications by Patrick Kanzler <patrick.kanzler@fablab.fau.de> in 2015.
 
 
+from __future__ import print_function
 from ctypes import *
 import logging
 
@@ -426,8 +427,8 @@ if __name__ == "__main__":
     i = IdleTracker(idle_threshold=5000)
     while 1:
         info = i.check_idle()
-        print time.asctime(), info,
+        print(time.asctime(), info, end=' ')
         # don't poll more often than 2 seconds
         wait_time = max(info[1] / 1000, 2)
-        print "wait:", wait_time
+        print("wait:", wait_time)
         time.sleep(wait_time)

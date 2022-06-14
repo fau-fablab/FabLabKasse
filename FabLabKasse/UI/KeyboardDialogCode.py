@@ -17,8 +17,9 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 from PyQt4 import QtGui
-from uic_generated.KeyboardDialog import Ui_KeyboardDialog
+from .uic_generated.KeyboardDialog import Ui_KeyboardDialog
 
 
 class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):

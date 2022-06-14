@@ -19,6 +19,7 @@
 # see <http://www.gnu.org/licenses/>.
 
 """unittest"""
+from __future__ import print_function
 
 import unittest
 
@@ -34,7 +35,7 @@ class ExampleTest(unittest.TestCase):
         self.assertTrue(True)
 
         with self.assertRaises(ZeroDivisionError):
-            print 4 / 0
+            print(4 / 0)
 
 
 if __name__ == "__main__":

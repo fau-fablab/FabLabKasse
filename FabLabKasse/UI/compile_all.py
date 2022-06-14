@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 from PyQt4 import uic
 import fnmatch
 import os
@@ -28,10 +29,10 @@ def main():
         filename = os.path.dirname(__file__) + "/" + file
         prefix = os.path.dirname(__file__) + "/uic_generated/"
         if fnmatch.fnmatch(filename, "*.ui"):
-            print file
+            print(file)
             uic.compileUi(file, open(prefix + file[:-2] + "py", "w"), execute=True)
         if fnmatch.fnmatch(filename, "*.qrc"):
-            print file
+            print(file)
             subprocess.call(["pyrcc4", filename, "-o", prefix + file[:-4] + "_rc.py"])
 
 

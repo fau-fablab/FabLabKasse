@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import re
 import locale
@@ -29,15 +31,15 @@ from PyQt4 import QtGui, QtCore, Qt
 import functools
 from ConfigParser import Error as ConfigParserError
 
-from libs.pxss import pxss
+from .libs.pxss import pxss
 from FabLabKasse.UI.GUIHelper import resize_table_columns
 
 # import UI
-from UI.uic_generated.Kassenterminal import Ui_Kassenterminal
-from UI.PaymentMethodDialogCode import PaymentMethodDialog
-from UI.KeyboardDialogCode import KeyboardDialog
+from .UI.uic_generated.Kassenterminal import Ui_Kassenterminal
+from .UI.PaymentMethodDialogCode import PaymentMethodDialog
+from .UI.KeyboardDialogCode import KeyboardDialog
 
-import scriptHelper
+from . import scriptHelper
 
 
 if __name__ == "__main__":
@@ -61,13 +63,13 @@ def shopping_backend_factory(backendname):
     return shopping_backend_module.ShoppingBackend
 
 
-from shopping.backend.abstract import ProductNotFound, PrinterError
+from .shopping.backend.abstract import ProductNotFound, PrinterError
 import importlib
 
 if __name__ == "__main__":
     backendname = cfg.get("backend", "backend")
 else:
-    print "WARNING: gui.py: fake import for documentation active, instead of conditional import of backend"
+    print("WARNING: gui.py: fake import for documentation active, instead of conditional import of backend")
     backendname = "dummy"
 
 ShoppingBackend = shopping_backend_factory(backendname)
@@ -617,7 +619,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                 try:
                     # TOOD show amount returned on receipt (needs some rework, because it is not yet stored in the order and so we cannot re-print receipts)
                     self.shoppingBackend.print_receipt(paymentmethod.receipt_order_id)
-                except PrinterError, e:
+                except PrinterError as e:
                     try:
                         email = cfg.get("general", "support_mail")
                     except ConfigParserError:
@@ -903,9 +905,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
 def main():
     if "--debug" in sys.argv:
-        print "waiting for debugger"
-        print "please open winpdb [does also work on linux despite the name],\n set password to 'gui'\n, attach"
-        print "(or use run.py --debug which does everything for you)"
+        print("waiting for debugger")
+        print("please open winpdb [does also work on linux despite the name],\n set password to 'gui'\n, attach")
+        print("(or use run.py --debug which does everything for you)")
         import rpdb2
 
         rpdb2.start_embedded_debugger("gui")

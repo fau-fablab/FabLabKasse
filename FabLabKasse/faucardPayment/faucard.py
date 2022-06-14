@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 
+from __future__ import absolute_import
 import codecs
 from FabLabKasse import scriptHelper
 from ConfigParser import ConfigParser
@@ -11,10 +12,10 @@ from datetime import datetime
 from decimal import Decimal
 from PyQt4 import QtCore, Qt, QtGui
 
-from MagPosLog import MagPosLog
+from .MagPosLog import MagPosLog
 from ..UI.FAUcardPaymentDialogCode import FAUcardPaymentDialog
-from FAUcardPaymentThread import FAUcardThread
-from faucardStates import Status, Info
+from .FAUcardPaymentThread import FAUcardThread
+from .faucardStates import Status, Info
 
 
 class PayupFAUCard(QtCore.QObject):
