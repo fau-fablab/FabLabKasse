@@ -23,7 +23,7 @@ import re
 from .KeyboardDialogCode import KeyboardDialog
 from .. import scriptHelper
 import random
-from ConfigParser import Error as ConfigParserError
+from configparser import Error as ConfigParserError
 import datetime
 
 

@@ -27,7 +27,7 @@ import itertools
 import locale
 import unittest
 import doctest
-from ConfigParser import Error as ConfigParserError
+from configparser import Error as ConfigParserError
 
 # counter for unique id values, use next(_id_counter) to get a new ID
 _id_counter = itertools.count()

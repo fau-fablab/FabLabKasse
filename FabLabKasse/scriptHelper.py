@@ -25,8 +25,8 @@ import logging.handlers
 import sys
 import portalocker
 import sqlite3
-from ConfigParser import ConfigParser
-from ConfigParser import Error as ConfigParserError
+from configparser import ConfigParser
+from configparser import Error as ConfigParserError
 import codecs
 from PyQt4 import QtGui
 import traceback

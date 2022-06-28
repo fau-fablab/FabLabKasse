@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -22,6 +22,7 @@ from PyQt4 import uic
 import fnmatch
 import os
 import subprocess
+import time
 
 
 def main():
@@ -30,10 +31,17 @@ def main():
         prefix = os.path.dirname(__file__) + "/uic_generated/"
         if fnmatch.fnmatch(filename, "*.ui"):
             print(file)
-            uic.compileUi(file, open(prefix + file[:-2] + "py", "w"), execute=True)
+            with open(prefix + file[:-2] + "py", "w") as f:
+                uic.compileUi(file, f, execute=True)
         if fnmatch.fnmatch(filename, "*.qrc"):
             print(file)
-            subprocess.call(["pyrcc4", filename, "-o", prefix + file[:-4] + "_rc.py"])
+            subprocess.call(
+                ["pyrcc4", "-py3", filename, "-o", prefix + file[:-4] + "_rc.py"]
+            )
+
+    time.sleep(2)
+    subprocess.call(["futurize", "-wn", "-0", prefix])
+    time.sleep(2)
 
 
 if __name__ == "__main__":

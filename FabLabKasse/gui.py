@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -29,7 +29,7 @@ import os
 from decimal import Decimal, DecimalException
 from PyQt4 import QtGui, QtCore, Qt
 import functools
-from ConfigParser import Error as ConfigParserError
+from configparser import Error as ConfigParserError
 
 from .libs.pxss import pxss
 from FabLabKasse.UI.GUIHelper import resize_table_columns

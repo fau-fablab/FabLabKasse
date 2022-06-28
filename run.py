@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -144,7 +144,7 @@ def main():
     if "--debug" in sys.argv:
         debug = "--debug"
     gui = subprocess.Popen(
-        "python2.7 -m FabLabKasse.gui {}".format(debug).split(" "), env=myEnv
+        "python3 -m FabLabKasse.gui {}".format(debug).split(" "), env=myEnv
     )
     if debug:
         time.sleep(1)

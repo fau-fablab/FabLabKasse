@@ -11,7 +11,7 @@ import sys
 import os
 import oerplib
 import locale
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 import codecs
 
 

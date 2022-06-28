@@ -37,7 +37,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 import dateutil.parser
 import csv
-import StringIO  # FIXME: this won't work for python3, where StringIO.StringIO seems to have moved to io.StringIO. For some reason, io.StringIO gives errors work under python2.7.
+import io
 import codecs
 import re
 import sys
@@ -1054,7 +1054,7 @@ class UnicodeWriter(object):
 
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
         # Redirect output to a queue
-        self.queue = StringIO.StringIO()
+        self.queue = io.StringIO()
         self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
         self.stream = f
         self.encoder = codecs.getincrementalencoder(encoding)()

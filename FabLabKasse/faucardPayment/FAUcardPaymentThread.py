@@ -23,7 +23,7 @@ except ImportError as e:  # Load Dummy otherwise
     from .dinterface import magpos, codes
 
 from FabLabKasse import scriptHelper
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 
 class FAUcardThread(QtCore.QObject):

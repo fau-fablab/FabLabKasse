@@ -5,7 +5,7 @@
 from __future__ import absolute_import
 import codecs
 from FabLabKasse import scriptHelper
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 import sqlite3
 from datetime import datetime
