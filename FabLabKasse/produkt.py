@@ -116,7 +116,7 @@ class Produkt(object):
                 # l = l.decode(sys.getfilesystemencoding())  # FIXME: do we need this on python3?
                 p, baum = cls.load_from_file(path + "/" + l)
 
-                for element in p.iterkeys():
+                for element in p.keys():
                     assert element not in produkte, (
                         "Duplicate product ID {} when loading file {} \n"
                         "[already present in a file loaded earlier.]\n Do you have stale files in produkte/ ?".format(
