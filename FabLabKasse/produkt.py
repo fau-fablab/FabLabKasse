@@ -113,7 +113,7 @@ class Produkt(object):
 
         for l in os.listdir(path):
             if fnmatch.fnmatch(l, "*.txt"):
-                l = l.decode(sys.getfilesystemencoding())
+                # l = l.decode(sys.getfilesystemencoding())  # FIXME: do we need this on python3?
                 p, baum = cls.load_from_file(path + "/" + l)
 
                 for element in p.iterkeys():

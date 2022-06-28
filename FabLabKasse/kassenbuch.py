@@ -400,7 +400,7 @@ class Kasse(object):
     def __init__(self, sqlite_file=":memory:"):
         self.con = sqlite3.connect(sqlite_file)
         self.cur = self.con.cursor()
-        self.con.text_factory = unicode
+        self.con.text_factory = str
 
         cur = self.cur
         cur.execute(
