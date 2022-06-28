@@ -82,14 +82,14 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
             # 3. recurse: contained subcategories
             for (sub_name, sub_data) in data[
                 0
-            ].iteritems():  # walk through dict of subcategories
+            ].items():  # walk through dict of subcategories
                 recursively_add_categories(sub_name, sub_data, current_category)
 
         root = Category(
             categ_id=0, name="root pseudocategory, not used later", parent_id=None
         )
         categories.append(root)
-        for (name, data) in produkte_wald.iteritems():
+        for (name, data) in produkte_wald.items():
             recursively_add_categories(name, data, root)
 
         assert (
