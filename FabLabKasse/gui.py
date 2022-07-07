@@ -403,9 +403,8 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.updateProductsAndCategories()
 
     def on_category_clicked(self, index=None):
-        self.current_category = index.data(QtCore.Qt.UserRole + 1).toInt()[
-            0
-        ]  # TODO what does that mean
+        self.current_category = index.data(QtCore.Qt.UserRole + 1)
+        
         self.leaveSearch()
         self.updateProductsAndCategories()
 
@@ -542,7 +541,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         model = idx.model()
         if model is None:
             return
-        prod_id = model.item(row, 0).data().toInt()[0]
+        prod_id = model.item(row, 0).data()
 
         self.addOrderLine(prod_id)
         self.leaveSearch(
@@ -646,7 +645,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
     def getSelectedOrderLineId(self):
         order_idx = self.table_order.currentIndex()
         if order_idx.model() and order_idx.isValid():
-            order_line_id = order_idx.model().item(order_idx.row(), 0).data().toInt()[0]
+            order_line_id = order_idx.model().item(order_idx.row(), 0).data()
             return order_line_id
         else:
             return None
