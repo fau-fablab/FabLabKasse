@@ -118,7 +118,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
                     pin=k.pin,
                     debt_limit=debt_limit,
                     debt=-k.summe,
-                    is_admin=unicode(k.kommentar).startswith("#admin#"),
+                    is_admin=str(k.kommentar).startswith("#admin#"),
                 )
         return clients
 
@@ -151,9 +151,9 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         rechnung.store(self._kasse.cur)
         logging.info("stored payment in Rechnung#{0}".format(rechnung.id))
 
-        b1 = Buchung(unicode(destination), rechnung.summe, rechnung=rechnung.id)
+        b1 = Buchung(str(destination), rechnung.summe, rechnung=rechnung.id)
         b2 = Buchung(
-            unicode(origin), -rechnung.summe, rechnung=rechnung.id, datum=b1.datum
+            str(origin), -rechnung.summe, rechnung=rechnung.id, datum=b1.datum
         )
         self._kasse.buchen([b1, b2])  # implies database commit
 

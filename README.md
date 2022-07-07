@@ -61,12 +61,12 @@ def do_something(value):
     :return: True if the sun shines tomorrow, False otherwise
     :rtype: bool
     :param value: your telephone number
-    :type value: unicode
+    :type value: str
     """
 ```
 
 - for the docstrings, use the type syntax as defined at https://www.jetbrains.com/pycharm/help/type-hinting-in-pycharm.html#d301935e18526
-- custom __repr__() methods must return ASCII strings, not unicode objects.
+- custom __repr__() methods must return ASCII strings, not unicode objects. (OUTDATED - has changed with python3! TODO FIXME)
 
 ## High level (structure)
 

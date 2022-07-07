@@ -28,7 +28,6 @@ Kassenbuch Backend mit doppelter Buchführung.
 """
 
 from __future__ import print_function
-from __future__ import unicode_literals
 from __future__ import absolute_import
 
 import sqlite3
@@ -178,8 +177,8 @@ class Rechnung(object):
                     "id": row[0],
                     "rechnung": row[1],
                     "anzahl": Decimal(row[2]),
-                    "einheit": unicode(row[3]),
-                    "artikel": unicode(row[4]),
+                    "einheit": str(row[3]),
+                    "artikel": str(row[4]),
                     "einzelpreis": Decimal(row[5]),
                     "produkt_ref": row[6],
                 }
@@ -215,10 +214,10 @@ class Rechnung(object):
                 + "produkt_ref) VALUES (?, ?, ?, ?, ?, ?)",
                 (
                     pos["rechnung"],
-                    unicode(pos["anzahl"]),
+                    str(pos["anzahl"]),
                     pos["einheit"],
                     pos["artikel"],
-                    unicode(pos["einzelpreis"]),
+                    str(pos["einzelpreis"]),
                     pos["produkt_ref"],
                 ),
             )
@@ -341,7 +340,7 @@ class Buchung(object):
                 self.datum,
                 self.konto,
                 self.rechnung,
-                unicode(self.betrag),
+                str(self.betrag),
                 self.kommentar,
             ),
         )
@@ -351,7 +350,7 @@ class Buchung(object):
     def beschreibung(self):
         s = ""
         if self.rechnung:
-            s += "Rechnung: " + unicode(self.rechnung)
+            s += "Rechnung: " + str(self.rechnung)
             if self.kommentar:
                 s += "(" + self.kommentar + ")"
         elif self.kommentar:
@@ -393,7 +392,7 @@ class Buchung(object):
         )
         return (
             s.__repr__()
-        )  # workaround: python2.7 has trouble with __repr__ returning unicode strings - http://bugs.python.org/issue5876
+        )
 
 
 class Kasse(object):
@@ -689,7 +688,7 @@ class Kasse(object):
 
         :type date: datetime.datetime | None
         :type snapshot_time: datetime.datetime | None
-        :rtype: unicode
+        :rtype: str
         """
         string = ""
         date = date or snapshot_time or datetime.now()
@@ -807,7 +806,7 @@ class Kunde(object):
                 (
                     self.name,
                     self.pin,
-                    unicode(self.schuldengrenze),
+                    str(self.schuldengrenze),
                     self.email,
                     self.telefon,
                     self.adresse,
@@ -822,7 +821,7 @@ class Kunde(object):
                 (
                     self.name,
                     self.pin,
-                    unicode(self.schuldengrenze),
+                    str(self.schuldengrenze),
                     self.email,
                     self.telefon,
                     self.adresse,
@@ -912,7 +911,7 @@ class Kunde(object):
         s = "<%s(id=%s, name=%s, pin=%s" % (
             self.__class__.__name__,
             self.id,
-            unicode(self.name),
+            str(self.name),
             self.pin,
         )
         if self.schuldengrenze is not None:
@@ -986,7 +985,7 @@ class Kundenbuchung(object):
                     self.datum,
                     self.kunde,
                     self.rechnung,
-                    unicode(self.betrag),
+                    str(self.betrag),
                     self.kommentar,
                 ),
             )
@@ -999,7 +998,7 @@ class Kundenbuchung(object):
                     self.datum,
                     self.kunde,
                     self.rechnung,
-                    unicode(self.betrag),
+                    str(self.betrag),
                     self.kommentar,
                     self.id,
                 ),
@@ -1011,7 +1010,7 @@ class Kundenbuchung(object):
     def beschreibung(self):
         s = ""
         if self.rechnung:
-            s += "Rechnung: " + unicode(self.rechnung)
+            s += "Rechnung: " + str(self.rechnung)
             if self.kommentar:
                 s += "(" + self.kommentar + ")"
         elif self.kommentar:
@@ -1060,7 +1059,7 @@ class UnicodeWriter(object):
         self.encoder = codecs.getincrementalencoder(encoding)()
 
     def writerow(self, row):
-        self.writer.writerow([unicode(s).encode("utf-8") for s in row])
+        self.writer.writerow([str(s).encode("utf-8") for s in row])
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
         data = data.decode("utf-8")
@@ -1083,7 +1082,7 @@ def parse_date(value):
     :type value: basestr | None
     :rtype: datetime.datetime | None
     """
-    if isinstance(value, basestring) and value != "":
+    if isinstance(value, str) and value != "":
         value = value.lower().strip()
         if value in ["now", "today"]:
             return datetime.today()
@@ -1499,11 +1498,11 @@ def main():
             for b in k.buchungen:
                 writer.writerow(
                     [
-                        unicode(b.datum),
-                        unicode(b.konto),
+                        str(b.datum),
+                        str(b.konto),
                         "{0:.2f}".format(b.betrag),
-                        unicode(b.rechnung),
-                        unicode(b.kommentar),
+                        str(b.rechnung),
+                        str(b.kommentar),
                     ]
                 )
         elif args.what == "invoices":
@@ -1591,7 +1590,7 @@ def main():
                 :type extra_checks: function | None
                 """
                 default_str = (
-                    " [{0}]".format(unicode(default_input))
+                    " [{0}]".format(str(default_input))
                     if default_input is not None
                     else ""
                 )
@@ -1604,7 +1603,7 @@ def main():
                     input_str = input_str.decode(sys.stdin.encoding)
 
                     if input_str == "" and default_input is not None:
-                        input_str = unicode(default_input)
+                        input_str = str(default_input)
 
                     if not re.match(allowed_regexp, input_str):
                         print("[!] Eingabe ungültig!", file=sys.stderr)
@@ -1664,7 +1663,7 @@ def main():
                 """
                 Check function for fetch_input; checks if n is a Decimal
                 :param n: the number to check
-                :type n: unicode, str
+                :type n: str
                 :rtype : bool
                 """
                 try:
@@ -1682,7 +1681,7 @@ def main():
                 """
                 Check function for fetch_input; checks if n >= 0 or == -1
                 :param n: the number to check
-                :type n: unicode, str
+                :type n: str
                 :rtype : bool
                 """
                 if Decimal(n) >= Decimal("0") or Decimal(n) == Decimal("-1"):

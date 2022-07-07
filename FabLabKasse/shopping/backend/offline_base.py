@@ -132,7 +132,7 @@ class OfflineCategoryTree(object):
     def get_subcategories(self, categ_id):
         return self._sort_categories(
             filter(
-                lambda categ: categ.parent_id == categ_id, self.categories.itervalues()
+                lambda categ: categ.parent_id == categ_id, self.categories.values()
             )
         )
 
@@ -141,7 +141,7 @@ class OfflineCategoryTree(object):
         # remove silly BOM
         string = string.replace(u"\ufeff", "")
         # all whitespace is treated equal
-        string = re.sub(r"(\s+)", " ", string, flags=re.UNICODE)
+        string = re.sub(r"(\s+)", " ", string)
         string = string.replace(u"\u2010", "-")  # unicode dash
         return string.lower().strip()
 
@@ -159,7 +159,7 @@ class OfflineCategoryTree(object):
 
     def get_products(self, categ_id):
         return self._sort_products(
-            filter(lambda prod: prod.categ_id == categ_id, self.products.itervalues())
+            filter(lambda prod: prod.categ_id == categ_id, self.products.values())
         )
 
     def search_products(self, searchstr):
@@ -175,7 +175,7 @@ class OfflineCategoryTree(object):
                     return False
             return True
 
-        return self._sort_products(filter(matches, self.products.itervalues()))
+        return self._sort_products(filter(matches, self.products.values()))
 
     def search_categories(self, searchstr):
         searchlist = OfflineCategoryTree.simplify_searchstring(searchstr).split(" ")
@@ -188,7 +188,7 @@ class OfflineCategoryTree(object):
                     return False
             return True
 
-        return self._sort_categories(filter(matches, self.categories.itervalues()))
+        return self._sort_categories(filter(matches, self.categories.values()))
 
     def get_product(self, prod_id):
         try:
@@ -245,7 +245,7 @@ class Order(object):
     def add_order_line(self, product, qty, comment=None):
         """add a Product() object with specified quantity to the cart"""
         assert not self._finished, "finished orders may not be modified"
-        assert comment is None or isinstance(comment, basestring)
+        assert comment is None or isinstance(comment, str)
         self._lines.append(ProductBasedOrderLine(product, qty, comment))
         # call update_quantity so that qty_rounding is checked
         self.update_quantity(self._lines[-1].order_line_id, qty)

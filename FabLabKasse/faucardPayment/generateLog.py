@@ -55,11 +55,11 @@ def verify_sum(curKb, start, end, magposSum):
             if Decimal(row[0]) < 0:  # STORNO can only be due to testing -> ignore
                 continue
             if (
-                isinstance(row[1], (str, unicode)) and "Nachtrag" in row[1]
+                isinstance(row[1], str) and "Nachtrag" in row[1]
             ):  # Found possible Manual Transfer to fix crash of Kassenterminal, ask to skip
                 print(
                     'Found possible Fix: Kassenbuch Entry: Amount {0} at time {1} contains comment "{2}". Ignore the amount in verification? (y/n)\n'.format(
-                        unicode(row[0]), row[2], row[1]
+                        str(row[0]), row[2], row[1]
                     )
                 )
                 if query_yes_no() == True:  # Skip this
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     try:
         con = sqlite3.connect(args.file)
         cur = con.cursor()
-        con.text_factory = unicode
+        con.text_factory = str
         cur.execute(
             "SELECT timestamp_payed, cardnumber, oldbalance, amount, newbalance,  datum, ID FROM MagPosLog WHERE timestamp_payed >= ? AND timestamp_payed <= ? ORDER BY timestamp_payed ASC",
             (startdate, enddate),
@@ -169,7 +169,7 @@ if __name__ == "__main__":
 
         conKb = sqlite3.connect(args.kassenbuch)
         curKb = conKb.cursor()
-        conKb.text_factory = unicode
+        conKb.text_factory = str
     except sqlite3.OperationalError as e:
         print("ERROR: {0}".format(e))
         raise
@@ -206,7 +206,7 @@ if __name__ == "__main__":
             # Determine corresponding rechnung
             curKb.execute(
                 "SELECT rechnung, datum FROM buchung WHERE konto = 'FAUKarte' AND (abs(betrag - ?) < 1e-4) AND datum BETWEEN ? AND ? ",
-                (unicode(amount), timestamp, timestamp + timedelta(seconds=20)),
+                (str(amount), timestamp, timestamp + timedelta(seconds=20)),
             )
             safetyCounter = 0
             rechnungsnr = -1
@@ -219,7 +219,7 @@ if __name__ == "__main__":
             if safetyCounter == 0:
                 print(
                     "An Error occured: Query for amount {0} at timestamp {1} failed. Please verify that proceeding is ok! (y/n)\n".format(
-                        unicode(amount), timestamp
+                        str(amount), timestamp
                     )
                 )
                 if query_yes_no() == False:  # Abort if choice
@@ -229,7 +229,7 @@ if __name__ == "__main__":
                     quit()
                 nonbookedlist.append(
                     "ID: {0}, Card: {1}, timestamp: {2}, amount: {3}".format(
-                        row[6], row[1], timestamp, unicode(amount)
+                        row[6], row[1], timestamp, str(amount)
                     )
                 )  # append log for this error
 
@@ -334,7 +334,7 @@ if __name__ == "__main__":
                 outputfile.write(u"{0} {1}\n".format(nb_cnt, payment))
                 nb_cnt = nb_cnt + 1
         print(
-            u"Ignored {} EUR (negative means missing bookings)".format(unicode(ignored))
+            u"Ignored {} EUR (negative means missing bookings)".format(str(ignored))
         )
     except IOError as e:
         print("ERROR: Saving CSV and / or Summary failed")

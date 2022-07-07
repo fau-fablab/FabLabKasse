@@ -71,7 +71,7 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
         self.pushButton_shift.clicked.connect(self.shift)
 
     def text(self):
-        return unicode(self.lineEdit.text())
+        return str(self.lineEdit.text())
 
     def charKey(self):
         pos = self.lineEdit.cursorPosition()
@@ -99,6 +99,6 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
         for c in list("abcdefghijklmnopqrstuvwxyz0123456789") + ["ue", "ae", "oe"]:
             btn = getattr(self, "pushButton_" + c)
             if self.caps:
-                btn.setText(unicode(btn.text()).upper())
+                btn.setText(str(btn.text()).upper())
             else:
-                btn.setText(unicode(btn.text()).lower())
+                btn.setText(str(btn.text()).lower())

@@ -62,4 +62,3 @@ Features Frontend:
 -   Mehrere Warenkörbe (z.B. via Tabs)
 -   Import von Warenkörben (online, qr code, oder ähnliches)
 
-- Umstellung auf python3 wäre gut, das erspart viele hässliche Unicode-Schmerzen. Geht nicht wegen oerplib

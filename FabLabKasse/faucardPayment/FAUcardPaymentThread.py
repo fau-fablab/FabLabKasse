@@ -234,7 +234,7 @@ class FAUcardThread(QtCore.QObject):
         # Init MagPosLog in worker thread
         self.con = sqlite3.connect(self.cfg.get("magna_carta", "log_file"))
         self.cur = self.con.cursor()
-        self.con.text_factory = unicode
+        self.con.text_factory = str
         self.log = MagPosLog(self.amount, self.cur, self.con)
 
         try:

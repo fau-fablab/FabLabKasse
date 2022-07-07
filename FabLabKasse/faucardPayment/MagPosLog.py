@@ -144,7 +144,7 @@ class MagPosLog:
                 "INSERT INTO MagPosLog (cardnumber, amount, datum, status, info, payed) VALUES (?,?,?,?,?,?)",
                 (
                     self.cardnumber,
-                    unicode(self.amount),
+                    str(self.amount),
                     datetime.now(),
                     self.status,
                     self.info,
@@ -162,7 +162,7 @@ class MagPosLog:
             "UPDATE MagPosLog SET cardnumber = ?, amount = ?, datum = ?, status = ?, info = ?, payed = ? WHERE id = ?",
             (
                 self.cardnumber,
-                unicode(self.amount),
+                str(self.amount),
                 datetime.now(),
                 self.status,
                 self.info,
@@ -194,7 +194,7 @@ class MagPosLog:
             "INSERT INTO MagPosLog (cardnumber, amount, datum, status, info, payed) VALUES (?,?,?,?,?,?)",
             (
                 kartennummer,
-                unicode(betrag),
+                str(betrag),
                 datetime.now(),
                 Status.transaction_result.value,
                 info,

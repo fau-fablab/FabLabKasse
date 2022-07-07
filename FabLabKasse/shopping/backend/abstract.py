@@ -74,12 +74,12 @@ def format_qty(qty):
 
     :param qty: quantity in numbers
     :return: string-representation of qty, decimal sep is dependent on locale
-    :rtype: unicode
+    :rtype: str
 
     >>> format_qty(5)
     u'5'
     """
-    s = unicode(float(qty))
+    s = str(float(qty))
     if s.endswith(".0"):
         s = s[:-2]
     s = s.replace(".", locale.localeconv()["decimal_point"])
@@ -95,7 +95,7 @@ def format_money(amount):
     :param amount: amount of money
     :type amount: float|Decimal
     :return: amount formatted as string with Euro-Sign
-    :rtype: unicode
+    :rtype: str
 
     >>> format_money(1.23)
     u'1,23 \u20ac'
@@ -147,11 +147,11 @@ class Product(object):
                      TODO hide these products from search, or a more explicit solution
     :type categ_id: int | None
     :param name: Name of product
-    :type name: unicode
+    :type name: str
     :param location: Location of product (shown to the user)
-    :type location: unicode
+    :type location: str
     :param unit: Unit of sale for this product (e.g. piece, kilogram)
-    :type unit: unicode
+    :type unit: str
     :type price: Decimal
     :param price: price for one unit of this product
     :param qty_rounding: Product can only be bought in multiples of this quantity, user (GUI) input will be rounded/truncated to the next multiple of this.
@@ -199,9 +199,9 @@ class OrderLine(object):
 
     :param Decimal qty: amount ("unlimited" number of digits is okay)
 
-    :param unicode unit: product unit of sale
+    :param str unit: product unit of sale
 
-    :param unicode name: product name
+    :param str name: product name
 
     :param Decimal price_per_unit: price for one unit
 
@@ -238,7 +238,7 @@ class OrderLine(object):
         self.price_subtotal = price_subtotal
         self.delete_if_zero_qty = delete_if_zero_qty
 
-    def __unicode__(self):
+    def __str__(self):
         return u"{0} {1} {2} = {3}".format(
             format_qty(self.qty),
             self.unit,
@@ -458,7 +458,7 @@ class AbstractShoppingBackend(object):
         :type prod_id: int
         :param qty: amount of product
         :type qty: Decimal
-        :type comment: (basestring, None)
+        :type comment: (str, None)
         :param comment: textual comment from the user, or None.
         :raise: ProductNotFound
         """

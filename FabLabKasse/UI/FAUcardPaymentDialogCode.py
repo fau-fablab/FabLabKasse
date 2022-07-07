@@ -45,7 +45,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
         # Set up member variables and fill GUI
         self.amount = amount
         self.label_betrag.setText(
-            u"{} €".format(unicode(self.amount)).replace(".", ",")
+            u"{} €".format(str(self.amount)).replace(".", ",")
         )
         self.label_status.setText(u"Starte FAUcard-Zahlung\n")
         self.counter = 0
@@ -163,7 +163,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
             elif response[0] == Info.con_back:
                 self.label_status.setText(
                     u"Verbindung zum Terminal wieder da.\nBuche {}€ ab\n".format(
-                        unicode(self.amount)
+                        str(self.amount)
                     ).replace(".", ",")
                 )
                 logging.warning(
@@ -185,7 +185,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
                 response[0] == Status.decreasing_balance
             ):  # Card and Balance recognized
                 self.label_status.setText(
-                    u"Buche {}€ ab\n".format(unicode(self.amount)).replace(".", ",")
+                    u"Buche {}€ ab\n".format(str(self.amount)).replace(".", ",")
                 )
                 self.response_ack.emit(False)
             # Successfully decreased: Inform the user the payment is done and close after 2 seconds
@@ -193,7 +193,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
                 self.utimer.stop()
                 self.label_status.setText(
                     u"Vielen Dank für deine Zahlung von {}.\nBitte das Aufräumen nicht vergessen!".format(
-                        unicode(self.amount)
+                        str(self.amount)
                     )
                 )
                 self.utimer.singleShot(5000, self.accept)

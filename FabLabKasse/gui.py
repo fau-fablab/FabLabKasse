@@ -460,7 +460,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             self.layout_category_path.itemAt(i).widget().setVisible(False)
             self.layout_category_path.itemAt(i).widget().deleteLater()
 
-        if isinstance(category_path, basestring):
+        if isinstance(category_path, str):
             # special case: display a string
             # used for "Search Results"
             self._add_to_category_path(name=category_path, categ_id=None, bold=True)
@@ -682,7 +682,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # convert comma to dot
         input = input.replace(locale.localeconv()["decimal_point"], ".")
         # Getting rid of all special characters (except for numbers and commas)
-        newString = re.sub(r"[^0-9\.]", "", unicode(input))
+        newString = re.sub(r"[^0-9\.]", "", str(input))
 
         # remove multiple commas and only keep last (last = right most)
         comma_count = newString.count(".")
@@ -744,7 +744,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
     def on_ok_clicked(self):
         # "OK" button pressed
         order_idx = self.table_order.currentIndex()
-        plu = unicode(self.lineEdit.text()).strip()
+        plu = str(self.lineEdit.text()).strip()
 
         if order_idx.isValid():
             # quantity entry is now finished.
@@ -762,7 +762,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         amount = self.lineEdit.text()
         try:
             qty = Decimal(
-                unicode(amount.replace(locale.localeconv()["decimal_point"], "."))
+                str(amount.replace(locale.localeconv()["decimal_point"], "."))
             )
         except DecimalException:
             qty = Decimal(0)
@@ -831,7 +831,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
     # list searched items in product tree
     def searchItems(self, preview=False):
-        searchstr = unicode(self.lineEdit_Suche.text())
+        searchstr = str(self.lineEdit_Suche.text())
         (categories, products) = self.shoppingBackend.search_from_text(searchstr)
         self.updateProductsAndCategories(categories, products, "Suchergebnisse")
 

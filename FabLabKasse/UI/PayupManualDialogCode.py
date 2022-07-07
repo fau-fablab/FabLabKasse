@@ -79,7 +79,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
             input = input[:-1]
 
         # Getting rid of all special characters (everything but numbers)
-        newString = re.sub(r"[^0-9,]", "", unicode(input))
+        newString = re.sub(r"[^0-9,]", "", str(input))
 
         if (not re.match("[0-9]", newString)) and (
             "," in newString
@@ -106,7 +106,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
 
     def getPaidAmount(self):
         t = self.lineEdit.text()[:-2]
-        return Decimal(unicode(t).replace(",", "."))
+        return Decimal(str(t).replace(",", "."))
 
     def reject(self):
         self.lineEdit.setText(

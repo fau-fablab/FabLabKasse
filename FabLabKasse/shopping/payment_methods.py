@@ -157,7 +157,7 @@ class AbstractPaymentMethod(object):
     def get_title():
         """human-readable name of payment method
 
-        :rtype: unicode"""
+        :rtype: str"""
         return "title not implemented"
 
     @staticmethod

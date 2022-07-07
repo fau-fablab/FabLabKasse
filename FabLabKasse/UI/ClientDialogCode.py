@@ -75,7 +75,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
         self.comboBox_client.clear()
         self.comboBox_client.addItem(u"")
         clientNames_sorted = sorted(
-            [c.name for c in self._clients.itervalues()], key=lambda x: x.lower()
+            [c.name for c in self._clients.values()], key=lambda x: x.lower()
         )
         for name in clientNames_sorted:
             self.comboBox_client.addItem(name)
@@ -105,7 +105,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
     def lineEditClientUpdate(self):
         input = self.lineEdit_client.text()
         # Getting rid of all special characters (everything but numbers)
-        newString = re.sub(r"[^0-9]", "", unicode(input))
+        newString = re.sub(r"[^0-9]", "", str(input))
 
         # remove leading zeros:
         newString = newString.lstrip("0")
@@ -120,7 +120,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
             self.comboBox_client.setCurrentIndex(0)
             return
 
-        if unicode(self.comboBox_client.currentText()) == client.name:
+        if str(self.comboBox_client.currentText()) == client.name:
             # client is already selected in combo box
             return
 
@@ -131,10 +131,10 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
             self.comboBox_client.setCurrentIndex(0)
 
     def comboBoxClientUpdate(self):
-        name = unicode(self.comboBox_client.currentText())
+        name = str(self.comboBox_client.currentText())
 
         # TODO is there a nicer solution than get-by-name, e.g. storing indices somewhere?
-        client = filter(lambda c: c.name == name, self._clients.itervalues())
+        client = filter(lambda c: c.name == name, self._clients.values())
 
         if client:
             # set lineEdit_client to client id
@@ -147,7 +147,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
     def lineEditPINUpdate(self):
         input = self.lineEdit_pin.text()
         # Getting rid of all special characters (everything but numbers)
-        newString = re.sub(r"[^0-9]", "", unicode(input))
+        newString = re.sub(r"[^0-9]", "", str(input))
 
         # Set correctly formated text, if anything changed (preserves cursor position)
         if newString != input:

@@ -139,7 +139,7 @@ def check_last_transaction():
     cfg = scriptHelper.getConfig()
     con = sqlite3.connect(cfg.get("magna_carta", "log_file"))
     cur = con.cursor()
-    con.text_factory = unicode
+    con.text_factory = str
     return FAUcardThread.check_last_transaction(cur=cur, con=con)
 
 
@@ -151,7 +151,7 @@ def finish_log(info=Info.OK):
     cfg = scriptHelper.getConfig()
     con = sqlite3.connect(cfg.get("magna_carta", "log_file"))
     cur = con.cursor()
-    con.text_factory = unicode
+    con.text_factory = str
 
     cur.execute("SELECT id, status, info FROM MagPosLog ORDER BY id DESC LIMIT 1")
     row = cur.fetchone()
