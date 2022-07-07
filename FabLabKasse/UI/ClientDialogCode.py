@@ -124,7 +124,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
             # client is already selected in combo box
             return
 
-        idx = self.comboBox_client.findText(QtCore.QString(client.name))
+        idx = self.comboBox_client.findText(str(client.name))
         if idx != -1:
             self.comboBox_client.setCurrentIndex(idx)
         else:
@@ -134,7 +134,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
         name = str(self.comboBox_client.currentText())
 
         # TODO is there a nicer solution than get-by-name, e.g. storing indices somewhere?
-        client = filter(lambda c: c.name == name, self._clients.values())
+        client = list(filter(lambda c: c.name == name, self._clients.values()))
 
         if client:
             # set lineEdit_client to client id
