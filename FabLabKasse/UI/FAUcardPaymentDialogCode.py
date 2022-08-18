@@ -44,10 +44,8 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
 
         # Set up member variables and fill GUI
         self.amount = amount
-        self.label_betrag.setText(
-            u"{} €".format(str(self.amount)).replace(".", ",")
-        )
-        self.label_status.setText(u"Starte FAUcard-Zahlung\n")
+        self.label_betrag.setText("{} €".format(str(self.amount)).replace(".", ","))
+        self.label_status.setText("Starte FAUcard-Zahlung\n")
         self.counter = 0
         self.thread_aborted = False
         self.thread_broken = False
@@ -128,7 +126,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
             if response[0] == Info.check_transaction_failed:
                 self.utimer.stop()
                 self.label_status.setText(
-                    u"Letzte Transaktion konnte nicht überprüft werden.\nBitte wechseln Sie die Zahlungsmethode"
+                    "Letzte Transaktion konnte nicht überprüft werden.\nBitte wechseln Sie die Zahlungsmethode"
                 )
                 self.utimer.singleShot(10000, self.reject)
                 return
@@ -136,7 +134,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
             elif response[0] == Info.balance_underflow:
                 self.utimer.stop()
                 self.label_status.setText(
-                    u"Zu wenig Guthaben\nBitte wechseln Sie die Zahlungsmethode"
+                    "Zu wenig Guthaben\nBitte wechseln Sie die Zahlungsmethode"
                 )
                 self.utimer.singleShot(10000, self.reject)
                 self.response_ack.emit(True)
@@ -146,14 +144,14 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
                 logging.error("FAUcardPayment: terminated on error")
                 self.utimer.stop()
                 self.label_status.setText(
-                    u"Fehler\nBitte wechseln Sie die Zahlungsmethode"
+                    "Fehler\nBitte wechseln Sie die Zahlungsmethode"
                 )
                 self.response_ack.emit(True)
                 return
             # Inform the user about the lost connection to the MagnaBox
             elif response[0] == Info.con_error:
                 self.label_status.setText(
-                    u"Verbindung zum Terminal verloren.\n Versuche wieder zu verbinden"
+                    "Verbindung zum Terminal verloren.\n Versuche wieder zu verbinden"
                 )
                 logging.warning(
                     "FAUcardPayment: Verbindung zur MagnaBox beim abbuchen verloren."
@@ -162,7 +160,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
             # Inform the user about the reestablished connection to the MagnaBox
             elif response[0] == Info.con_back:
                 self.label_status.setText(
-                    u"Verbindung zum Terminal wieder da.\nBuche {}€ ab\n".format(
+                    "Verbindung zum Terminal wieder da.\nBuche {}€ ab\n".format(
                         str(self.amount)
                     ).replace(".", ",")
                 )
@@ -178,21 +176,21 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
                 self.response_ack.emit(False)
             # Initialized: Inform user to lay card on reader
             elif response[0] == Status.waiting_card:
-                self.label_status.setText(u"Warte auf Karte\n")
+                self.label_status.setText("Warte auf Karte\n")
                 self.response_ack.emit(False)
             # Card and Balance read: Check if balance is enough and inform user the balance will be decreased
             elif (
                 response[0] == Status.decreasing_balance
             ):  # Card and Balance recognized
                 self.label_status.setText(
-                    u"Buche {}€ ab\n".format(str(self.amount)).replace(".", ",")
+                    "Buche {}€ ab\n".format(str(self.amount)).replace(".", ",")
                 )
                 self.response_ack.emit(False)
             # Successfully decreased: Inform the user the payment is done and close after 2 seconds
             elif response[0] == Status.decreasing_done:
                 self.utimer.stop()
                 self.label_status.setText(
-                    u"Vielen Dank für deine Zahlung von {}.\nBitte das Aufräumen nicht vergessen!".format(
+                    "Vielen Dank für deine Zahlung von {}.\nBitte das Aufräumen nicht vergessen!".format(
                         str(self.amount)
                     )
                 )
@@ -247,12 +245,12 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
         if self.thread_aborted is not True:
             QtGui.QMessageBox.warning(
                 None,
-                u"FAUCard Zahlung",
-                u"Abbrechen gerade nicht möglich.\nBitte warten Sie, bis das Programm an der nächst \
+                "FAUCard Zahlung",
+                "Abbrechen gerade nicht möglich.\nBitte warten Sie, bis das Programm an der nächst \
                                       möglichen Stelle abbricht. Beachte bitte, das falls dein Geld schon abgebucht \
                                       wurde, es nicht automatisch rückabgewickelt wird.",
             )
-            self.label_status.setText(u"Warte auf Möglichkeit zum Abbruch")
+            self.label_status.setText("Warte auf Möglichkeit zum Abbruch")
             if not self.timer_terminate.isActive():
                 self.timer_terminate.start(60000)
         else:
@@ -276,8 +274,8 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
         self.thread_broken = True
         terminate = QtGui.QMessageBox.question(
             None,
-            u"FAUCard Zahlung",
-            u"Willst du den Thread terminieren? Wenn du dir nicht sicher bist, antworte mit nein.",
+            "FAUCard Zahlung",
+            "Willst du den Thread terminieren? Wenn du dir nicht sicher bist, antworte mit nein.",
             QtGui.QMessageBox.Yes,
             QtGui.QMessageBox.No,
         )

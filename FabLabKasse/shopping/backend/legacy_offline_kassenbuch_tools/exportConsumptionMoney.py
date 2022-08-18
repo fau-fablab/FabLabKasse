@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -54,7 +54,7 @@ def aggregate_consumption(rechnungen):
             if plu is not None:
                 plu = int(plu)
                 if plu in name.keys() and name[plu] != p["artikel"]:
-                    name[plu] = u"{0} (ID {1}, verschiedene Bezeichnungen) ".format(
+                    name[plu] = "{0} (ID {1}, verschiedene Bezeichnungen) ".format(
                         p["artikel"], plu
                     )
                 else:
@@ -124,14 +124,14 @@ def printFiltered(
         # format unitsDict={"unit":123,"otherUnit":345} to printable text
         result = ""
         for (unit, num) in unitsDict.items():
-            result += u"{0}:\t{1}\t".format(unit, round(float(num) * scaleFactor, 2))
+            result += "{0}:\t{1}\t".format(unit, round(float(num) * scaleFactor, 2))
         return result
 
     sumUnitsFiltered = {}
     for item in consumption:
         sumFiltered += item["money"]
         print(
-            u"{0} \t {1:.2f} € \t {2}\t{3}".format(
+            "{0} \t {1:.2f} € \t {2}\t{3}".format(
                 item["plu"],
                 item["money"],
                 item["description"],
@@ -303,25 +303,23 @@ if __name__ == "__main__":
 
     printFiltered(consumption, "platine", scaleFactor=hochrechnenFaktor)
     printFiltered(consumption, "spende", scaleFactor=hochrechnenFaktor)
-    printFiltered(consumption, u"3D", scaleFactor=hochrechnenFaktor)
-    printFiltered(consumption, u"Laserzeit", scaleFactor=hochrechnenFaktor)
-    printFiltered(consumption, u"Shirt", scaleFactor=hochrechnenFaktor)
-    printFiltered(consumption, u"Thermotransferpresse", scaleFactor=hochrechnenFaktor)
-    printFiltered(consumption, u"folie", scaleFactor=hochrechnenFaktor)
-    printFiltered(consumption, u"drucken", scaleFactor=hochrechnenFaktor)
-    printFiltered(consumption, regexp=ur"^Acryl", scaleFactor=hochrechnenFaktor)
+    printFiltered(consumption, "3D", scaleFactor=hochrechnenFaktor)
+    printFiltered(consumption, "Laserzeit", scaleFactor=hochrechnenFaktor)
+    printFiltered(consumption, "Shirt", scaleFactor=hochrechnenFaktor)
+    printFiltered(consumption, "Thermotransferpresse", scaleFactor=hochrechnenFaktor)
+    printFiltered(consumption, "folie", scaleFactor=hochrechnenFaktor)
+    printFiltered(consumption, "drucken", scaleFactor=hochrechnenFaktor)
+    printFiltered(consumption, regexp=r"^Acryl", scaleFactor=hochrechnenFaktor)
     printFiltered(consumption, "Leuchtschild", scaleFactor=hochrechnenFaktor)
-    printFiltered(consumption, regexp=ur"^Wordclock", scaleFactor=hochrechnenFaktor)
-    printFiltered(
-        consumption, regexp=u"^(MDF|HDF|Sperr)", scaleFactor=hochrechnenFaktor
-    )
+    printFiltered(consumption, regexp=r"^Wordclock", scaleFactor=hochrechnenFaktor)
+    printFiltered(consumption, regexp="^(MDF|HDF|Sperr)", scaleFactor=hochrechnenFaktor)
     printFiltered(
         consumption,
         ignoreCase=False,
-        regexp=u"(Batterie|Diode|Drehknopf|LM|OP|SMD|Spannung|Spul|Litze|Elko|kondensator|LED|ATmega|ATtiny|Netzteil|Poti|Quarz|schalter|Sicherung|Sockel|Buchse|Stecker|Stift|Transistor|Widerstand)",
+        regexp="(Batterie|Diode|Drehknopf|LM|OP|SMD|Spannung|Spul|Litze|Elko|kondensator|LED|ATmega|ATtiny|Netzteil|Poti|Quarz|schalter|Sicherung|Sockel|Buchse|Stecker|Stift|Transistor|Widerstand)",
         scaleFactor=hochrechnenFaktor,
     )
-    printFiltered(consumption, u"DIN", scaleFactor=hochrechnenFaktor)
+    printFiltered(consumption, "DIN", scaleFactor=hochrechnenFaktor)
 
     fraesenstart = datetime.datetime(2014, 0o5, 10, 12, 00)
     print(
@@ -331,11 +329,11 @@ if __name__ == "__main__":
     )
     printFiltered(
         consumption,
-        u"Fräs",
+        "Fräs",
         scaleFactor=365.0 / (rechnungen[-1].datum - fraesenstart).days,
     )
-    printFiltered(consumption, u"Dreh", scaleFactor=hochrechnenFaktor)
-    printFiltered(consumption, u"Alu", scaleFactor=hochrechnenFaktor)
+    printFiltered(consumption, "Dreh", scaleFactor=hochrechnenFaktor)
+    printFiltered(consumption, "Alu", scaleFactor=hochrechnenFaktor)
 
     print("Fräsenflat aus freier Preiseingabe:")
     summeFraesenflat = 0

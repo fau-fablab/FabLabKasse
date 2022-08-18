@@ -368,7 +368,7 @@ class FAUcardThread(QtCore.QObject):
                 cur, con, value[1], Decimal(value[2]) / 100, Info.transaction_ok.value
             )
             logging.error(
-                u"CheckTransaction: Buchung für Karte {0} über Betrag {1} EURCENT fehlt".format(
+                "CheckTransaction: Buchung für Karte {0} über Betrag {1} EURCENT fehlt".format(
                     value[1], value[2]
                 )
             )

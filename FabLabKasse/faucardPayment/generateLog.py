@@ -84,7 +84,7 @@ def verify_sum(curKb, start, end, magposSum):
 
 
 if __name__ == "__main__":
-    seperator = u","
+    seperator = ","
 
     parser = argparse.ArgumentParser(
         description="Generates a Summary and Log from Start Date to End Date of a given MagPosLog.sqlite3 file."
@@ -180,9 +180,9 @@ if __name__ == "__main__":
 
         # Write header
         outputfile.write(
-            u"Zeitstempel Zahlung, Kartennummer, Old Balance, Zahlungsbetrag, New Balance, Rechnung\n"
+            "Zeitstempel Zahlung, Kartennummer, Old Balance, Zahlungsbetrag, New Balance, Rechnung\n"
         )
-        outputfile.write(u",,,,,\n")
+        outputfile.write(",,,,,\n")
 
         firstdate = None
         firstbooking = None
@@ -241,7 +241,7 @@ if __name__ == "__main__":
             )
 
             # Write CSV-Line
-            line = u"{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}\n".format(
+            line = "{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}\n".format(
                 seperator,
                 timestamp.strftime("%d-%m-%Y %H:%M:%S"),
                 row[1],
@@ -283,8 +283,8 @@ if __name__ == "__main__":
             outputfile = codecs.open(
                 args.outputpath + "_positions.csv", "w", encoding="utf-8"
             )
-            outputfile.write(u"Rechnung, Menge, Einzelpreis, Gesamtpreis\n")
-            outputfile.write(u",,,\n")
+            outputfile.write("Rechnung, Menge, Einzelpreis, Gesamtpreis\n")
+            outputfile.write(",,,\n")
 
             for nr in rechnungsliste:
                 curKb.execute(
@@ -292,7 +292,7 @@ if __name__ == "__main__":
                 )
 
                 for row in curKb.fetchall():
-                    line = u"{1}{0}{2}{0}{3}{0}{4:.2f}\n".format(
+                    line = "{1}{0}{2}{0}{3}{0}{4:.2f}\n".format(
                         seperator, nr, row[0], row[1], float(row[0]) * float(row[1])
                     )
                     outputfile.write(line.encode("utf-8"))
@@ -304,38 +304,36 @@ if __name__ == "__main__":
 
         # Write Summary file
         outputfile.write(
-            u"Abrechnung bargeldloser Umsaetze - Akzeptanzstelle FAU FabLab\n"
+            "Abrechnung bargeldloser Umsaetze - Akzeptanzstelle FAU FabLab\n"
         )
         outputfile.write(
-            u"Abrechnungszeitraum: {0} bis {1}\n".format(
+            "Abrechnungszeitraum: {0} bis {1}\n".format(
                 startdate.strftime("%d-%m-%Y %H:%M:%S"),
                 enddate.strftime("%d-%m-%Y %H:%M:%S"),
             )
         )
         outputfile.write(
-            u"Seriennummer der MagnaBox: MB211475\n"
+            "Seriennummer der MagnaBox: MB211475\n"
         )  # .format(cfg.get('magna_carta', 'serial')))
-        outputfile.write(u"Der anfallende Betrag betraegt: {0}\n".format(summe))
-        outputfile.write(u"Testkarten: {}\n".format(", ".join(args.ignore)))
+        outputfile.write("Der anfallende Betrag betraegt: {0}\n".format(summe))
+        outputfile.write("Testkarten: {}\n".format(", ".join(args.ignore)))
         if verify_sum(curKb, firstbooking, lastbooking, summe + ignored):
             outputfile.write(
-                u"Der Betrag im MagposLog entspricht dem im Kassenbuch: JA\n"
+                "Der Betrag im MagposLog entspricht dem im Kassenbuch: JA\n"
             )
         else:
             outputfile.write(
-                u"Der Betrag im MagposLog entspricht dem im Kassenbuch: NEIN\n"
+                "Der Betrag im MagposLog entspricht dem im Kassenbuch: NEIN\n"
             )
             print("VERIFY SUM FAILED")
 
         if nonbookedlist != []:
-            outputfile.write(u"Some Payments were not booked:\n")
+            outputfile.write("Some Payments were not booked:\n")
             nb_cnt = 1
             for payment in nonbookedlist:
-                outputfile.write(u"{0} {1}\n".format(nb_cnt, payment))
+                outputfile.write("{0} {1}\n".format(nb_cnt, payment))
                 nb_cnt = nb_cnt + 1
-        print(
-            u"Ignored {} EUR (negative means missing bookings)".format(str(ignored))
-        )
+        print("Ignored {} EUR (negative means missing bookings)".format(str(ignored)))
     except IOError as e:
         print("ERROR: Saving CSV and / or Summary failed")
         print("IOERROR: {0}".format(e))

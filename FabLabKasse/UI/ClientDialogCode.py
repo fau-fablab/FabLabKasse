@@ -73,7 +73,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
         # Load clients and populate comboBox_client
         self._clients = self.shopping_backend.list_clients()
         self.comboBox_client.clear()
-        self.comboBox_client.addItem(u"")
+        self.comboBox_client.addItem("")
         clientNames_sorted = sorted(
             [c.name for c in self._clients.values()], key=lambda x: x.lower()
         )
@@ -175,7 +175,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
         if kunde is None:
             msgBox = QtGui.QMessageBox(self)
             msgBox.setText(
-                u"Unter der Kundennummer konnte leider nichts gefunden werden."
+                "Unter der Kundennummer konnte leider nichts gefunden werden."
             )
             msgBox.exec_()
             return False
@@ -183,14 +183,14 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
         # Check PIN
         if not kunde.test_pin(str(self.lineEdit_pin.text())):
             msgBox = QtGui.QMessageBox(self)
-            msgBox.setText(u"Falscher PIN oder Kundennummer.")
+            msgBox.setText("Falscher PIN oder Kundennummer.")
             msgBox.exec_()
             return False
 
         if require_admin and not kunde.is_admin():
             msgBox = QtGui.QMessageBox(self)
             msgBox.setText(
-                u"Das angegebene Konto hat keine Administratorrechte.\n (Kommentar muss mit #admin# beginnen)"
+                "Das angegebene Konto hat keine Administratorrechte.\n (Kommentar muss mit #admin# beginnen)"
             )
             msgBox.exec_()
             return False
@@ -201,7 +201,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
         if not kunde:
             return
         msgBox = QtGui.QMessageBox(self)
-        msgBox.setText(u"Willst du auf das Konto " + kunde.name + " bezahlen?")
+        msgBox.setText("Willst du auf das Konto " + kunde.name + " bezahlen?")
         msgBox.addButton(QtGui.QMessageBox.Cancel)
         msgBox.addButton(QtGui.QMessageBox.Ok)
         msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
@@ -212,7 +212,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
 
     def reject(self):
         msgBox = QtGui.QMessageBox(self)
-        msgBox.setText(u"Bezahlung abgebrochen.")
+        msgBox.setText("Bezahlung abgebrochen.")
         msgBox.exec_()
         QtGui.QDialog.reject(self)
 
@@ -225,7 +225,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
             return
         username = (
             KeyboardDialog.askText(
-                u"Kundenkennung (nur a-z 0-9 -) (mind. 5 Zeichen): vorname-nachname oder firma",
+                "Kundenkennung (nur a-z 0-9 -) (mind. 5 Zeichen): vorname-nachname oder firma",
                 parent=self,
             )
             or ""
@@ -235,51 +235,51 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
         username = username.lower()
         if not re.match(r"^[a-z0-9_]{5,}$", username):
             msgBox = QtGui.QMessageBox(self)
-            msgBox.setText(u"Nicht gültig. Abbruch.")
+            msgBox.setText("Nicht gültig. Abbruch.")
             msgBox.exec_()
             return
-        email1 = KeyboardDialog.askText(u"Email Kunde - Teil VOR dem @", parent=self)
+        email1 = KeyboardDialog.askText("Email Kunde - Teil VOR dem @", parent=self)
         if email1 is None:
             msgBox = QtGui.QMessageBox(self)
-            msgBox.setText(u"abgebrochen.")
+            msgBox.setText("abgebrochen.")
             msgBox.exec_()
             return
-        email2 = KeyboardDialog.askText(u"Email Kunde - Teil NACH dem @", parent=self)
+        email2 = KeyboardDialog.askText("Email Kunde - Teil NACH dem @", parent=self)
         if email2 is None or len(email2) < 3 or ("." not in email2):
             msgBox = QtGui.QMessageBox(self)
-            msgBox.setText(u"ungültige Mail. Abbruch.")
+            msgBox.setText("ungültige Mail. Abbruch.")
             msgBox.exec_()
             return
         email = email1 + "@" + email2
         address = [""] * 4
         addressLabel = [
-            u"Name/Firma",
-            u"ggf Addresszusatz/Mitarbeiter",
-            u"Strasse Hausnr",
-            u"PLZ Ort",
+            "Name/Firma",
+            "ggf Addresszusatz/Mitarbeiter",
+            "Strasse Hausnr",
+            "PLZ Ort",
         ]
         for i in [0, 1, 2, 3]:
             address[i] = KeyboardDialog.askText(
-                u"Anschrift Zeile " + str(i + 1) + "/4   " + addressLabel[i],
+                "Anschrift Zeile " + str(i + 1) + "/4   " + addressLabel[i],
                 parent=self,
             )
             if address[i] is None:
                 msgBox = QtGui.QMessageBox(self)
-                msgBox.setText(u"abgebrochen.")
+                msgBox.setText("abgebrochen.")
                 msgBox.exec_()
                 return
             if (
                 i in [0, 2] and len(address[i]) < 2
             ):  # name and street are mandatory. Other lines may be empty depending on how the user arranges the input.
                 msgBox = QtGui.QMessageBox(self)
-                msgBox.setText(u"keine Anschrift angegeben. Abbruch.")
+                msgBox.setText("keine Anschrift angegeben. Abbruch.")
                 msgBox.exec_()
                 return
         address_joined = "; ".join(address)
-        comment = KeyboardDialog.askText(u"Kommentar", parent=self)
+        comment = KeyboardDialog.askText("Kommentar", parent=self)
         if comment is None:
             msgBox = QtGui.QMessageBox(self)
-            msgBox.setText(u"abgebrochen.")
+            msgBox.setText("abgebrochen.")
             msgBox.exec_()
             return
         comment.replace(
@@ -295,13 +295,13 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
 
         msgBox = QtGui.QMessageBox(self)
         msgBox.setText(
-            u"Bitte prüfe die Daten: \nKunde: "
+            "Bitte prüfe die Daten: \nKunde: "
             + username
-            + u"\n Email: "
+            + "\n Email: "
             + email
-            + u"\nAnschrift:\n"
-            + u"\n".join(address)
-            + u"\n\nKommentar: "
+            + "\nAnschrift:\n"
+            + "\n".join(address)
+            + "\n\nKommentar: "
             + comment
         )
         msgBox.addButton(QtGui.QMessageBox.Cancel)
@@ -321,12 +321,12 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
             )
         except Exception as e:
             msgBox = QtGui.QMessageBox(self)
-            msgBox.setText(u"Fehler: " + str(e))
+            msgBox.setText("Fehler: " + str(e))
             msgBox.exec_()
             return
         msgBox = QtGui.QMessageBox(self)
         msgBox.setText(
-            u"Konto wurde angelegt. Bitte Kundenkarte ausfüllen und an Kunde geben:\n Konto "
+            "Konto wurde angelegt. Bitte Kundenkarte ausfüllen und an Kunde geben:\n Konto "
             + str(username)
             + ", Kundennr "
             + str(client_id)

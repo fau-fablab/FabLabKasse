@@ -32,7 +32,7 @@ class ProductBasedOrderLine(OrderLine):
         if comment is None:
             comment = ""
         if comment:
-            comment = u": " + comment
+            comment = ": " + comment
         self.product = product
         self.price_per_unit = (
             product.price
@@ -131,18 +131,16 @@ class OfflineCategoryTree(object):
 
     def get_subcategories(self, categ_id):
         return self._sort_categories(
-            filter(
-                lambda categ: categ.parent_id == categ_id, self.categories.values()
-            )
+            filter(lambda categ: categ.parent_id == categ_id, self.categories.values())
         )
 
     @staticmethod
     def simplify_searchstring(string):
         # remove silly BOM
-        string = string.replace(u"\ufeff", "")
+        string = string.replace("\ufeff", "")
         # all whitespace is treated equal
         string = re.sub(r"(\s+)", " ", string)
-        string = string.replace(u"\u2010", "-")  # unicode dash
+        string = string.replace("\u2010", "-")  # unicode dash
         return string.lower().strip()
 
     def _sort_products(self, product_list):

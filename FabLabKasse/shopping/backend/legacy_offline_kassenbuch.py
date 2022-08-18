@@ -139,11 +139,11 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         return kunde.id
 
     def _store_payment(self, method):
-        origin = u"Besucher"
+        origin = "Besucher"
         if isinstance(method, ManualCashPayment):
-            destination = u"Handkasse"
+            destination = "Handkasse"
         elif isinstance(method, FAUCardPayment):
-            destination = u"FAUKarte"
+            destination = "FAUKarte"
         else:
             raise Exception("unsupported payment method")
         rechnung = self._rechnung_from_order_lines()
@@ -152,9 +152,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         logging.info("stored payment in Rechnung#{0}".format(rechnung.id))
 
         b1 = Buchung(str(destination), rechnung.summe, rechnung=rechnung.id)
-        b2 = Buchung(
-            str(origin), -rechnung.summe, rechnung=rechnung.id, datum=b1.datum
-        )
+        b2 = Buchung(str(origin), -rechnung.summe, rechnung=rechnung.id, datum=b1.datum)
         self._kasse.buchen([b1, b2])  # implies database commit
 
         self._get_current_order_obj().rechnung_for_receipt = rechnung

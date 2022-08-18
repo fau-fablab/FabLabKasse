@@ -49,8 +49,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"FabLabKasse"
-copyright = u"2015, FAU FabLab team and others"
+project = "FabLabKasse"
+copyright = "2015, FAU FabLab team and others"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -213,8 +213,8 @@ latex_documents = [
     (
         "index",
         "FabLabKasse.tex",
-        u"FabLabKasse Documentation",
-        u"FAU FabLab team and others",
+        "FabLabKasse Documentation",
+        "FAU FabLab team and others",
         "manual",
     ),
 ]
@@ -248,8 +248,8 @@ man_pages = [
     (
         "index",
         "fablabkasse",
-        u"FabLabKasse Documentation",
-        [u"FAU FabLab team and others"],
+        "FabLabKasse Documentation",
+        ["FAU FabLab team and others"],
         1,
     )
 ]
@@ -267,8 +267,8 @@ texinfo_documents = [
     (
         "index",
         "FabLabKasse",
-        u"FabLabKasse Documentation",
-        u"FAU FabLab team and others",
+        "FabLabKasse Documentation",
+        "FAU FabLab team and others",
         "FabLabKasse",
         "A self-service checkout terminal written in Python.",
         "Miscellaneous",
@@ -291,10 +291,10 @@ texinfo_documents = [
 # -- Options for Epub output ----------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u"FabLabKasse"
-epub_author = u"FAU FabLab team and others"
-epub_publisher = u"FAU FabLab"
-epub_copyright = u"2015, FAU FabLab team and others"
+epub_title = "FabLabKasse"
+epub_author = "FAU FabLab team and others"
+epub_publisher = "FAU FabLab"
+epub_copyright = "2015, FAU FabLab team and others"
 
 # The basename for the epub file. It defaults to the project name.
 # epub_basename = u'FabLabKasse'

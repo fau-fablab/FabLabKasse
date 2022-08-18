@@ -29,7 +29,7 @@ class MagPosLog:
         :type con: sqlite3.Connection
         """
 
-        assert isinstance(amount, Decimal), u"MagPosLog: Amount to pay not Decimal"
+        assert isinstance(amount, Decimal), "MagPosLog: Amount to pay not Decimal"
 
         # Set up member variables
         self.id = 0
@@ -228,7 +228,7 @@ class MagPosLog:
                 entry_info = Info(row[2])
             except ValueError as e:
                 logging.error(
-                    u"MagPosLog: Last entry with ID {} has invalid Status or Info code".format(
+                    "MagPosLog: Last entry with ID {} has invalid Status or Info code".format(
                         entry_id
                     )
                 )
@@ -236,7 +236,7 @@ class MagPosLog:
 
             if entry_payed and entry_status == Status.decreasing_done:
                 logging.error(
-                    u"MagPosLog: Entry with ID{0} was not booked. Please review it for further action".format(
+                    "MagPosLog: Entry with ID{0} was not booked. Please review it for further action".format(
                         entry_id
                     )
                 )

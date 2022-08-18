@@ -84,19 +84,19 @@ def setupGraphicalExceptHook():
                 )
                 email = "den Verantwortlichen"
             msgbox = QtGui.QMessageBox()
-            txt = u"Entschuldigung, das Programm wird wegen eines Fehlers beendet."
-            infotxt = u"""Wenn dir Rückgeld entgangen ist, melde dich bei {0} und gebe neben einer
+            txt = "Entschuldigung, das Programm wird wegen eines Fehlers beendet."
+            infotxt = """Wenn dir Rückgeld entgangen ist, melde dich bei {0} und gebe neben einer
              Fehlerbeschreibung folgende Uhrzeit an:{1}.""".format(
                 email, str(datetime.datetime.today())
             )
-            detailtxt = u"{0}\n{1}".format(
+            detailtxt = "{0}\n{1}".format(
                 str(datetime.datetime.today()),
                 "".join(traceback.format_exception(exctype, value, tb, limit=10)),
             )
             logging.fatal(txt)
             logging.fatal(
-                u"Full exception details (stack limit 50):\n"
-                + u"".join(traceback.format_exception(exctype, value, tb, limit=50))
+                "Full exception details (stack limit 50):\n"
+                + "".join(traceback.format_exception(exctype, value, tb, limit=50))
             )
             msgbox.setText(txt)
             msgbox.setInformativeText(infotxt)

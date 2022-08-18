@@ -390,9 +390,7 @@ class Buchung(object):
             self.betrag.__repr__(),
             self.kommentar,
         )
-        return (
-            s.__repr__()
-        )
+        return s.__repr__()
 
 
 class Kasse(object):

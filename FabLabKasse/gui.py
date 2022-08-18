@@ -147,9 +147,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.pushButton_i.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("i"))
         self.pushButton_o.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("o"))
         self.pushButton_p.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("p"))
-        self.pushButton_ue.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche(u"ü")
-        )
+        self.pushButton_ue.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("ü"))
         self.pushButton_a.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("a"))
         self.pushButton_s.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("s"))
         self.pushButton_d.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("d"))
@@ -159,12 +157,8 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.pushButton_j.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("j"))
         self.pushButton_k.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("k"))
         self.pushButton_l.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("l"))
-        self.pushButton_oe.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche(u"ö")
-        )
-        self.pushButton_ae.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche(u"ä")
-        )
+        self.pushButton_oe.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("ö"))
+        self.pushButton_ae.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("ä"))
         self.pushButton_y.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("y"))
         self.pushButton_x.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("x"))
         self.pushButton_c.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("c"))
@@ -202,9 +196,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         self.pushButton_a_0.clicked.connect(
             lambda x: self.insertIntoLineEdit_Suche("0")
         )
-        self.pushButton_sz.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche(u"ß")
-        )
+        self.pushButton_sz.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("ß"))
 
         self.pushButton_space.clicked.connect(
             lambda x: self.insertIntoLineEdit_Suche(" ")
@@ -307,7 +299,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # Ask if restart is okay
         dialog = QtGui.QMessageBox(self)
         dialog.setWindowModality(QtCore.Qt.WindowModal)
-        dialog.setText(u"Ein Neustart löscht den aktuellen Warenkorb! Fortsetzen?")
+        dialog.setText("Ein Neustart löscht den aktuellen Warenkorb! Fortsetzen?")
         dialog.addButton(QtGui.QMessageBox.Cancel)
         dialog.addButton(QtGui.QMessageBox.Ok)
         dialog.setDefaultButton(QtGui.QMessageBox.Ok)
@@ -318,7 +310,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # Choose restart type
         dialog = QtGui.QMessageBox(self)
         dialog.setWindowModality(QtCore.Qt.WindowModal)
-        dialog.setText(u"Was soll passieren?")
+        dialog.setText("Was soll passieren?")
         dialog.addButton("Produkte neu laden", QtGui.QMessageBox.YesRole)
         rebootButton = dialog.addButton("Automat Neustart", QtGui.QMessageBox.YesRole)
         shutdownButton = dialog.addButton(
@@ -353,7 +345,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                     QtGui.QMessageBox.warning(
                         self,
                         "Ups",
-                        u"Servicemodus nicht aktiviert\n Bitte ./enableServiceMode ausführen",
+                        "Servicemodus nicht aktiviert\n Bitte ./enableServiceMode ausführen",
                     )
                 return
 
@@ -362,7 +354,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             if not (now - delta < lastEnabled < now):
                 if showErrorMessage:
                     QtGui.QMessageBox.warning(
-                        self, "Hey", u"Zu spät, Aktivierung gilt nur 30sec."
+                        self, "Hey", "Zu spät, Aktivierung gilt nur 30sec."
                     )
                 return False
             os.unlink("./serviceModeEnabled")
@@ -371,13 +363,13 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         if not checkServiceModeEnabled():
             return
 
-        dialog.setText(u"Automat sperren?")
+        dialog.setText("Automat sperren?")
         if dialog.exec_() != QtGui.QMessageBox.Yes:
             return
         while True:
             dialog = QtGui.QMessageBox(self)
             dialog.setText(
-                u"Der Automat ist wegen Wartungsarbeiten für kurze Zeit nicht verfügbar.\nBitte wende dich zur Bezahlung an einen Betreuer.\n\n(zum Entsperren: ./enableServiceMode ausführen und OK drücken)"
+                "Der Automat ist wegen Wartungsarbeiten für kurze Zeit nicht verfügbar.\nBitte wende dich zur Bezahlung an einen Betreuer.\n\n(zum Entsperren: ./enableServiceMode ausführen und OK drücken)"
             )
             dialog.addButton(QtGui.QMessageBox.Ok)
             dialog.setStyleSheet("background-color:red; color:white; font-weight:bold;")
@@ -404,7 +396,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
     def on_category_clicked(self, index=None):
         self.current_category = index.data(QtCore.Qt.UserRole + 1)
-        
+
         self.leaveSearch()
         self.updateProductsAndCategories()
 
@@ -418,7 +410,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # l = Qt.QLabel()
         # l.setText(u"►")
         # self.layout_category_path.addWidget(l)
-        button = Qt.QPushButton(u" ► " + name)
+        button = Qt.QPushButton(" ► " + name)
         button.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         if categ_id is not None:
             button.category_id = categ_id
@@ -567,7 +559,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         ), "current order total is not rounded to cents"
 
         logging.info(
-            u"starting payment for cart: {0}".format(
+            "starting payment for cart: {0}".format(
                 self.shoppingBackend.get_order_lines()
             )
         )
@@ -577,8 +569,8 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             # a sensible amount here
             msgBox = QtGui.QMessageBox(self)
             msgBox.setText(
-                u"Bezahlungen über 250 Euro sind leider nicht möglich. Bitte wende "
-                + u"dich an einen Betreuer, um es per Überweisung zu zahlen."
+                "Bezahlungen über 250 Euro sind leider nicht möglich. Bitte wende "
+                + "dich an einen Betreuer, um es per Überweisung zu zahlen."
             )
             msgBox.exec_()
             return
@@ -595,12 +587,12 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             self, self.shoppingBackend, total
         )
         logging.info(
-            u"started payment of {0} with {1}".format(
+            "started payment of {0} with {1}".format(
                 self.shoppingBackend.format_money(total), str(type(paymentmethod))
             )
         )
         paymentmethod.execute_and_store()
-        logging.info(u"payment ended. result: {0}".format(paymentmethod))
+        logging.info("payment ended. result: {0}".format(paymentmethod))
         assert paymentmethod.amount_paid >= 0
 
         def askUser():
@@ -608,7 +600,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             reply = QtGui.QMessageBox.question(
                 self,
                 "Message",
-                u"Brauchst du eine Quittung?",
+                "Brauchst du eine Quittung?",
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                 QtGui.QMessageBox.No,
             )
@@ -626,13 +618,13 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                     try:
                         email = cfg.get("general", "support_mail")
                     except ConfigParserError:
-                        email = u"einem zuständigen Betreuer"
+                        email = "einem zuständigen Betreuer"
                     QtGui.QMessageBox.warning(
                         self,
                         "Quittung",
-                        u"Drucker scheint offline zu sein.\n"
-                        u"Falls du wirklich eine Quittung brauchst, melde dich bei "
-                        u"{} mit Datum, Uhrzeit und Betrag.".format(email),
+                        "Drucker scheint offline zu sein.\n"
+                        "Falls du wirklich eine Quittung brauchst, melde dich bei "
+                        "{} mit Datum, Uhrzeit und Betrag.".format(email),
                     )
                     logging.warning("printing receipt failed: {0}".format(repr(e)))
         if paymentmethod.successful:
@@ -714,7 +706,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                 # quantity was rounded up, notify user
                 Qt.QToolTip.showText(
                     self.label_unit.mapToGlobal(Qt.QPoint(0, -30)),
-                    u"Eingabe wird auf {0} {1} aufgerundet!".format(
+                    "Eingabe wird auf {0} {1} aufgerundet!".format(
                         format_decimal(order_line.qty), order_line.unit
                     ),
                 )
@@ -779,7 +771,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # Currently no open cart
         if self.shoppingBackend.get_current_order() is None:
             self.table_order.setModel(QtGui.QStandardItemModel(0, 0))
-            self.summe.setText(u"0,00 €")
+            self.summe.setText("0,00 €")
             self.pushButton_payup.setEnabled(False)
             self.pushButton_clearCart.setEnabled(False)
             self.start_plu_entry()
@@ -892,7 +884,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             reply = QtGui.QMessageBox.question(
                 self,
                 "Message",
-                u"Willst du den Warenkorb wirklich löschen?",
+                "Willst du den Warenkorb wirklich löschen?",
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                 QtGui.QMessageBox.No,
             )

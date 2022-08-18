@@ -65,7 +65,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
             Product(
                 prod_id=4212,
                 name="Comment / enter price",
-                unit=u"Euro",
+                unit="Euro",
                 location="-",
                 price=1,
                 categ_id=44,
@@ -74,7 +74,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
             Product(
                 prod_id=9999,
                 name="Donation",
-                unit=u"Euro",
+                unit="Euro",
                 location="-",
                 price=1,
                 categ_id=44,
@@ -82,7 +82,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
             Product(
                 prod_id=9994,
                 name="Rest that could not be paid out",
-                unit=u"Euro",
+                unit="Euro",
                 location="-",
                 price=Decimal("1"),
                 categ_id=None,

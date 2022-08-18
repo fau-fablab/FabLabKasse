@@ -52,7 +52,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
 
         # Display amount to be payed to user
         self.label_amount.setText(
-            u"{:.2f} €".format(self.amount_total).replace(".", ",")
+            "{:.2f} €".format(self.amount_total).replace(".", ",")
         )
 
         self.lineEdit.setText("0")
@@ -61,7 +61,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
     def insertIntoLineEdit(self, char):
         self.lineEdit.setFocus()
         text = self.lineEdit.text()[:-2]
-        self.lineEdit.setText(text + char + u" €")
+        self.lineEdit.setText(text + char + " €")
         self.lineEditUpdated()
 
     def backspaceLineEdit(self):
@@ -95,7 +95,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
             newString = newString[:-1]
 
         # re-add euro sign
-        newString += u" €"
+        newString += " €"
 
         # Set correctly formated text, if anything changed (preserves cursor position)
         if newString != input:
@@ -110,7 +110,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
 
     def reject(self):
         self.lineEdit.setText(
-            u"0,00 €"
+            "0,00 €"
         )  # make sure that getPaidAmount() returns 0 on abort
         QtGui.QDialog.reject(self)
 
@@ -130,7 +130,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
             reply = QtGui.QMessageBox.warning(
                 self,
                 "Message",
-                u"Bitte zahle mindestens den geforderten Betrag.",
+                "Bitte zahle mindestens den geforderten Betrag.",
                 QtGui.QMessageBox.Ok,
             )
             return
@@ -138,7 +138,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
             reply = QtGui.QMessageBox.question(
                 self,
                 "Message",
-                u'<html>Willst du wirklich <span style="color:#006600; font-weight:bold;">{0:.02f} € spenden</span>?</html>'.format(
+                '<html>Willst du wirklich <span style="color:#006600; font-weight:bold;">{0:.02f} € spenden</span>?</html>'.format(
                     float(diff)
                 ),
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,

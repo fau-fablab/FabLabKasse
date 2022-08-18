@@ -290,8 +290,8 @@ class ClientPayment(AbstractClientPaymentMethod):
             QtGui.QMessageBox.information(
                 self.parent,
                 "Information",
-                u"Vielen Dank.\n Dein neuer Kontostand beträgt "
-                + u"{0}. \n(Positiv ist Guthaben)".format(
+                "Vielen Dank.\n Dein neuer Kontostand beträgt "
+                + "{0}. \n(Positiv ist Guthaben)".format(
                     self.shopping_backend.format_money(-new_debt)
                 ),
             )

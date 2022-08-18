@@ -57,7 +57,7 @@ def float_to_decimal(number, digits):
     # larger values are maybe not correctly represented in a float, so we are careful here
     assert isinstance(digits, int)
     assert 0 <= digits < 10, "invalid number of digits"
-    result = Decimal(int(round(number * (10 ** digits)))) / (10 ** digits)
+    result = Decimal(int(round(number * (10**digits)))) / (10**digits)
     if not abs(number) < 10 ** (10 + digits):
         raise ValueError("cannot precisely convert such a large float to Decimal")
     if not abs(float(result) - float(number)) < (10 ** -(digits + 3)):
@@ -114,12 +114,12 @@ def format_money(amount):
     >>> format_money(Decimal('5.8899'))
     u'5,89 \u20ac'
     """
-    formatted = u"{0:.3f}".format(amount)
+    formatted = "{0:.3f}".format(amount)
 
     if formatted.endswith("0"):
         formatted = formatted[:-1]
 
-    return u"{0} €".format(formatted).replace(".", ",")
+    return "{0} €".format(formatted).replace(".", ",")
 
 
 class Category(object):
@@ -239,7 +239,7 @@ class OrderLine(object):
         self.delete_if_zero_qty = delete_if_zero_qty
 
     def __str__(self):
-        return u"{0} {1} {2} = {3}".format(
+        return "{0} {1} {2} = {3}".format(
             format_qty(self.qty),
             self.unit,
             self.name,
@@ -495,12 +495,12 @@ class AbstractShoppingBackend(object):
             try:
                 email = self.cfg.get("general", "support_mail")
             except ConfigParserError:
-                email = u"einen zuständigen Betreuer"
+                email = "einen zuständigen Betreuer"
             raise DebtLimitExceeded(
-                u"Der Kontostand wäre mit dieser Buchung über seinem Limit.\n"
-                u"Aktuelles Guthaben: {0:.2f}\n"
-                u"Schuldengrenze für dieses Konto: {1:.2f}\n\n"
-                u"Bie Fragen wende dich bitte an {2}.".format(-debt, debt_limit, email)
+                "Der Kontostand wäre mit dieser Buchung über seinem Limit.\n"
+                "Aktuelles Guthaben: {0:.2f}\n"
+                "Schuldengrenze für dieses Konto: {1:.2f}\n\n"
+                "Bie Fragen wende dich bitte an {2}.".format(-debt, debt_limit, email)
             )
 
         self._pay_order_on_client_unchecked(client)
@@ -567,8 +567,8 @@ class AbstractClient(object):
 def basicUnitTests(shopping_backend):  # for implentations
     # TODO use these somewhere, integrate into unittest below
     shopping_backend.search_product("")
-    shopping_backend.search_product(u"öläöäl")
-    shopping_backend.search_product(u"       ")
+    shopping_backend.search_product("öläöäl")
+    shopping_backend.search_product("       ")
 
 
 def load_tests(loader, tests, ignore):
