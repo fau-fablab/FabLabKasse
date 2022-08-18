@@ -52,9 +52,7 @@ def main():
         # This is not a security issue because we don't change the contents of that file, we only touch it.
         # If another user creates that file, this blocks FabLabKasse but is harmless otherwise.
         print(
-            "Waiting for system to finish shutdown. Lockfile {} still exists.".format(
-                SHUTDOWN_LOCKFILE
-            )
+            f"Waiting for system to finish shutdown. Lockfile {SHUTDOWN_LOCKFILE} still exists."
         )
         time.sleep(1)
     currentDir = os.path.dirname(__file__) + "/"
@@ -127,14 +125,14 @@ def main():
     def runShutdown(program):
         """run sudo <program> and wait forever until the system reboots / shuts down"""
         open(SHUTDOWN_LOCKFILE, "a").close()
-        print("calling {0}".format(program))
+        print(f"calling {program}")
         time.sleep(1)
         if subprocess.call(["sudo", program]) != 0:
-            print("cannot sudo {0}".format(program))
+            print(f"cannot sudo {program}")
             time.sleep(5)
         else:
             while True:
-                print("Waiting for system {0}".format(program))
+                print(f"Waiting for system {program}")
                 sys.stdout.flush()
                 time.sleep(1)
 
@@ -143,9 +141,7 @@ def main():
     debug = ""
     if "--debug" in sys.argv:
         debug = "--debug"
-    gui = subprocess.Popen(
-        "python3 -m FabLabKasse.gui {}".format(debug).split(" "), env=myEnv
-    )
+    gui = subprocess.Popen(f"python3 -m FabLabKasse.gui {debug}".split(" "), env=myEnv)
     if debug:
         time.sleep(1)
         if not check_winpdb_version():

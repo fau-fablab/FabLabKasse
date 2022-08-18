@@ -51,9 +51,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
         self.pushButton_done.clicked.connect(self.accept)
 
         # Display amount to be payed to user
-        self.label_amount.setText(
-            "{:.2f} €".format(self.amount_total).replace(".", ",")
-        )
+        self.label_amount.setText(f"{self.amount_total:.2f} €".replace(".", ","))
 
         self.lineEdit.setText("0")
         self.lineEditUpdated()
@@ -138,9 +136,7 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
             reply = QtGui.QMessageBox.question(
                 self,
                 "Message",
-                '<html>Willst du wirklich <span style="color:#006600; font-weight:bold;">{0:.02f} € spenden</span>?</html>'.format(
-                    float(diff)
-                ),
+                f'<html>Willst du wirklich <span style="color:#006600; font-weight:bold;">{float(diff):.02f} € spenden</span>?</html>',
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                 QtGui.QMessageBox.No,
             )

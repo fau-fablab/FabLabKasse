@@ -559,9 +559,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         ), "current order total is not rounded to cents"
 
         logging.info(
-            "starting payment for cart: {0}".format(
-                self.shoppingBackend.get_order_lines()
-            )
+            f"starting payment for cart: {self.shoppingBackend.get_order_lines()}"
         )
 
         if total > 250:
@@ -587,12 +585,10 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             self, self.shoppingBackend, total
         )
         logging.info(
-            "started payment of {0} with {1}".format(
-                self.shoppingBackend.format_money(total), str(type(paymentmethod))
-            )
+            f"started payment of {self.shoppingBackend.format_money(total)} with {str(type(paymentmethod))}"
         )
         paymentmethod.execute_and_store()
-        logging.info("payment ended. result: {0}".format(paymentmethod))
+        logging.info(f"payment ended. result: {paymentmethod}")
         assert paymentmethod.amount_paid >= 0
 
         def askUser():
@@ -624,9 +620,9 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                         "Quittung",
                         "Drucker scheint offline zu sein.\n"
                         "Falls du wirklich eine Quittung brauchst, melde dich bei "
-                        "{} mit Datum, Uhrzeit und Betrag.".format(email),
+                        f"{email} mit Datum, Uhrzeit und Betrag.",
                     )
-                    logging.warning("printing receipt failed: {0}".format(repr(e)))
+                    logging.warning(f"printing receipt failed: {repr(e)}")
         if paymentmethod.successful:
             paymentmethod.show_thankyou()
             self.shoppingBackend.set_current_order(None)
@@ -706,9 +702,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                 # quantity was rounded up, notify user
                 Qt.QToolTip.showText(
                     self.label_unit.mapToGlobal(Qt.QPoint(0, -30)),
-                    "Eingabe wird auf {0} {1} aufgerundet!".format(
-                        format_decimal(order_line.qty), order_line.unit
-                    ),
+                    f"Eingabe wird auf {format_decimal(order_line.qty)} {order_line.unit} aufgerundet!",
                 )
             else:
                 Qt.QToolTip.hideText()
@@ -933,10 +927,8 @@ def main():
     app.setStyle("oxygen")
     app.setFont(QtGui.QFont("Carlito"))
     QtGui.QIcon.setThemeName("oxygen")
-    logging.debug("icon theme: {0}".format(QtGui.QIcon.themeName()))
-    logging.debug(
-        "icon paths: {0}".format([str(x) for x in QtGui.QIcon.themeSearchPaths()])
-    )
+    logging.debug(f"icon theme: {QtGui.QIcon.themeName()}")
+    logging.debug(f"icon paths: {[str(x) for x in QtGui.QIcon.themeSearchPaths()]}")
 
     kt = Kassenterminal()
     kt.show()

@@ -44,7 +44,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
 
         # Set up member variables and fill GUI
         self.amount = amount
-        self.label_betrag.setText("{} €".format(str(self.amount)).replace(".", ","))
+        self.label_betrag.setText(f"{str(self.amount)} €".replace(".", ","))
         self.label_status.setText("Starte FAUcard-Zahlung\n")
         self.counter = 0
         self.thread_aborted = False
@@ -160,9 +160,9 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
             # Inform the user about the reestablished connection to the MagnaBox
             elif response[0] == Info.con_back:
                 self.label_status.setText(
-                    "Verbindung zum Terminal wieder da.\nBuche {}€ ab\n".format(
-                        str(self.amount)
-                    ).replace(".", ",")
+                    f"Verbindung zum Terminal wieder da.\nBuche {str(self.amount)}€ ab\n".replace(
+                        ".", ","
+                    )
                 )
                 logging.warning(
                     "FAUcardPayment: Verbindung zur MagnaBox wieder aufgebaut."
@@ -183,16 +183,14 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
                 response[0] == Status.decreasing_balance
             ):  # Card and Balance recognized
                 self.label_status.setText(
-                    "Buche {}€ ab\n".format(str(self.amount)).replace(".", ",")
+                    f"Buche {str(self.amount)}€ ab\n".replace(".", ",")
                 )
                 self.response_ack.emit(False)
             # Successfully decreased: Inform the user the payment is done and close after 2 seconds
             elif response[0] == Status.decreasing_done:
                 self.utimer.stop()
                 self.label_status.setText(
-                    "Vielen Dank für deine Zahlung von {}.\nBitte das Aufräumen nicht vergessen!".format(
-                        str(self.amount)
-                    )
+                    f"Vielen Dank für deine Zahlung von {str(self.amount)}.\nBitte das Aufräumen nicht vergessen!"
                 )
                 self.utimer.singleShot(5000, self.accept)
                 self.response_ack.emit(False)

@@ -155,7 +155,7 @@ class Rechnung(object):
         return pos["anzahl"] * pos["einzelpreis"]
 
     def to_string(self):
-        s = "Rechnungsnr.: {0}\nDatum: {1:%Y-%m-%d %H:%M}\n".format(self.id, self.datum)
+        s = f"Rechnungsnr.: {self.id}\nDatum: {self.datum:%Y-%m-%d %H:%M}\n"
 
         for p in self.positionen:
             s += "    {anzahl:>7.2f} {einheit:<8} {artikel:<45} {einzelpreis:>8.3f} EUR {gesamtpreis:>8.2f} EUR\n".format(
@@ -252,7 +252,7 @@ class Rechnung(object):
             r += "{anzahl_fmt:>8} {einheit:<14.14} {einzelpreis_fmt:>18}".format(
                 einzelpreis_fmt=moneyfmt(p["einzelpreis"], places=3),
                 anzahl_fmt="{:.2f}".format(p["anzahl"]).replace(".", ","),
-                **p
+                **p,
             )
             r += separator
             r += "{artikel:<29.29}  {gesamtpreis:>11}\n".format(

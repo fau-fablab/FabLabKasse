@@ -312,7 +312,7 @@ class SelectClientDialog(QtGui.QDialog, Ui_SelectClientDialog):
             return
 
         pin = random.randint(1, 9999)
-        pin = "{0:04}".format(pin)
+        pin = f"{pin:04}"
         DEFAULT_DEBT_LIMIT = 300
 
         try:
