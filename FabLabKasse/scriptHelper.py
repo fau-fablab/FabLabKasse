@@ -28,7 +28,7 @@ import sqlite3
 from configparser import ConfigParser
 from configparser import Error as ConfigParserError
 import codecs
-from PyQt4 import QtGui
+from qtpy import QtGui, QtWidgets
 import traceback
 
 
@@ -83,7 +83,7 @@ def setupGraphicalExceptHook():
                     "could not read mail address from config in graphical except-hook."
                 )
                 email = "den Verantwortlichen"
-            msgbox = QtGui.QMessageBox()
+            msgbox = QtWidgets.QMessageBox()
             txt = "Entschuldigung, das Programm wird wegen eines Fehlers beendet."
             infotxt = """Wenn dir Rückgeld entgangen ist, melde dich bei {0} und gebe neben einer
              Fehlerbeschreibung folgende Uhrzeit an:{1}.""".format(
@@ -101,7 +101,7 @@ def setupGraphicalExceptHook():
             msgbox.setText(txt)
             msgbox.setInformativeText(infotxt)
             msgbox.setDetailedText(detailtxt)
-            msgbox.setIcon(QtGui.QMessageBox.Critical)
+            msgbox.setIcon(QtWidgets.QMessageBox.Critical)
             msgbox.exec_()
         except Exception as e:
             try:

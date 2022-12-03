@@ -17,15 +17,15 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-from PyQt4 import QtGui
+from qtpy import QtGui, QtWidgets
 from .uic_generated.PayupManualDialog import Ui_PayupManualDialog
 import re
 from decimal import Decimal
 
 
-class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
+class PayupManualDialog(QtWidgets.QDialog, Ui_PayupManualDialog):
     def __init__(self, parent, amount_total):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setupUi(self)
         self.amount_total = amount_total
 
@@ -110,38 +110,38 @@ class PayupManualDialog(QtGui.QDialog, Ui_PayupManualDialog):
         self.lineEdit.setText(
             "0,00 €"
         )  # make sure that getPaidAmount() returns 0 on abort
-        QtGui.QDialog.reject(self)
+        QtWidgets.QDialog.reject(self)
 
     def accept(self):
         if self.getPaidAmount() == 0:
-            QtGui.QMessageBox.critical(
+            QtWidgets.QMessageBox.critical(
                 self,
                 "Fehler",
                 "Bitte gib ein, wieviel du bezahlt hast, oder breche die Bezahlung ab.",
-                QtGui.QMessageBox.Ok,
-                QtGui.QMessageBox.Ok,
+                QtWidgets.QMessageBox.Ok,
+                QtWidgets.QMessageBox.Ok,
             )
             return
         diff = self.getPaidAmount() - self.amount_total
 
         if diff < -0.009:
-            reply = QtGui.QMessageBox.warning(
+            reply = QtWidgets.QMessageBox.warning(
                 self,
                 "Message",
                 "Bitte zahle mindestens den geforderten Betrag.",
-                QtGui.QMessageBox.Ok,
+                QtWidgets.QMessageBox.Ok,
             )
             return
         elif diff > min(5, self.amount_total * 2):
-            reply = QtGui.QMessageBox.question(
+            reply = QtWidgets.QMessageBox.question(
                 self,
                 "Message",
                 f'<html>Willst du wirklich <span style="color:#006600; font-weight:bold;">{float(diff):.02f} € spenden</span>?</html>',
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-                QtGui.QMessageBox.No,
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.No,
             )
 
-            if reply == QtGui.QMessageBox.No:
+            if reply == QtWidgets.QMessageBox.No:
                 return
 
-        QtGui.QDialog.accept(self)
+        QtWidgets.QDialog.accept(self)

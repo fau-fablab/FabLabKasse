@@ -18,7 +18,7 @@
 # see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
-from PyQt4 import uic
+from qtpy import uic
 import fnmatch
 import os
 import subprocess
@@ -35,9 +35,7 @@ def main():
                 uic.compileUi(file, f, execute=True)
         if fnmatch.fnmatch(filename, "*.qrc"):
             print(file)
-            subprocess.call(
-                ["pyrcc4", "-py3", filename, "-o", prefix + file[:-4] + "_rc.py"]
-            )
+            subprocess.call(["pyrcc5", filename, "-o", prefix + file[:-4] + "_rc.py"])
 
     time.sleep(2)
     subprocess.call(["futurize", "-wn", "-0", prefix])

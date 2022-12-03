@@ -2193,7 +2193,7 @@ aus App laden</string>
  <connections>
   <connection>
    <sender>actionNeustart</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>Kassenterminal</receiver>
    <slot>restart()</slot>
    <hints>
@@ -2209,7 +2209,7 @@ aus App laden</string>
   </connection>
   <connection>
    <sender>actionServicemodus</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>Kassenterminal</receiver>
    <slot>serviceMode()</slot>
    <hints>

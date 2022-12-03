@@ -18,11 +18,11 @@
 # see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
-from PyQt4 import QtGui
+from qtpy import QtGui, QtWidgets
 from .uic_generated.KeyboardDialog import Ui_KeyboardDialog
 
 
-class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
+class KeyboardDialog(QtWidgets.QDialog, Ui_KeyboardDialog):
     """
     Example code::
 
@@ -42,7 +42,7 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
             return None
 
     def __init__(self, parent, question="What: "):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setupUi(self)
 
         self.caps = True

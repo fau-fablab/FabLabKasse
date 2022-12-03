@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtGui import QTableView
-from PyQt4 import QtGui, QtCore
+from qtpy.QtWidgets import QTableView
+from qtpy import QtGui, QtCore
 import functools
 from FabLabKasse.UI.GUIHelper import resize_table_columns
 

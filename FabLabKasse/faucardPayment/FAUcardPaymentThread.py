@@ -7,7 +7,7 @@ from __future__ import absolute_import
 import codecs
 import logging
 import sqlite3
-from PyQt4 import QtCore, Qt
+from qtpy import QtCore, QtWidgets
 from decimal import Decimal
 from datetime import datetime
 
@@ -33,13 +33,13 @@ class FAUcardThread(QtCore.QObject):
     """
 
     # Signal zum auslesen der Antwort
-    response_ready = QtCore.pyqtSignal([list])
+    response_ready = QtCore.Signal([list])
     # Signal signalieren eines Transaction Fehlers
-    transaction_error = QtCore.pyqtSignal()
+    transaction_error = QtCore.Signal()
     # Signal to change the Enabled state of Dialogs cancel button
-    set_cancel_button_enabled = QtCore.pyqtSignal(bool)
+    set_cancel_button_enabled = QtCore.Signal(bool)
     # Signals process end
-    process_aborted = QtCore.pyqtSignal()
+    process_aborted = QtCore.Signal()
 
     class UserAbortionError(Exception):
         def __init__(self, func):
@@ -69,7 +69,7 @@ class FAUcardThread(QtCore.QObject):
         :param amount: Amount to be paid
         :type amount: Decimal
         :param thread: Thread the process should work in
-        :type thread: Qt.QThread
+        :type thread: QtCore.QThread
         """
         self.cfg = scriptHelper.getConfig()
         QtCore.QObject.__init__(self)
@@ -126,7 +126,7 @@ class FAUcardThread(QtCore.QObject):
         thread.terminated.connect(self.terminate, type=QtCore.Qt.QueuedConnection)
 
     # set response-flag
-    @QtCore.pyqtSlot(bool)
+    @QtCore.Slot(bool)
     def set_ack(self, cf):
         """
         Sets the Acknowledge flag and Cancel flag
@@ -136,7 +136,7 @@ class FAUcardThread(QtCore.QObject):
         self.cancel = cf
 
     # set if thread should finish logfile with booking entry
-    @QtCore.pyqtSlot(bool)
+    @QtCore.Slot(bool)
     def set_should_finish_log(self, val):
         """
         Sets the finish logfile flag
@@ -145,12 +145,12 @@ class FAUcardThread(QtCore.QObject):
         """
         self.should_finish_log = val
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def user_abortion(self):
         """ets cancel flag to cancel the payment"""
         self.cancel = True
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def terminate(self):
         """
         Terminates the Process on fatal Error
@@ -186,7 +186,7 @@ class FAUcardThread(QtCore.QObject):
             if self.cancel == True:
                 raise self.UserAbortionError("sleep")
             if counter == self.sleep_counter:
-                Qt.QTimer.singleShot(100, self.sleep_timer)
+                QtCore.QTimer.singleShot(100, self.sleep_timer)
                 counter += 1
             else:
                 # Process SLOT calls to retrieve new sleep_counter
@@ -194,12 +194,12 @@ class FAUcardThread(QtCore.QObject):
 
         self.sleep_counter = 0
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def sleep_timer(self):
         """Increases the sleep_counter by one"""
         self.sleep_counter += 1
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def quit(self):
         """
         Quits the Process on user cancel or balance underflow
@@ -214,7 +214,7 @@ class FAUcardThread(QtCore.QObject):
             self.pos.close()
         self.set_cancel_button_enabled.emit(True)
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def run(self):
         """
         Billing routine for FAU-Card payment. Runs following steps:

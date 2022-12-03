@@ -10,7 +10,7 @@ from configparser import ConfigParser
 import sqlite3
 from datetime import datetime
 from decimal import Decimal
-from PyQt4 import QtCore, Qt, QtGui
+from qtpy import QtCore, QtWidgets, QtGui
 
 from .MagPosLog import MagPosLog
 from ..UI.FAUcardPaymentDialogCode import FAUcardPaymentDialog
@@ -54,7 +54,7 @@ class PayupFAUCard(QtCore.QObject):
         # Execute the GUI
         success = self.dialog.exec_()
 
-        if success == Qt.QDialog.Accepted:
+        if success == QtWidgets.QDialog.Accepted:
             return True
         else:
             # Wait for thread to finish cleanup
@@ -91,7 +91,7 @@ class PayupFAUCard(QtCore.QObject):
             )
         self.close()
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def threadTerminationRequested(self):
         """
         Terminates the self.thread if requested.

@@ -27,7 +27,7 @@ import logging
 import datetime
 import os
 from decimal import Decimal, DecimalException
-from PyQt4 import QtGui, QtCore, Qt
+from qtpy import QtGui, QtCore, QtWidgets
 import functools
 from configparser import Error as ConfigParserError
 
@@ -82,11 +82,11 @@ def format_decimal(value):
     return str(value).replace(".", locale.localeconv()["decimal_point"])
 
 
-class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
+class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
     def __init__(self):
         logging.info("GUI startup")
         Ui_Kassenterminal.__init__(self)
-        QtGui.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
 
         self.setupUi(self)
         # maximize window - WORKAROUND because showMaximized() doesn't work
@@ -102,16 +102,18 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
         for table in [self.table_products, self.table_order]:
             # forbid resizing columns
-            table.verticalHeader().setResizeMode(QtGui.QHeaderView.Fixed)
+            table.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Fixed)
             # forbid changing column order
-            table.verticalHeader().setMovable(False)
+            table.verticalHeader().setSectionsMovable(False)
 
-            table.horizontalHeader().setResizeMode(
-                QtGui.QHeaderView.Fixed
+            table.horizontalHeader().setSectionResizeMode(
+                QtWidgets.QHeaderView.Fixed
             )  # forbid resizing columns
-            table.horizontalHeader().setMovable(False)  # forbid changing column order
+            table.horizontalHeader().setSectionsMovable(
+                False
+            )  # forbid changing column order
             # Disable editing on table
-            table.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+            table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
         # Connect up the buttons. (lower half)
         self.pushButton_0.clicked.connect(lambda x: self.insertIntoLineEdit("0"))
@@ -297,27 +299,29 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
     def restart(self):
         # Ask if restart is okay
-        dialog = QtGui.QMessageBox(self)
+        dialog = QtWidgets.QMessageBox(self)
         dialog.setWindowModality(QtCore.Qt.WindowModal)
         dialog.setText("Ein Neustart löscht den aktuellen Warenkorb! Fortsetzen?")
-        dialog.addButton(QtGui.QMessageBox.Cancel)
-        dialog.addButton(QtGui.QMessageBox.Ok)
-        dialog.setDefaultButton(QtGui.QMessageBox.Ok)
-        dialog.setEscapeButton(QtGui.QMessageBox.Cancel)
-        if dialog.exec_() != QtGui.QMessageBox.Ok:
+        dialog.addButton(QtWidgets.QMessageBox.Cancel)
+        dialog.addButton(QtWidgets.QMessageBox.Ok)
+        dialog.setDefaultButton(QtWidgets.QMessageBox.Ok)
+        dialog.setEscapeButton(QtWidgets.QMessageBox.Cancel)
+        if dialog.exec_() != QtWidgets.QMessageBox.Ok:
             return
 
         # Choose restart type
-        dialog = QtGui.QMessageBox(self)
+        dialog = QtWidgets.QMessageBox(self)
         dialog.setWindowModality(QtCore.Qt.WindowModal)
         dialog.setText("Was soll passieren?")
-        dialog.addButton("Produkte neu laden", QtGui.QMessageBox.YesRole)
-        rebootButton = dialog.addButton("Automat Neustart", QtGui.QMessageBox.YesRole)
-        shutdownButton = dialog.addButton(
-            "Automat Herunterfahren", QtGui.QMessageBox.YesRole
+        dialog.addButton("Produkte neu laden", QtWidgets.QMessageBox.YesRole)
+        rebootButton = dialog.addButton(
+            "Automat Neustart", QtWidgets.QMessageBox.YesRole
         )
-        dialog.addButton(QtGui.QMessageBox.Cancel)
-        if dialog.exec_() == QtGui.QMessageBox.Cancel:
+        shutdownButton = dialog.addButton(
+            "Automat Herunterfahren", QtWidgets.QMessageBox.YesRole
+        )
+        dialog.addButton(QtWidgets.QMessageBox.Cancel)
+        if dialog.exec_() == QtWidgets.QMessageBox.Cancel:
             return
 
         # trigger reboot ('sudo reboot' will be executed by run.py)
@@ -342,7 +346,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                 )
             except OSError:
                 if showErrorMessage:
-                    QtGui.QMessageBox.warning(
+                    QtWidgets.QMessageBox.warning(
                         self,
                         "Ups",
                         "Servicemodus nicht aktiviert\n Bitte ./enableServiceMode ausführen",
@@ -353,7 +357,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             now = datetime.datetime.utcnow()
             if not (now - delta < lastEnabled < now):
                 if showErrorMessage:
-                    QtGui.QMessageBox.warning(
+                    QtWidgets.QMessageBox.warning(
                         self, "Hey", "Zu spät, Aktivierung gilt nur 30sec."
                     )
                 return False
@@ -364,14 +368,14 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             return
 
         dialog.setText("Automat sperren?")
-        if dialog.exec_() != QtGui.QMessageBox.Yes:
+        if dialog.exec_() != QtWidgets.QMessageBox.Yes:
             return
         while True:
-            dialog = QtGui.QMessageBox(self)
+            dialog = QtWidgets.QMessageBox(self)
             dialog.setText(
                 "Der Automat ist wegen Wartungsarbeiten für kurze Zeit nicht verfügbar.\nBitte wende dich zur Bezahlung an einen Betreuer.\n\n(zum Entsperren: ./enableServiceMode ausführen und OK drücken)"
             )
-            dialog.addButton(QtGui.QMessageBox.Ok)
+            dialog.addButton(QtWidgets.QMessageBox.Ok)
             dialog.setStyleSheet("background-color:red; color:white; font-weight:bold;")
             dialog.exec_()
             if checkServiceModeEnabled(showErrorMessage=False):
@@ -410,8 +414,10 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         # l = Qt.QLabel()
         # l.setText(u"►")
         # self.layout_category_path.addWidget(l)
-        button = Qt.QPushButton(" ► " + name)
-        button.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        button = QtWidgets.QPushButton(" ► " + name)
+        button.setSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
+        )
         if categ_id is not None:
             button.category_id = categ_id
             button.clicked.connect(self.on_category_path_button_clicked)
@@ -565,7 +571,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
         if total > 250:
             # cash-accept is unlimited, but dispense is locked to maximum 200€ hardcoded. Limit to
             # a sensible amount here
-            msgBox = QtGui.QMessageBox(self)
+            msgBox = QtWidgets.QMessageBox(self)
             msgBox.setText(
                 "Bezahlungen über 250 Euro sind leider nicht möglich. Bitte wende "
                 + "dich an einen Betreuer, um es per Überweisung zu zahlen."
@@ -593,14 +599,14 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
         def askUser():
             """ask the user whether he wants a receipt, return True if he does."""
-            reply = QtGui.QMessageBox.question(
+            reply = QtWidgets.QMessageBox.question(
                 self,
                 "Message",
                 "Brauchst du eine Quittung?",
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-                QtGui.QMessageBox.No,
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.No,
             )
-            return reply == QtGui.QMessageBox.Yes
+            return reply == QtWidgets.QMessageBox.Yes
 
         # Receipt printing
         if cfg.getboolean("general", "receipt"):
@@ -615,7 +621,7 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
                         email = cfg.get("general", "support_mail")
                     except ConfigParserError:
                         email = "einem zuständigen Betreuer"
-                    QtGui.QMessageBox.warning(
+                    QtWidgets.QMessageBox.warning(
                         self,
                         "Quittung",
                         "Drucker scheint offline zu sein.\n"
@@ -700,12 +706,12 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
             order_line = self.shoppingBackend.get_order_line(selected_order_line_id)
             if order_line.qty != qty:
                 # quantity was rounded up, notify user
-                Qt.QToolTip.showText(
-                    self.label_unit.mapToGlobal(Qt.QPoint(0, -30)),
+                QtWidgets.QToolTip.showText(
+                    self.label_unit.mapToGlobal(QtWidgets.QPoint(0, -30)),
                     f"Eingabe wird auf {format_decimal(order_line.qty)} {order_line.unit} aufgerundet!",
                 )
             else:
-                Qt.QToolTip.hideText()
+                QtWidgets.QToolTip.hideText()
             self.updateOrder()
         else:
             # PLU input
@@ -875,14 +881,14 @@ class Kassenterminal(Ui_Kassenterminal, QtGui.QMainWindow):
 
         def ask_user():
             """ask the user whether he really wants to clear the cart, return True if he does."""
-            reply = QtGui.QMessageBox.question(
+            reply = QtWidgets.QMessageBox.question(
                 self,
                 "Message",
                 "Willst du den Warenkorb wirklich löschen?",
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-                QtGui.QMessageBox.No,
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.No,
             )
-            return reply == QtGui.QMessageBox.Yes
+            return reply == QtWidgets.QMessageBox.Yes
 
         user_answer = True
         if hide_dialog is False:
@@ -906,10 +912,13 @@ def main():
     scriptHelper.setupSigInt()
     # setup logging
     scriptHelper.setupLogging("gui.log")
+
+    # set up an application first (to be called before setupGraphicalExceptHook in order to have application for except hook)
+    app = QtWidgets.QApplication(sys.argv)
+
     # error message on exceptions
     scriptHelper.setupGraphicalExceptHook()
 
-    app = QtGui.QApplication(sys.argv)
     # Hide mouse cursor if configured
     if cfg.getboolean("general", "hide_cursor"):
         app.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))

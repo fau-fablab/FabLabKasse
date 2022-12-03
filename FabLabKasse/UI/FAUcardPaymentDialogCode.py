@@ -4,14 +4,14 @@
 
 
 import logging
-from PyQt4 import QtGui, QtCore, Qt
+from qtpy import QtWidgets, QtCore
 from .uic_generated.FAUcardPaymentDialog import Ui_FAUcardPaymentDialog
 
 from ..faucardPayment.faucardStates import Status, Info
 from decimal import Decimal
 
 
-class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
+class FAUcardPaymentDialog(QtWidgets.QDialog, Ui_FAUcardPaymentDialog):
     """
     The FAUcardPaymentDialog works as the GUI for the FAUcardThread. It informs the user about the current state
     of the payment process and gives the ability to hold and cancel the FAUcardThread. The process waits after each
@@ -19,10 +19,10 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
     """
 
     # Signal to tell the FAUcardThread to send response acknowledge to the MagnaBox + optional cancel of the process
-    response_ack = QtCore.pyqtSignal(bool)
+    response_ack = QtCore.Signal(bool)
 
     # Signal to tell the payment handler to terminate the thread
-    request_termination = QtCore.pyqtSignal()
+    request_termination = QtCore.Signal()
 
     def __init__(self, parent, amount):
         """
@@ -33,7 +33,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
         :param amount: Amount the user has to pay (only used to display)
         :type amount: Decimal
         """
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         logging.info("FAUcardPayment: started")
         self.setupUi(self)
         self.setModal(True)
@@ -64,7 +64,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
         )
         self.utimer.start(1000)
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def thread_terminated(self):
         """
         A Slot to recognize if the Thread was terminated and tell the user
@@ -73,7 +73,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
         self.thread_aborted = True
         self.update_gui([Info.unknown_error])
 
-    @QtCore.pyqtSlot(bool)
+    @QtCore.Slot(bool)
     def set_cancel_button_enabled(self, enabled):
         """
         Sets self.pushButton_abbrechen.setEnabled to the given bool enabled
@@ -82,12 +82,12 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
         """
         self.pushButton_abbrechen.setEnabled(enabled)
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def show_transaction_error(self):
         """
         A Slot to inform the user about an occured transaction error.
         """
-        QtGui.QMessageBox.warning(
+        QtWidgets.QMessageBox.warning(
             self,
             "Zahlung mit FAU-Karte",
             "Das Programm hat einen Fehler in der Abbuchung \
@@ -95,7 +95,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
                                   dich bitte unter kasse@fablab.fau.de mit Datum, Uhrzeit und Betrag.",
         )
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def process_aborted(self):
         """
         SLOT is called by the process's process_aborted signal, which is emitted if the process terminated on an
@@ -104,7 +104,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
         """
         self.thread_aborted = True
 
-    @QtCore.pyqtSlot(list)
+    @QtCore.Slot(list)
     def update_gui(self, response):
         """
         Displays different Messages on the GUI according to the thread's response which executes the payment.
@@ -197,7 +197,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
                 self.pushButton_abbrechen.hide()
                 logging.info("FAUcardPayment: successfully payed")
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def show_active(self):
         """
         Periodically updates the GUI to show sign of life
@@ -212,16 +212,16 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
         if self.thread_aborted is True:
             self.label_status.setText("Breche Bezahlung ab.")
             self.pushButton_abbrechen.hide()
-            Qt.QTimer.singleShot(2000, self.reject_final)
+            QtCore.QTimer.singleShot(2000, self.reject_final)
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def reject(self):
         """
         SLOT that handles the abortion of the payment process.
         If the process terminated on error it trys to abort, otherwises it tries in 1 second (to let the process finish)
         """
         if not self.pushButton_abbrechen.isEnabled():
-            QtGui.QMessageBox.warning(
+            QtWidgets.QMessageBox.warning(
                 None,
                 "FAUCard Zahlung",
                 "Du kannst zu diesem Zeitpunkt nicht mehr abbrechen",
@@ -229,11 +229,11 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
             return
 
         if self.thread_aborted is not True:
-            Qt.QTimer.singleShot(1000, self.try_reject)
+            QtCore.QTimer.singleShot(1000, self.try_reject)
         else:
             self.try_reject()
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def try_reject(self):
         """
         Tries to do the final abortion
@@ -241,7 +241,7 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
         If the thread is finished tell the user the process is aborting and process the final abortion in 2 seconds
         """
         if self.thread_aborted is not True:
-            QtGui.QMessageBox.warning(
+            QtWidgets.QMessageBox.warning(
                 None,
                 "FAUCard Zahlung",
                 "Abbrechen gerade nicht möglich.\nBitte warten Sie, bis das Programm an der nächst \
@@ -255,29 +255,29 @@ class FAUcardPaymentDialog(QtGui.QDialog, Ui_FAUcardPaymentDialog):
             self.label_status.setText("Breche Bezahlung ab.")
             self.pushButton_abbrechen.hide()
             self.timer_terminate.stop()
-            Qt.QTimer.singleShot(2000, self.reject_final)
+            QtCore.QTimer.singleShot(2000, self.reject_final)
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def reject_final(self):
         """
         Final rejection of the Payment
         """
-        QtGui.QDialog.reject(self)
+        QtWidgets.QDialog.reject(self)
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def request_thread_termination(self):
         """
         Sets the thread_broken flag to let the user terminate the thread if necessary.
         """
         self.thread_broken = True
-        terminate = QtGui.QMessageBox.question(
+        terminate = QtWidgets.QMessageBox.question(
             None,
             "FAUCard Zahlung",
             "Willst du den Thread terminieren? Wenn du dir nicht sicher bist, antworte mit nein.",
-            QtGui.QMessageBox.Yes,
-            QtGui.QMessageBox.No,
+            QtWidgets.QMessageBox.Yes,
+            QtWidgets.QMessageBox.No,
         )
-        if terminate == QtGui.QMessageBox.Yes:
+        if terminate == QtWidgets.QMessageBox.Yes:
             logging.error("FAUcardPayment: thread termination was requested")
             self.request_termination.emit()
-            Qt.QTimer.singleShot(500, self.reject_final)
+            QtCore.QTimer.singleShot(500, self.reject_final)

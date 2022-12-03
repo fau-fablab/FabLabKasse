@@ -36,7 +36,7 @@ your class to the list ``PAYMENT_METHODS`` at the end of ``payment_methods.py``
 
 import logging
 from abc import ABCMeta, abstractmethod  # abstract base class support
-from PyQt4 import QtGui
+from qtpy import QtGui, QtWidgets
 from decimal import Decimal
 from ..UI.ClientDialogCode import SelectClientDialog
 from ..UI.PayupManualDialogCode import PayupManualDialog
@@ -141,7 +141,7 @@ class AbstractPaymentMethod(object):
         this extra thank-you dialog.
         """
         pass
-        # QtGui.QMessageBox.information(self.parent, "", u"Vielen Dank für deine Zahlung von {0}.\nBitte das Aufräumen nicht vergessen!".format(self.shopping_backend.format_money(self.amount_paid - self.amount_returned)))
+        # QtWidgets.QMessageBox.information(self.parent, "", u"Vielen Dank für deine Zahlung von {0}.\nBitte das Aufräumen nicht vergessen!".format(self.shopping_backend.format_money(self.amount_paid - self.amount_returned)))
 
     @staticmethod
     def is_enabled(cfg):
@@ -287,7 +287,7 @@ class ClientPayment(AbstractClientPaymentMethod):
             self.amount_paid = self.amount_to_pay
             self.successful = True
             self._end_of_payment()
-            QtGui.QMessageBox.information(
+            QtWidgets.QMessageBox.information(
                 self.parent,
                 "Information",
                 "Vielen Dank.\n Dein neuer Kontostand beträgt "
@@ -298,9 +298,9 @@ class ClientPayment(AbstractClientPaymentMethod):
         except DebtLimitExceeded as e:
             self.successful = False
             self._end_of_payment()
-            msgBox = QtGui.QMessageBox(self.parent)
+            msgBox = QtWidgets.QMessageBox(self.parent)
             msgBox.setText(e.message)
-            msgBox.setIcon(QtGui.QMessageBox.Warning)
+            msgBox.setIcon(QtWidgets.QMessageBox.Warning)
             msgBox.exec_()
 
 
