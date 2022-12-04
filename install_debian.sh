@@ -21,10 +21,14 @@ fi
 # Install dependencies
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install git
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python-pip python3-pip python-qt4-dev python2.7 python3 python-qt4 python3-dateutil python3-lxml pyqt4-dev-tools python3-crypto python3-termcolor python3-serial python3-qrcode python3-docopt python3-requests python3-simplejson python3-sphinx
+# Python2 stuff - TODO remove
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python-pip python-qt4-dev python2.7 python-qt4 pyqt4-dev-tools 
 sudo pip install -r requirements.txt
+# Python3 stuff
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-pip python3 python3-dateutil python3-lxml python3-crypto python3-termcolor python3-serial python3-qrcode python3-docopt python3-requests python3-simplejson python3-sphinx 
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-qtpy python3-pyqt4 python3-pyqt5 pyqt5-dev-tools
 sudo python3 -m pip install -r requirements.txt
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-pyqt4 python3-pyqt5 pyqt5-dev-tools
+
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install xserver-xorg git nodm ssh x11-apps xterm kde-style-oxygen fonts-crosextra-carlito curl
 # try to install xrandr command
 apt-get -y install x11-xserver-utils || true
