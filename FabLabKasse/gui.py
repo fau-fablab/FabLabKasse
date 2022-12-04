@@ -250,6 +250,11 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         # Connect produktTree to add selected produkt
         self.table_products.clicked.connect(self.on_product_clicked)
 
+        # configure kinetic scrolling for product table (TODO use QScroller.TouchGesture? check what if our system generates touch events) (TODO seems to not scroll properly)
+        QtWidgets.QScroller.grabGesture(
+            self.table_products, QtWidgets.QScroller.LeftMouseButtonGesture
+        )
+
         # Connect to table_order changed selection
         self.table_order.clicked.connect(
             lambda x: self.on_order_clicked()
