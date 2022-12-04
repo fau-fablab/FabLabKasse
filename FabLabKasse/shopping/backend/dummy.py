@@ -91,16 +91,20 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
 
         # Add lots of dummy products/categories so that we can test scrolling
         for i in range(50):
-            categories.append(Category(categ_id=1000 + i, name="ZZZ test " + str(i), parent_id=0))
+            categories.append(
+                Category(categ_id=1000 + i, name="ZZZ test " + str(i), parent_id=0)
+            )
             for j in range(50):
-                products.append(Product(
-                    prod_id=2000 + j + i * 100,
-                    name="Potatoes Size " + str(j),
-                    unit="kg",
-                    location="Somewhere",
-                    price=Decimal("0.01") * j,
-                    categ_id=1000 + i,
-                ))
+                products.append(
+                    Product(
+                        prod_id=2000 + j + i * 100,
+                        name="Potatoes Size " + str(j),
+                        unit="kg",
+                        location="Somewhere",
+                        price=Decimal("0.01") * j,
+                        categ_id=1000 + i,
+                    )
+                )
 
         assert (
             cfg.getint("payup_methods", "overpayment_product_id") == 9999
