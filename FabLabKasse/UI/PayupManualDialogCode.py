@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -20,6 +20,7 @@
 from qtpy import QtGui, QtWidgets
 from .uic_generated.PayupManualDialog import Ui_PayupManualDialog
 import re
+from .GUIHelper import connect_button_to_lineedit
 from decimal import Decimal
 
 
@@ -33,17 +34,10 @@ class PayupManualDialog(QtWidgets.QDialog, Ui_PayupManualDialog):
         self.lineEdit.cursorPositionChanged.connect(self.lineEditResetCursor)
 
         # Numpad
-        self.pushButton_0.clicked.connect(lambda x: self.insertIntoLineEdit("0"))
+        # Connect buttons 0-9 with for loop
+        for i in list(range(10)):
+            connect_button_to_lineedit(self, i)
         self.pushButton_comma.clicked.connect(lambda x: self.insertIntoLineEdit(","))
-        self.pushButton_9.clicked.connect(lambda x: self.insertIntoLineEdit("9"))
-        self.pushButton_8.clicked.connect(lambda x: self.insertIntoLineEdit("8"))
-        self.pushButton_7.clicked.connect(lambda x: self.insertIntoLineEdit("7"))
-        self.pushButton_6.clicked.connect(lambda x: self.insertIntoLineEdit("6"))
-        self.pushButton_5.clicked.connect(lambda x: self.insertIntoLineEdit("5"))
-        self.pushButton_4.clicked.connect(lambda x: self.insertIntoLineEdit("4"))
-        self.pushButton_3.clicked.connect(lambda x: self.insertIntoLineEdit("3"))
-        self.pushButton_2.clicked.connect(lambda x: self.insertIntoLineEdit("2"))
-        self.pushButton_1.clicked.connect(lambda x: self.insertIntoLineEdit("1"))
 
         # Function keys
         self.pushButton_backspace.clicked.connect(self.backspaceLineEdit)

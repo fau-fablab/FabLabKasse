@@ -25,3 +25,17 @@ def resize_table_columns(table, widths):
     w = table.width() - table.verticalScrollBar().width() - 5
     for i, width in enumerate(widths):
         table.setColumnWidth(i, int(width * w / sum(widths)))
+
+
+def connect_button(btn, my_slot):
+    # connect a button signal to a slot,
+    # using the button text in lowercase as slot argument.
+    # For connect_button(self.pushButton_0, self.insertIntoLineEdit), the result is similar to:
+    # self.pushButton_0.clicked.connect(lambda x: self.insertIntoLineEdit("0"))
+    btn.clicked.connect(lambda x: my_slot(btn.text().lower()))
+
+
+def connect_button_to_lineedit(gui_instance, btn_suffix):
+    # connect self.pushButton_<btn_suffix> to self.insertIntoLineEdit(<text of the button>)
+    btn = getattr(gui_instance, "pushButton_" + str(btn_suffix))
+    connect_button(btn, gui_instance.insertIntoLineEdit)

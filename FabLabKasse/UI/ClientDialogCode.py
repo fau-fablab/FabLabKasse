@@ -19,6 +19,8 @@
 from __future__ import absolute_import
 from qtpy import QtGui, QtWidgets
 from .uic_generated.SelectClientDialog import Ui_SelectClientDialog
+from .GUIHelper import connect_button_to_lineedit
+import string
 import re
 from .KeyboardDialogCode import KeyboardDialog
 from .. import scriptHelper
@@ -49,16 +51,9 @@ class SelectClientDialog(QtWidgets.QDialog, Ui_SelectClientDialog):
         self.comboBox_client.currentIndexChanged.connect(self.comboBoxClientUpdate)
 
         # Numpad
-        self.pushButton_0.clicked.connect(lambda x: self.insertIntoLineEdit("0"))
-        self.pushButton_9.clicked.connect(lambda x: self.insertIntoLineEdit("9"))
-        self.pushButton_8.clicked.connect(lambda x: self.insertIntoLineEdit("8"))
-        self.pushButton_7.clicked.connect(lambda x: self.insertIntoLineEdit("7"))
-        self.pushButton_6.clicked.connect(lambda x: self.insertIntoLineEdit("6"))
-        self.pushButton_5.clicked.connect(lambda x: self.insertIntoLineEdit("5"))
-        self.pushButton_4.clicked.connect(lambda x: self.insertIntoLineEdit("4"))
-        self.pushButton_3.clicked.connect(lambda x: self.insertIntoLineEdit("3"))
-        self.pushButton_2.clicked.connect(lambda x: self.insertIntoLineEdit("2"))
-        self.pushButton_1.clicked.connect(lambda x: self.insertIntoLineEdit("1"))
+        # Connect buttons 0-9 with for loop
+        for i in list(range(10)):
+            connect_button_to_lineedit(self, i)
 
         # Function keys
         self.pushButton_backspace.clicked.connect(self.backspaceLineEdit)

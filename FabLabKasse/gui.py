@@ -33,7 +33,11 @@ import functools
 from configparser import Error as ConfigParserError
 
 from .libs.pxss import pxss
-from FabLabKasse.UI.GUIHelper import resize_table_columns
+from FabLabKasse.UI.GUIHelper import (
+    resize_table_columns,
+    connect_button,
+    connect_button_to_lineedit,
+)
 
 # import UI
 from .UI.uic_generated.Kassenterminal import Ui_Kassenterminal
@@ -132,24 +136,12 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
             )
 
         # Connect up the buttons. (lower half)
-        def connect_button(btn, my_slot):
-            # connect a button signal to a slot,
-            # using the button text in lowercase as slot argument.
-            # For connect_button(self.pushButton_0, self.insertIntoLineEdit), the result is similar to:
-            # self.pushButton_0.clicked.connect(lambda x: self.insertIntoLineEdit("0"))
-            btn.clicked.connect(lambda x: my_slot(btn.text().lower()))
-
-        def connect_button_to_lineedit(btn_suffix):
-            # connect self.pushButton_<btn_suffix> to self.insertIntoLineEdit(<text of the button>)
-            btn = getattr(self, "pushButton_" + str(btn_suffix))
-            connect_button(btn, self.insertIntoLineEdit)
-
         # connect buttons like this, but in a for loop:
         # self.pushButton_0.clicked.connect(lambda x: self.insertIntoLineEdit("0"))
         # self.pushButton_1.clicked.connect(lambda x: self.insertIntoLineEdit("1"))
         # ...
         for i in list(range(10)) + list(string.ascii_lowercase):
-            connect_button_to_lineedit(i)
+            connect_button_to_lineedit(self, i)
         # TODO setFocusPolicy none on push buttons.
         self.pushButton_backspace.clicked.connect(self.backspaceLineEdit)
         self.pushButton_delete.clicked.connect(self.buttonDelete)
