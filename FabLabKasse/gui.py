@@ -26,6 +26,7 @@ import locale
 import logging
 import datetime
 import os
+import string
 from decimal import Decimal, DecimalException
 from qtpy import QtGui, QtCore, QtWidgets
 import functools
@@ -131,16 +132,24 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
             )
 
         # Connect up the buttons. (lower half)
-        self.pushButton_0.clicked.connect(lambda x: self.insertIntoLineEdit("0"))
-        self.pushButton_1.clicked.connect(lambda x: self.insertIntoLineEdit("1"))
-        self.pushButton_2.clicked.connect(lambda x: self.insertIntoLineEdit("2"))
-        self.pushButton_3.clicked.connect(lambda x: self.insertIntoLineEdit("3"))
-        self.pushButton_4.clicked.connect(lambda x: self.insertIntoLineEdit("4"))
-        self.pushButton_5.clicked.connect(lambda x: self.insertIntoLineEdit("5"))
-        self.pushButton_6.clicked.connect(lambda x: self.insertIntoLineEdit("6"))
-        self.pushButton_7.clicked.connect(lambda x: self.insertIntoLineEdit("7"))
-        self.pushButton_8.clicked.connect(lambda x: self.insertIntoLineEdit("8"))
-        self.pushButton_9.clicked.connect(lambda x: self.insertIntoLineEdit("9"))
+        def connect_button(btn, my_slot):
+            # connect a button signal to a slot,
+            # using the button text in lowercase as slot argument.
+            # For connect_button(self.pushButton_0, self.insertIntoLineEdit), the result is similar to:
+            # self.pushButton_0.clicked.connect(lambda x: self.insertIntoLineEdit("0"))
+            btn.clicked.connect(lambda x: my_slot(btn.text().lower()))
+
+        def connect_button_to_lineedit(btn_suffix):
+            # connect self.pushButton_<btn_suffix> to self.insertIntoLineEdit(<text of the button>)
+            btn = getattr(self, "pushButton_" + str(btn_suffix))
+            connect_button(btn, self.insertIntoLineEdit)
+
+        # connect buttons like this, but in a for loop:
+        # self.pushButton_0.clicked.connect(lambda x: self.insertIntoLineEdit("0"))
+        # self.pushButton_1.clicked.connect(lambda x: self.insertIntoLineEdit("1"))
+        # ...
+        for i in list(range(10)) + list(string.ascii_lowercase):
+            connect_button_to_lineedit(i)
         # TODO setFocusPolicy none on push buttons.
         self.pushButton_backspace.clicked.connect(self.backspaceLineEdit)
         self.pushButton_delete.clicked.connect(self.buttonDelete)
@@ -153,81 +162,26 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         self.pushButton_clearCart.clicked.connect(self._clear_cart)
 
         # Connect keyboard buttons
-        # TODO nicer code: for foo in layout_widgets():     foo.connect( functools.partial(insert ... foo.text().lower())
-        self.pushButton_q.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("q"))
-        self.pushButton_w.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("w"))
-        self.pushButton_e.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("e"))
-        self.pushButton_r.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("r"))
-        self.pushButton_t.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("t"))
-        self.pushButton_z.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("z"))
-        self.pushButton_u.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("u"))
-        self.pushButton_i.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("i"))
-        self.pushButton_o.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("o"))
-        self.pushButton_p.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("p"))
-        self.pushButton_ue.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("ü"))
-        self.pushButton_a.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("a"))
-        self.pushButton_s.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("s"))
-        self.pushButton_d.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("d"))
-        self.pushButton_f.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("f"))
-        self.pushButton_g.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("g"))
-        self.pushButton_h.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("h"))
-        self.pushButton_j.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("j"))
-        self.pushButton_k.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("k"))
-        self.pushButton_l.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("l"))
-        self.pushButton_oe.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("ö"))
-        self.pushButton_ae.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("ä"))
-        self.pushButton_y.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("y"))
-        self.pushButton_x.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("x"))
-        self.pushButton_c.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("c"))
-        self.pushButton_v.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("v"))
-        self.pushButton_b.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("b"))
-        self.pushButton_n.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("n"))
-        self.pushButton_m.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("m"))
-        self.pushButton_a_1.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche("1")
-        )
-        self.pushButton_a_2.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche("2")
-        )
-        self.pushButton_a_3.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche("3")
-        )
-        self.pushButton_a_4.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche("4")
-        )
-        self.pushButton_a_5.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche("5")
-        )
-        self.pushButton_a_6.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche("6")
-        )
-        self.pushButton_a_7.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche("7")
-        )
-        self.pushButton_a_8.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche("8")
-        )
-        self.pushButton_a_9.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche("9")
-        )
-        self.pushButton_a_0.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche("0")
-        )
-        self.pushButton_sz.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("ß"))
+        # like this but in a for loop:
+        # self.pushButton_q.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("q"))
+        # self.pushButton_w.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("w"))
+        # ...
+        # self.pushButton_a_0.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("0"))
+        # self.pushButton_a_1.clicked.connect(lambda x: self.insertIntoLineEdit_Suche("1"))
+        def connect_button_from_keyboard(btn_suffix):
+            # connect self.pushButton_<btn_suffix> to self.insertIntoLineEdit_Suche(<text of the button>)
+            btn = getattr(self, "pushButton_" + str(btn_suffix))
+            connect_button(btn, self.insertIntoLineEdit_Suche)
 
+        for i in (
+            list(string.ascii_lowercase)
+            + ["oe", "ae", "ue", "sz", "minus", "dot", "komma"]
+            + ["a_" + str(i) for i in range(10)]
+        ):
+            connect_button_from_keyboard(i)
         self.pushButton_space.clicked.connect(
             lambda x: self.insertIntoLineEdit_Suche(" ")
         )
-        self.pushButton_minus.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche("-")
-        )
-        self.pushButton_dot.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche(".")
-        )
-        self.pushButton_komma.clicked.connect(
-            lambda x: self.insertIntoLineEdit_Suche(",")
-        )
-
         self.pushButton_backspace_3.clicked.connect(self.backspaceLineEdit_Suche)
         self.pushButton_enter.clicked.connect(self.searchItems)
 
