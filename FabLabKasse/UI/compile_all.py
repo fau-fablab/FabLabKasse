@@ -37,9 +37,7 @@ def main():
             print(file)
             subprocess.call(["pyrcc5", filename, "-o", prefix + file[:-4] + "_rc.py"])
 
-    time.sleep(2)
     subprocess.call(["futurize", "-wn", "-0", prefix])
-    time.sleep(2)
 
 
 if __name__ == "__main__":
