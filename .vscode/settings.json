@@ -1,4 +1,5 @@
 {
     "python.formatting.provider": "black",
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "python.formatting.blackPath": "${workspaceFolder}/container_black.sh"
 }

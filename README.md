@@ -47,11 +47,21 @@ and click "continue" a few times
 
 All contributions should have a good coding style:
 
+## Formatting
+
+We use black for formatting.
+You can use a dockerized black instance with the container_black.sh shell script. Use it as you would black:
+
+```
+# format everything
+./container_black.sh .
+```
+
+The provided VS Code setting calls this script in order to make sure that you can format with the same version of black.
+When updating the version, make sure that you change it in both the GitHub Workflow and the container script.
+
 ## Low level (formatting, docs)
 
-- Run pylint and fix all warnings and errors (except line length) as far as possible.
-- Follow the conventions set in PEP8, except that a longer line length is okay if it helps readability
-  - to fix whitespace, you can use `autopep8 --in-place --max-line-length=9999 $file"
 - write reStructuredText formatted function docstrings, example:
 ```
 def do_something(value):
