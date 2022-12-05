@@ -100,6 +100,7 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         cfg.getint("payup_methods", "overpayment_product_id")
         cfg.getint("payup_methods", "payout_impossible_product_id")
 
+        # Configure table views
         for table in [self.table_products, self.table_order]:
             # forbid resizing columns
             table.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Fixed)
@@ -114,6 +115,20 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
             )  # forbid changing column order
             # Disable editing on table
             table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+
+        # Configure kinetic scrolling (TODO use QScroller.TouchGesture? check what if our system generates touch events)
+        for scrollable_component in [
+            self.table_products,
+            self.table_order,
+            self.list_categories,
+        ]:
+            QtWidgets.QScroller.grabGesture(
+                scrollable_component.viewport(),
+                QtWidgets.QScroller.LeftMouseButtonGesture,
+            )
+            scrollable_component.setVerticalScrollMode(
+                QtWidgets.QAbstractItemView.ScrollPerPixel
+            )
 
         # Connect up the buttons. (lower half)
         self.pushButton_0.clicked.connect(lambda x: self.insertIntoLineEdit("0"))
@@ -249,11 +264,6 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
 
         # Connect produktTree to add selected produkt
         self.table_products.clicked.connect(self.on_product_clicked)
-
-        # configure kinetic scrolling for product table (TODO use QScroller.TouchGesture? check what if our system generates touch events) (TODO seems to not scroll properly)
-        QtWidgets.QScroller.grabGesture(
-            self.table_products, QtWidgets.QScroller.LeftMouseButtonGesture
-        )
 
         # Connect to table_order changed selection
         self.table_order.clicked.connect(
