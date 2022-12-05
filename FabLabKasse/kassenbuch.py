@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
 
@@ -69,22 +69,22 @@ def moneyfmt(value, places=2, curr="", sep=".", dp=",", pos="", neg="-", trailne
 
         >>> d = Decimal('-1234567.8901')
         >>> moneyfmt(d, curr='$')
-        u'-$1.234.567,89'
+        '-$1.234.567,89'
         >>> moneyfmt(d, places=0, sep=',', dp='', neg='', trailneg='-')
-        u'1,234,568-'
+        '1,234,568-'
         >>> moneyfmt(d, curr='$', neg='(', trailneg=')')
-        u'($1.234.567,89)'
+        '($1.234.567,89)'
         >>> moneyfmt(Decimal(123456789), sep=' ')
-        u'123 456 789,00'
+        '123 456 789,00'
         >>> moneyfmt(Decimal('-0.02'), neg='<', trailneg='>')
-        u'<0,02>'
+        '<0,02>'
 
         Based on https://docs.python.org/2/library/decimal.html
     """
     q = Decimal(10) ** -places  # 2 places --> '0.01'
     sign, digits, exp = value.quantize(q).as_tuple()
     result = []
-    digits = map(str, digits)
+    digits = list(map(str, digits))
     build, next = result.append, digits.pop
     if sign:
         build(trailneg)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -20,6 +20,7 @@
 
 """unittest"""
 from __future__ import print_function
+from __future__ import division
 
 import unittest
 

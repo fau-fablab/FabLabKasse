@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
 # Copyright (C) 2013-2015 Julian Hammer <julian.hammer@fablab.fau.de>
@@ -77,7 +77,7 @@ def format_qty(qty):
     :rtype: str
 
     >>> format_qty(5)
-    u'5'
+    '5'
     """
     s = str(float(qty))
     if s.endswith(".0"):
@@ -98,21 +98,21 @@ def format_money(amount):
     :rtype: str
 
     >>> format_money(1.23)
-    u'1,23 \u20ac'
+    '1,23 \u20ac'
     >>> format_money(3.741)
-    u'3,741 \u20ac'
+    '3,741 \u20ac'
     >>> format_money(42.4242)
-    u'42,424 \u20ac'
+    '42,424 \u20ac'
     >>> format_money(5.8899)
-    u'5,89 \u20ac'
+    '5,89 \u20ac'
     >>> format_money(Decimal('1.23'))
-    u'1,23 \u20ac'
+    '1,23 \u20ac'
     >>> format_money(Decimal('3.741'))
-    u'3,741 \u20ac'
+    '3,741 \u20ac'
     >>> format_money(Decimal('42.4242'))
-    u'42,424 \u20ac'
+    '42,424 \u20ac'
     >>> format_money(Decimal('5.8899'))
-    u'5,89 \u20ac'
+    '5,89 \u20ac'
     """
     formatted = "{0:.3f}".format(amount)
 
