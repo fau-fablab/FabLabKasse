@@ -100,7 +100,9 @@ TODO ... importProdukte.py ...
 4.  Setting up the terminal
 ---------------------------
 
-Please take a look at install_debian.sh, which does most of the tasks described in this section
+Please take a look at install_debian.sh, which does most of the tasks described in this section.
+
+(Internal note for FAU FabLab: Cronjobs, mail, firewall etc are set up by `FabLabKasse-interna/install.sh` which lives in a separate repo.)
 
 You need a touchscreen (preferably USB with 1280x1024 resolution, preferably a model which does not require special calibration).
 
@@ -119,16 +121,12 @@ TODO: cronjobs
 setup daily cronjobs for
 
     /home/kasse/FabLabKasse/scripts/logWatchAndCleanup.sh # mail warnings and errors in logfile, gzip and log cleanup -- without this files will be kept as uncompressed plaintext, but also deleted after 14 days
-    /home/kasse/FabLabKasse/scripts/backup.sh # for SSH backup, needs adjusting (TODO make configurable)
-    /home/kasse/FabLabKasse/scripts/databaseSnapshotAndSummary.sh # for some statistics, needs adjusting (TODO make configurable)
 
-setup mail system so that you receive error messages from cronjobs
+and according to your needs, set up your own backup, statistics et cetera.
 
-recommended setup firewall:
+Setup mail system so that you receive error messages from cronjobs.
 
-    apt-get install iptables-persistent
-    cp tools/iptables/rules.v* /etc/iptables/
-    service netfilter-persistent restart
+Setup firewall as desired.
 
 5. Using
 --------
