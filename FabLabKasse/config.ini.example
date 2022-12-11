@@ -1,6 +1,6 @@
 [general]
 ; support mail will be displayed when error occur
-support_mail = kasse@fablab.fau.de
+support_mail = invalid@example.org
 
 ; Path to sqlite3 file
 db_file = development.sqlite3
@@ -27,16 +27,16 @@ threshold_time = 1800
 
 
 [receipt]
-header: FAU FabLab
-    Friedrich-Alexander-Universit채t
-    Erlangen-N체rnberg
+header: Demo Shop
+    Foo
+    Bar
 
-footer: Vielen Dank und bis bald!
-    https://fablab.fau.de
+footer: Thank you!
+    https://example.org
 
 host = localhost
 port = 4242
-logo = FAU_FABLAB_kassenlogo.png
+logo = logo_demo.png
 
 [payup_methods]
 ; Enabled payment methods
