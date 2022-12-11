@@ -680,6 +680,7 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
 
     def buttonDelete(self):
         order_line = self.getSelectedOrderLineId()
+        logging.debug("buttonDelete " + str(order_line))
         if order_line is not None:
             self.shoppingBackend.delete_order_line(order_line)
             self.updateOrder()
