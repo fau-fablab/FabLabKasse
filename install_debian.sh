@@ -18,6 +18,11 @@ if [ ! -f requirements.txt ]; then
     exit 1
 fi
 
+# Try to install sudo, ignore errors if we are not root
+apt-get update || true
+apt-get -qy install sudo || true
+
+
 # Install dependencies
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install git
@@ -53,8 +58,10 @@ else
 fi
 
 # the OpenERP import requires a german locale -- add it.
+sudo apt-get -qy install locales # some containers don't have the locale package preinstalled
 echo 'de_DE.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen
 # cd /usr/share/locales && sudo ./install-language-pack de_DE
+
 sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
 
 # allow shutdown/reboot for any user
