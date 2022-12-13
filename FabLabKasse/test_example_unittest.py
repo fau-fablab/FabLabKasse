@@ -19,13 +19,10 @@
 # see <http://www.gnu.org/licenses/>.
 
 """unittest"""
-from __future__ import print_function
-from __future__ import division
-
 import unittest
 
 
-class ExampleTest(unittest.TestCase):
+class ExampleTestCase(unittest.TestCase):
 
     """Test Examplel"""
 

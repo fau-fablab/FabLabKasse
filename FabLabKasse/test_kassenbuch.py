@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -19,7 +19,7 @@
 from __future__ import unicode_literals
 
 import unittest
-from FabLabKasse.kassenbuch import (
+from .kassenbuch import (
     Kasse,
     Kunde,
     Buchung,
@@ -27,7 +27,7 @@ from FabLabKasse.kassenbuch import (
     NoDataFound,
     parse_args,
 )
-from FabLabKasse.kassenbuch import argparse_parse_date, argparse_parse_currency
+from .kassenbuch import argparse_parse_date, argparse_parse_currency
 from hypothesis import given
 from hypothesis.strategies import text
 import hypothesis.extra.datetime as hypothesis_datetime
