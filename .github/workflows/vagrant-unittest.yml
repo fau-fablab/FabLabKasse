@@ -1,6 +1,6 @@
 name: Vagrant run Unittest
 
-on: [push,  pull_request]
+on: [pull_request]
 
 jobs:
   vagrant-run-unittest:
