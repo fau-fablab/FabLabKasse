@@ -43,7 +43,7 @@ import sys
 import os
 import random
 import doctest
-import readline
+from typing import Optional
 
 try:
     import argcomplete
@@ -539,9 +539,9 @@ class Kasse(object):
         """
         known_tables = ["buchung", "rechnung"]
         if from_table not in known_tables:
-            raise NotImplementedError("unimplemented table {0}".format(from_table))
+            raise NotImplementedError(f"unimplemented table {from_table}")
 
-        query = "SELECT id FROM {0}".format(from_table)
+        query = f"SELECT id FROM {from_table}"
         if from_date and until_date:
             query = (
                 query
@@ -590,7 +590,7 @@ class Kasse(object):
     def rechnungen(self):
         return self.get_rechnungen()
 
-    def get_rechnungen(self, from_date=None, until_date=None):
+    def get_rechnungen(self, from_date:Optional[datetime]=None, until_date:Optional[datetime]=None):
         """
         get invoices between the given dates.
 
@@ -824,7 +824,7 @@ class Kunde(object):
 
         return b
 
-    def store(self, cur):
+    def store(self, cur) -> None:
         if self.id is None:
             cur.execute(
                 "INSERT INTO kunde (name, pin, schuldengrenze, email, telefon, adresse, "
@@ -861,7 +861,7 @@ class Kunde(object):
 
         return self.id
 
-    def _load_buchungen(self, cur):
+    def _load_buchungen(self, cur) -> None:
         """loads all transactions of a client (by id) and discards current transactions
 
         This function loads all transactions of a client. The id of the client is specified in
