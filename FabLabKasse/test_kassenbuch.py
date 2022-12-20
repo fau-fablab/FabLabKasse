@@ -29,7 +29,8 @@ from .kassenbuch import (
 )
 from .kassenbuch import argparse_parse_date, argparse_parse_currency
 from hypothesis import given
-from hypothesis.strategies import text, datetimes
+from hypothesis.strategies import text
+import hypothesis.extra.datetime as hypothesis_datetime
 import dateutil
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -56,15 +57,15 @@ class KassenbuchTestCase(unittest.TestCase):
         args = parse_args(["show", "--hide-receipts", "--from", "2016-12-31 13:37:42"])
         self.assertEqual(args.action, "show")
         self.assertTrue(args.hide_receipts)
-        self.assertEqual(args.from_date, dateutil.parser.parse("2016-12-31 13:37:42"))
+        self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31 13:37:42"))
         self.assertIsNone(args.until_date)
         args = parse_args(
             "show --hide-receipts " "--from 2016-12-31 " "--until 2017-1-23".split(" ")
         )
         self.assertEqual(args.action, "show")
         self.assertTrue(args.hide_receipts)
-        self.assertEqual(args.from_date, dateutil.parser.parse("2016-12-31"))
-        self.assertEqual(args.until_date, dateutil.parser.parse("2017-1-23"))
+        self.assertEquals(args.from_date, dateutil.parser.parse("2016-12-31"))
+        self.assertEquals(args.until_date, dateutil.parser.parse("2017-1-23"))
         # TODO more tests: Everytime you fix a bug in argparser, add a test
 
     def test_parsing(self):
@@ -109,8 +110,8 @@ class KassenbuchTestCase(unittest.TestCase):
         # TODO code crashes when reading Kunde with "None" in e.g. schuldengrenze
 
     @given(
-        from_date=datetimes(),
-        until_date=datetimes(),
+        from_date=hypothesis_datetime.datetimes(),
+        until_date=hypothesis_datetime.datetimes(),
     )
     def test_datestring_generator(self, from_date, until_date):
         """test the datestring_generator in Kasse"""
@@ -140,9 +141,9 @@ class KassenbuchTestCase(unittest.TestCase):
         self.assertEqual(query, pristine_query)
 
     @given(
-        rechnung_date=datetimes(min_value=datetime(1900,1,1)),
-        from_date=datetimes(min_value=datetime(1900,1,1)),
-        until_date=datetimes(min_value=datetime(1900,1,1)),
+        rechnung_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
+        from_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
+        until_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
     )
     def test_get_rechnungen(self, rechnung_date, from_date, until_date):
         """test the get_rechnungen function"""
@@ -158,9 +159,9 @@ class KassenbuchTestCase(unittest.TestCase):
             self.assertFalse(query)
 
     @given(
-        buchung_date=datetimes(min_value=datetime(1900,1,1)),
-        from_date=datetimes(min_value=datetime(1900,1,1)),
-        until_date=datetimes(min_value=datetime(1900,1,1)),
+        buchung_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
+        from_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
+        until_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
     )
     def test_get_buchungen(self, buchung_date, from_date, until_date):
         """test the get_buchungen function"""
