@@ -17,6 +17,7 @@ from ..shopping.backend.abstract import float_to_decimal
 try:                    # Test if interface is available
     from magpos import magpos, codes
 except ImportError as e:     # Load Dummy otherwise
+    logging.warning("failed to import 'magpos' plugin class, falling back to dummy interface: " + repr(e))
     print e
     from dinterface import magpos, codes
 
