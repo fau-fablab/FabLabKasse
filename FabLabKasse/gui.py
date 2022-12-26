@@ -245,7 +245,9 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
                         "Automatic reset on idle is disabled since idleTracker returned `disabled`."
                     )
                 self.idleCheckTimer = QtCore.QTimer()
-                self.idleCheckTimer.setInterval(idle_threshold * 1000 / 2) # to avoid spamming the log, we only check in long intervals
+                self.idleCheckTimer.setInterval(
+                    idle_threshold * 1000 / 2
+                )  # to avoid spamming the log, we only check in long intervals
                 self.idleCheckTimer.timeout.connect(self._reset_if_idle)
                 self.idleCheckTimer.start()
 
@@ -892,7 +894,9 @@ def main():
     # Set style to KDE Breeze
     app.setStyle("breeze")
     app.setFont(QtGui.QFont("Roboto"))
-    app.setStyleSheet('QWidget {font-family: "Roboto"; font-weight:400;}') # workaround for some edge cases
+    app.setStyleSheet(
+        'QWidget {font-family: "Roboto"; font-weight:400;}'
+    )  # workaround for some edge cases
     QtGui.QIcon.setThemeName("breeze")
     logging.debug(f"icon theme: {QtGui.QIcon.themeName()}")
     logging.debug(f"icon paths: {[str(x) for x in QtGui.QIcon.themeSearchPaths()]}")
