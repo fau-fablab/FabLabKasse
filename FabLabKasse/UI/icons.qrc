@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="icons">
     <file>icons/trashcan.png</file>
+    <file>icons/fablab.svg</file>
   </qresource>
 </RCC>

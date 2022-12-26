@@ -77,8 +77,8 @@ font-size: 16pt;
                 <string> Alle Produkte</string>
                </property>
                <property name="icon">
-                <iconset>
-                 <normaloff>icons/fablab.svg</normaloff>icons/fablab.svg</iconset>
+                <iconset resource="icons.qrc">
+                 <normaloff>:/icons/icons/fablab.svg</normaloff>:/icons/icons/fablab.svg</iconset>
                </property>
                <property name="iconSize">
                 <size>
