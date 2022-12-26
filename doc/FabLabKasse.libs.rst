@@ -15,15 +15,6 @@ Subpackages
 Submodules
 ----------
 
-FabLabKasse.libs.random_lists module
-------------------------------------
-
-.. automodule:: FabLabKasse.libs.random_lists
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
 Module contents
 ---------------
 

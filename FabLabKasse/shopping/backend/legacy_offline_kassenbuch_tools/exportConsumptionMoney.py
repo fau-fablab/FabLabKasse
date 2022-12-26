@@ -171,10 +171,8 @@ if __name__ == "__main__":
     )
     k = kassenbuch.Kasse("snapshotOhnePins.sqlite3")
     if sys.getdefaultencoding() != "utf-8":
-        # hack around python2.7 problems
-        print("working around python2.7 utf8 problem.")
-        reload(sys)
-        sys.setdefaultencoding("utf-8")
+        print("This script must be run with UTF8 IO encoding")
+        sys.exit(1)
 
     rechnungen = k.get_rechnungen()
     dateFrom = datetime.datetime.min

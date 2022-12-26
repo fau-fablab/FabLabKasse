@@ -923,9 +923,7 @@ class Kunde(object):
         if self.kommentar is not None:
             s += ", kommentar=%s" % self.kommentar
         s += ")>"
-        return (
-            s.__repr__()
-        )  # workaround: python2.7 has trouble with __repr__ returning unicode strings - http://bugs.python.org/issue5876
+        return s
 
 
 class Kundenbuchung(object):
@@ -1038,9 +1036,7 @@ class Kundenbuchung(object):
             self.betrag.__repr__(),
             self.kommentar,
         )
-        return (
-            s.__repr__()
-        )  # workaround: python2.7 has trouble with __repr__ returning unicode strings - http://bugs.python.org/issue5876
+        return s
 
 
 class UnicodeWriter(object):

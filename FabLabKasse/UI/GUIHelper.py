@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -17,6 +17,10 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
+
+"""
+Miscellaneous utility functions for gui.py, the Qt main GUI.
+"""
 
 def resize_table_columns(table, widths):
     """resize Qt table columns by the weight factors specified in widths,

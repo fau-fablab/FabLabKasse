@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2009 Yu-Jie Lin
 # Copyright 2003 David McClosky
 #

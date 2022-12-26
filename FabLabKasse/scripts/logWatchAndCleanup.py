@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -27,7 +27,6 @@ run this script by starting logWatchAndCleanup.sh which lives in the same direct
 # it is recommended to run this script before midnight, because the logs wrap over at midnight and might change in the middle of running this script
 
 """
-# this script should work without changes under python3. ScriptHelpers dependencies (ConfigParser) are currently not ported to python3, so this remains python2.7
 
 from __future__ import print_function
 import sys

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 pymagpos -- MagnaCarta POS protocol (minimal robust implementation)
 """
