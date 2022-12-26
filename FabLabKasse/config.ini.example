@@ -41,7 +41,7 @@ logo = logo_demo.png
 [payup_methods]
 ; Enabled payment methods
 cash_manual = on
-FAUcard = off
+FAUcard = on
 client = on
 ; set these to products costing 1€ each
 ; "Donation" (user decided to pay more)
@@ -61,3 +61,11 @@ pricelist_id = 1
 version = 7.0
 anonymous_partner_id = 87
 strip_location = TODO
+
+[magna_carta]
+device_name=MagnaCarta
+device_port=/home/vagrant/FabLabKasse/FabLabKasse/faucardPayment/magpos/emulator/fake-serial-dev
+log_file=magposlog_development.sqlite3
+
+
+
