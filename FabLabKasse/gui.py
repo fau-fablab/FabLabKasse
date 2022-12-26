@@ -234,25 +234,20 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         # start and configure idle reset for category view
         if cfg.has_option("idle_reset", "enabled"):
             if cfg.getboolean("idle_reset", "enabled"):
-                self.idleCheckTimer = QtCore.QTimer()
-                self.idleCheckTimer.setInterval(10000)
-                self.idleCheckTimer.timeout.connect(self._reset_if_idle)
-                self.idleCheckTimer.start()
-
+                idle_threshold = 1800
                 if cfg.has_option("idle_reset", "threshold_time"):
-                    self.idleTracker = pxss.IdleTracker(
-                        idle_threshold=1000 * cfg.getint("idle_reset", "threshold_time")
-                    )
-                else:
-                    # default value is 1800 s
-                    # TODO use proper solution for default values
-                    self.idleTracker = pxss.IdleTracker(1800000)
+                    idle_threshold = cfg.getint("idle_reset", "threshold_time")
+                self.idleTracker = pxss.IdleTracker(1000 * idle_threshold)
                 (idle_state, _, _) = self.idleTracker.check_idle()
                 if idle_state is "disabled":
                     self.idleCheckTimer.stop()
                     logging.warning(
                         "Automatic reset on idle is disabled since idleTracker returned `disabled`."
                     )
+                self.idleCheckTimer = QtCore.QTimer()
+                self.idleCheckTimer.setInterval(idle_threshold * 1000 / 2) # to avoid spamming the log, we only check in long intervals
+                self.idleCheckTimer.timeout.connect(self._reset_if_idle)
+                self.idleCheckTimer.start()
 
     def restart(self):
         # Ask if restart is okay
