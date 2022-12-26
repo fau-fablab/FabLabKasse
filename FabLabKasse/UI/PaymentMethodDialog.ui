@@ -7,16 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>349</width>
-    <height>348</height>
+    <height>353</height>
    </rect>
-  </property>
-  <property name="font">
-   <font>
-    <pointsize>15</pointsize>
-   </font>
   </property>
   <property name="windowTitle">
    <string>Zahlungsart wählen...</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">font-size:15pt;</string>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -167,8 +165,7 @@ Vertrauenskasse</string>
      </property>
      <property name="icon">
       <iconset theme="dialog-cancel">
-       <normaloff/>
-      </iconset>
+       <normaloff>.</normaloff>.</iconset>
      </property>
     </widget>
    </item>

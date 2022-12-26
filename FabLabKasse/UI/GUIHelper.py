@@ -27,9 +27,11 @@ def resize_table_columns(table, widths):
     """resize Qt table columns by the weight factors specified in widths,
     using the whole width (excluding scrollbar width)
     """
-    w = table.width() - table.verticalScrollBar().width() - 5
+    w = table.viewport().width()
     for i, width in enumerate(widths):
         table.setColumnWidth(i, int(width * w / sum(widths)))
+    # if we mess up, stretch the last column (comment out for debugging)
+    table.horizontalHeader().setStretchLastSection(True)
 
 
 def connect_button(btn, my_slot):

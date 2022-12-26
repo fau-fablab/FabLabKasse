@@ -66,13 +66,14 @@ class CartTableView(QTableView):
 
         # Set Model
         self.setModel(order_model)
+
         # Change column width to useful values
         # needs to be delayed so that resize events for the scrollbar happens first, otherwise it reports a scrollbar width of 100px at the very first call
-        QtCore.QTimer.singleShot(
-            0, functools.partial(resize_table_columns, self, [4, 6, 20, 5, 5])
-        )
-        # TODO the 100ms delay is a workaround that is necessary because the first call often comes too early.
-        # this workaround looks not so good, a nicer solution would be good
-        QtCore.QTimer.singleShot(
-            100, functools.partial(resize_table_columns, self, [4, 6, 20, 5, 5])
-        )
+        QtCore.QTimer.singleShot(1, self.resize_table)
+        # the 100ms delay is a workaround that is necessary because the first call often comes too early.
+        # It is not clear if this workaround is still necessary, but who cares...
+        QtCore.QTimer.singleShot(100, self.resize_table)
+
+    def resize_table(self):
+        # Update column width to useful values
+        resize_table_columns(self, [4, 6, 20, 5, 5])

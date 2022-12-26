@@ -29,7 +29,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-pip python3 pytho
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-qtpy python3-pyqt5 pyqt5-dev-tools
 sudo python3 -m pip install -r requirements.txt
 
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install xserver-xorg git nodm ssh x11-apps xterm kde-style-oxygen fonts-crosextra-carlito curl
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install xserver-xorg git nodm ssh x11-apps xterm breeze breeze-icon-theme fonts-roboto-fontface curl
 # try to install xrandr command
 apt-get -y install x11-xserver-utils || true
 # Setup user and 'kiosk mode' desktop manager that autostarts FabLabKasse

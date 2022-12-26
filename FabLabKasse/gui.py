@@ -254,10 +254,6 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
                         "Automatic reset on idle is disabled since idleTracker returned `disabled`."
                     )
 
-        self.pushButton_load_cart_from_app.setVisible(
-            False
-        )  # FIXME: remove useless button
-
     def restart(self):
         # Ask if restart is okay
         dialog = QtWidgets.QMessageBox(self)
@@ -456,9 +452,13 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         prod_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("Artikel"))
         prod_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Lagerort"))
         prod_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Einheit"))
-        prod_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Einzelpreis"))
+        prod_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Preis"))
 
         self.table_products.setModel(prod_model)
+        # adjust height: large enough for precise touching, chosen such that the last item is "half cut off" to make it obvious that you need to scroll further
+        for i in range(len(products)):
+            self.table_products.setRowHeight(i, 42)
+
         # Change column width to useful values
         # needs to be delayed so that resize events for the scrollbar happens first, otherwise it reports a scrollbar width of 100px at the very first call
         QtCore.QTimer.singleShot(
@@ -894,10 +894,11 @@ def main():
     )
     app.installTranslator(translator)
 
-    # Set style to "oxygen"
-    app.setStyle("oxygen")
-    app.setFont(QtGui.QFont("Carlito"))
-    QtGui.QIcon.setThemeName("oxygen")
+    # Set style to KDE Breeze
+    app.setStyle("breeze")
+    app.setFont(QtGui.QFont("Roboto"))
+    app.setStyleSheet('QWidget {font-family: "Roboto"; font-weight:400;}') # workaround for some edge cases
+    QtGui.QIcon.setThemeName("breeze")
     logging.debug(f"icon theme: {QtGui.QIcon.themeName()}")
     logging.debug(f"icon paths: {[str(x) for x in QtGui.QIcon.themeSearchPaths()]}")
 
