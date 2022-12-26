@@ -16,10 +16,13 @@ from .MagPosLog import MagPosLog
 from ..shopping.backend.abstract import float_to_decimal
 
 
-try:                    # Test if interface is available
+try:  # Test if interface is available
     from .magpos import magpos, codes
-except ImportError as e:     # Load Dummy otherwise
-    logging.warning("failed to import 'magpos' plugin class, falling back to dummy interface: " + repr(e))
+except ImportError as e:  # Load Dummy otherwise
+    logging.warning(
+        "failed to import 'magpos' plugin class, falling back to dummy interface: "
+        + repr(e)
+    )
     print(e)
     from .dinterface import magpos, codes
 
@@ -77,7 +80,7 @@ class FAUcardThread(QtCore.QObject):
         logging.info("FAU-Terminal: thread is being initialized")
 
         assert isinstance(amount, (Decimal)), "PayupFAUCard: Amount to pay not Decimal"
-        
+
         # Initialize class variables
         self.status = Status.initializing
         self.info = Info.OK
@@ -119,7 +122,7 @@ class FAUcardThread(QtCore.QObject):
         dialog.pushButton_abbrechen.clicked.connect(
             self.user_abortion, type=QtCore.Qt.QueuedConnection
         )
-        dialog.rejected.connect(self.user_abortion, type= QtCore.Qt.QueuedConnection)
+        dialog.rejected.connect(self.user_abortion, type=QtCore.Qt.QueuedConnection)
         thread.started.connect(self.run, type=QtCore.Qt.QueuedConnection)
         thread.finished.connect(
             dialog.thread_terminated, type=QtCore.Qt.QueuedConnection
@@ -183,7 +186,7 @@ class FAUcardThread(QtCore.QObject):
             return
 
         counter = self.sleep_counter
-        while self.sleep_counter is not seconds*10:
+        while self.sleep_counter is not seconds * 10:
             if self.cancel == True:
                 raise self.UserAbortionError("sleep")
             if counter == self.sleep_counter:
@@ -198,7 +201,7 @@ class FAUcardThread(QtCore.QObject):
     @QtCore.Slot()
     def sleep_timer(self):
         """ Increases the sleep_counter by one"""
-        self.sleep_counter +=1
+        self.sleep_counter += 1
 
     @QtCore.Slot()
     def quit(self):
@@ -208,7 +211,7 @@ class FAUcardThread(QtCore.QObject):
         self.cancel = True
 
         if self.info == Info.OK and self.status is not Status.decreasing_done:
-                self.info = Info.user_abort
+            self.info = Info.user_abort
         if self.log is not None:
             self.log.set_status(self.status, self.info)
         if self.pos is not None:
@@ -242,7 +245,7 @@ class FAUcardThread(QtCore.QObject):
             logging.debug("FAUcardThread: Checking for unacknowledged transaction")
             # 0. Check log file if last entry was not booked
             MagPosLog.check_last_entry(self.cur, self.con)
-            
+
             # 1. Check last Transaction
             if not self.check_last_transaction(self.cur, self.con):
                 raise self.CheckLastTransactionFailed
@@ -496,7 +499,7 @@ class FAUcardThread(QtCore.QObject):
         lost = False
 
         value = []
-        
+
         # 1. Try to decrease balance
         while retry:
             retry = False
@@ -651,8 +654,8 @@ class FAUcardThread(QtCore.QObject):
             and self.new_balance is not None
             and self.old_balance is not None
         ):
-            payed = Decimal(self.old_balance-self.new_balance)
-            payed = payed/100
+            payed = Decimal(self.old_balance - self.new_balance)
+            payed = payed / 100
             return payed
         else:
             return Decimal(0)
