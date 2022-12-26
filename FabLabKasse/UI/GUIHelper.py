@@ -22,6 +22,7 @@
 Miscellaneous utility functions for gui.py, the Qt main GUI.
 """
 
+
 def resize_table_columns(table, widths):
     """resize Qt table columns by the weight factors specified in widths,
     using the whole width (excluding scrollbar width)
