@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 import unittest
 from FabLabKasse.kassenbuch import Kasse, Kunde, Buchung, Rechnung, NoDataFound, parse_args
 from FabLabKasse.kassenbuch import argparse_parse_date, argparse_parse_currency
-from hypothesis import given
+from hypothesis import given, example
 from hypothesis.strategies import text
 import hypothesis.extra.datetime as hypothesis_datetime
 import dateutil
@@ -102,14 +102,14 @@ class KassenbuchTestCase(unittest.TestCase):
     def test_datestring_generator(self, from_date, until_date):
         """test the datestring_generator in Kasse"""
         query = Kasse._date_query_generator('buchung', from_date=from_date, until_date=until_date)
-        pristine_query = "SELECT id FROM buchung WHERE datum >= Datetime('{from_date}') AND " \
-                         "datum < Datetime('{until_date}')".format(from_date=from_date, until_date=until_date)
+        pristine_query = "SELECT id FROM buchung WHERE Datetime(datum) >= Datetime('{from_date}') AND " \
+                         "Datetime(datum) < Datetime('{until_date}')".format(from_date=from_date, until_date=until_date)
         self.assertEqual(query, pristine_query)
         query = Kasse._date_query_generator('buchung', until_date=until_date)
-        pristine_query = "SELECT id FROM buchung WHERE datum < Datetime('{until_date}')".format(until_date=until_date)
+        pristine_query = "SELECT id FROM buchung WHERE Datetime(datum) < Datetime('{until_date}')".format(until_date=until_date)
         self.assertEqual(query, pristine_query)
         query = Kasse._date_query_generator('buchung', from_date=from_date)
-        pristine_query = "SELECT id FROM buchung WHERE datum >= Datetime('{from_date}')".format(from_date=from_date)
+        pristine_query = "SELECT id FROM buchung WHERE Datetime(datum) >= Datetime('{from_date}')".format(from_date=from_date)
         self.assertEqual(query, pristine_query)
 
     @given(rechnung_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
@@ -118,11 +118,15 @@ class KassenbuchTestCase(unittest.TestCase):
     def test_get_rechnungen(self, rechnung_date, from_date, until_date):
         """test the get_rechnungen function"""
         kasse = Kasse(sqlite_file=':memory:')
-        rechnung = Rechnung(datum=rechnung_date.strftime('%Y-%m-%d %H:%M:%S.%f'))
+        rechnung = Rechnung(datum=rechnung_date)
         rechnung.store(kasse.cur)
         kasse.con.commit()
 
         query = kasse.get_rechnungen(from_date, until_date)
+        # the time comparison does not care about fractions of a second
+        from_date = from_date.replace(microsecond=0)
+        until_date = until_date.replace(microsecond=0)
+        rechnung_date = rechnung_date.replace(microsecond=0)
         if from_date <= rechnung_date < until_date:
             self.assertTrue(query)
         else:
@@ -131,22 +135,31 @@ class KassenbuchTestCase(unittest.TestCase):
     @given(buchung_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
            from_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]),
            until_date=hypothesis_datetime.datetimes(min_year=1900, timezones=[]))
+    # corner case: microseconds
+    @example(buchung_date=datetime(2000, 1, 1, 0, 0), from_date=datetime(2000, 1, 1, 0, 0), until_date=datetime(2000, 1, 1, 0, 0, 0, 1))
     def test_get_buchungen(self, buchung_date, from_date, until_date):
         """test the get_buchungen function"""
         kasse = Kasse(sqlite_file=':memory:')
-        rechnung = Rechnung(datum=buchung_date.strftime('%Y-%m-%d %H:%M:%S.%f'))
+        rechnung = Rechnung(datum=buchung_date)
         rechnung.store(kasse.cur)
         buchung = Buchung(konto='somewhere',
                           betrag='0',
                           rechnung=rechnung.id,
                           kommentar="Passing By And Thought I'd Drop In",
-                          datum=buchung_date.strftime('%Y-%m-%d %H:%M:%S.%f'))
+                          datum=buchung_date)
         buchung._store(kasse.cur)
         kasse.con.commit()
 
         #TODO load_from_row ist sehr anfällig gegen kaputte datetimes, das sollte am besten schon sauber in die Datenbank
         query = kasse.get_buchungen(from_date, until_date)
+        # the time comparison does not care about fractions of a second
+        from_date = from_date.replace(microsecond=0)
+        until_date = until_date.replace(microsecond=0)
+        buchung_date = buchung_date.replace(microsecond=0)
         if from_date <= buchung_date < until_date:
             self.assertTrue(query)
         else:
             self.assertFalse(query)
+
+if __name__ == "__main__":
+    unittest.main()
