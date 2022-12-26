@@ -10,13 +10,13 @@ from decimal import Decimal
 
 
 def query_yes_no():
-    """Ask a yes/no question via raw_input() and return the boolean representation.
+    """Ask a yes/no question via input() and return the boolean representation.
 
     The return value is True for "yes" or False for "no".
     """
     truthtable = {"yes": True, "y": True, "no": False, "n": False}
     while True:
-        choice = raw_input().lower()
+        choice = input().lower()
         if choice in truthtable:
             return truthtable[choice]
         else:
@@ -259,7 +259,7 @@ if __name__ == "__main__":
             else:
                 summe += amount  # increment Sum for summary
 
-            outputfile.write(line.encode("utf-8"))
+            outputfile.write(line)
 
             if safetyCounter == 0:  # need to skip last action as no rechnungsnr found
                 continue
@@ -295,7 +295,7 @@ if __name__ == "__main__":
                     line = "{1}{0}{2}{0}{3}{0}{4:.2f}\n".format(
                         seperator, nr, row[0], row[1], float(row[0]) * float(row[1])
                     )
-                    outputfile.write(line.encode("utf-8"))
+                    outputfile.write(line)
 
             outputfile.close()
 
