@@ -56,12 +56,8 @@ class FAUcardPaymentDialog(QtWidgets.QDialog, Ui_FAUcardPaymentDialog):
 
         # Start a timer to periodically update the GUI (show life sign)
         self.utimer = QtCore.QTimer()
-        QtCore.QObject.connect(
-            self.utimer, QtCore.SIGNAL("timeout()"), self.show_active
-        )
-        QtCore.QObject.connect(
-            self.pushButton_abbrechen, QtCore.SIGNAL("clicked()"), self.reject
-        )
+        self.utimer.timeout.connect(self.show_active)
+        self.pushButton_abbrechen.clicked.connect(self.reject)
         self.utimer.start(1000)
 
     @QtCore.Slot()

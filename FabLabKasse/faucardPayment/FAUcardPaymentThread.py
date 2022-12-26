@@ -120,10 +120,10 @@ class FAUcardThread(QtCore.QObject):
         )
         dialog.rejected.connect(self.user_abortion, type=QtCore.Qt.QueuedConnection)
         thread.started.connect(self.run, type=QtCore.Qt.QueuedConnection)
-        thread.terminated.connect(
+        thread.finished.connect(
             dialog.thread_terminated, type=QtCore.Qt.QueuedConnection
         )
-        thread.terminated.connect(self.terminate, type=QtCore.Qt.QueuedConnection)
+        thread.finished.connect(self.terminate, type=QtCore.Qt.QueuedConnection)
 
     # set response-flag
     @QtCore.Slot(bool)

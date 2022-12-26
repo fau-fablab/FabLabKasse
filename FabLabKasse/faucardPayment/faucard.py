@@ -87,7 +87,7 @@ class PayupFAUCard(QtCore.QObject):
                 self.worker,
                 "set_ack",
                 QtCore.Qt.QueuedConnection,
-                Qt.Q_ARG(bool, False),
+                QtCore.Q_ARG(bool, False),
             )
         self.close()
 
@@ -111,13 +111,13 @@ class PayupFAUCard(QtCore.QObject):
                 self.worker,
                 "set_should_finish_log",
                 QtCore.Qt.QueuedConnection,
-                Qt.Q_ARG(bool, False),
+                QtCore.Q_ARG(bool, False),
             )
             QtCore.QMetaObject.invokeMethod(
                 self.worker,
                 "set_ack",
                 QtCore.Qt.QueuedConnection,
-                Qt.Q_ARG(bool, False),
+                QtCore.Q_ARG(bool, False),
             )
             self.thread.wait(100)
             if not self.thread.isRunning():

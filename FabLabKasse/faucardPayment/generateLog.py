@@ -103,7 +103,7 @@ if __name__ == "__main__":
         "-e",
         "--enddate",
         help="The End Date - format YYYY-MM-DD_HH:MM:SS",
-        required=False,
+        required=True,
         type=valid_date,
     )
     parser.add_argument(
