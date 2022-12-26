@@ -151,7 +151,7 @@ class FAUcardThread(QtCore.QObject):
 
     @QtCore.Slot()
     def user_abortion(self):
-        """ ets cancel flag to cancel the payment """
+        """sets cancel flag to cancel the payment"""
         self.cancel = True
 
     @QtCore.Slot()
@@ -181,7 +181,7 @@ class FAUcardThread(QtCore.QObject):
             raise self.UserAbortionError(msg)
 
     def sleep(self, seconds):
-        """ Sleep function for the thread """
+        """Sleep function for the thread"""
         if seconds is 0:
             return
 
@@ -200,7 +200,7 @@ class FAUcardThread(QtCore.QObject):
 
     @QtCore.Slot()
     def sleep_timer(self):
-        """ Increases the sleep_counter by one"""
+        """Increases the sleep_counter by one"""
         self.sleep_counter += 1
 
     @QtCore.Slot()
