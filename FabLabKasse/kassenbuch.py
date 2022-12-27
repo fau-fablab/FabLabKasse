@@ -51,7 +51,7 @@ except ImportError:
     pass  # it's also working without argcomplete
 
 import escpos.printer as escpos_printer
-from . import scriptHelper
+import scriptHelper
 
 
 def moneyfmt(value, places=2, curr="", sep=".", dp=",", pos="", neg="-", trailneg=""):
@@ -717,7 +717,7 @@ class Kasse(object):
 
         string += "{:<16} {:>10} {:>10} {:>10}\n".format(
             "KONTO", "HABEN", "SOLL", "SALDO"
-        ).encode("utf-8")
+        )
         for konto, saldo in konto_saldi.items():
             string += "{0:<16} {1:>10.2f} {2:>10.2f} {3:>10.2f} EUR\n".format(
                 konto,
@@ -1053,10 +1053,9 @@ class UnicodeWriter(object):
         self.encoder = codecs.getincrementalencoder(encoding)()
 
     def writerow(self, row):
-        self.writer.writerow([str(s).encode("utf-8") for s in row])
-        # Fetch UTF-8 output from the queue ...
+        self.writer.writerow([str(s) for s in row])
+        # Fetch str output from the queue ...
         data = self.queue.getvalue()
-        data = data.decode("utf-8")
         # ... and reencode it into the target encoding
         data = self.encoder.encode(data)
         # write to the target stream
@@ -1480,7 +1479,7 @@ def main():
                 until_date=args.until_date,
                 snapshot_time=startup_time,
                 show_receipts=not args.hide_receipts,
-            ).encode("utf-8")
+            )
         )
     elif args.action == "export":
         if args.what == "book":
@@ -1532,11 +1531,7 @@ def main():
                     )
                 writer.writerow([])
     elif args.action == "summary":
-        print(
-            k.summary_to_string(
-                date=args.until_date, snapshot_time=startup_time
-            ).encode("utf-8")
-        )
+        print(k.summary_to_string(date=args.until_date, snapshot_time=startup_time))
     elif args.action == "transfer":
 
         b1 = Buchung(args.source, -args.amount, kommentar=args.comment)
@@ -1552,7 +1547,7 @@ def main():
                 header=cfg.get("receipt", "header"),
                 footer=cfg.get("receipt", "footer"),
                 export=args.export,
-            ).encode("UTF-8")
+            )
         )
         if args.print_receipt:
             args.receipt.print_receipt(cfg)
@@ -1593,8 +1588,7 @@ def main():
 
                 while True:
                     question = "{e}{d}: ".format(e=explanation, d=default_str)
-                    input_str = raw_input(question.encode(sys.stdout.encoding))
-                    input_str = input_str.decode(sys.stdin.encoding)
+                    input_str = input(question)
 
                     if input_str == "" and default_input is not None:
                         input_str = str(default_input)
@@ -1737,9 +1731,7 @@ def main():
 
         elif args.client_action == "show":
 
-            print(
-                kunde.to_string(short=not args.transactions, cur=k.cur).encode("UTF-8")
-            )
+            print(kunde.to_string(short=not args.transactions, cur=k.cur))
 
             print("Kontostand: " + moneyfmt(kunde.summe) + " EUR")
 
@@ -1810,7 +1802,10 @@ KdNr|                     Name|  Kontostand|  Grenze| Letzte Zahlung | Letzte Bu
                         last_charge,
                     )
                 )
-
+    elif args.action is None:
+        # no args given, show help
+        parse_args("-h")
+        sys.exit(0)
     else:
         print(
             "[!] This should not have happend. Option not implemented.", file=sys.stderr
