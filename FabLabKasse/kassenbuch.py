@@ -51,7 +51,12 @@ except ImportError:
     pass  # it's also working without argcomplete
 
 import escpos.printer as escpos_printer
-import scriptHelper
+
+# WORKAROUND For absolute imports to work even if kassenbuch.py is called as a script - adapted from https://stackoverflow.com/a/49375740
+if "FabLabKasse" not in sys.modules:
+    sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../")
+
+from FabLabKasse import scriptHelper
 
 
 def moneyfmt(value, places=2, curr="", sep=".", dp=",", pos="", neg="-", trailneg=""):
