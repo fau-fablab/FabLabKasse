@@ -29,6 +29,12 @@ from configparser import Error as ConfigParserError
 import datetime
 
 
+class InvalidClientException(Exception):
+    """Client not found, wrong PIN or insufficient rights"""
+
+    pass
+
+
 class SelectClientDialog(QtWidgets.QDialog, Ui_SelectClientDialog):
 
     """GUI code for the dialog for selecting clients"""
@@ -63,6 +69,7 @@ class SelectClientDialog(QtWidgets.QDialog, Ui_SelectClientDialog):
         self.comboBox_client.setVisible(False)
         self.pushButton_showList.clicked.connect(self.showHideList)
         self._reload_clients()
+        self.lineEditPINUpdate()
 
     def _reload_clients(self):
         # Load clients and populate comboBox_client
@@ -154,6 +161,20 @@ class SelectClientDialog(QtWidgets.QDialog, Ui_SelectClientDialog):
         else:
             self.pushButton_done.setEnabled(False)
 
+        # Show client info if entry is correct
+        try:
+            client = self.check_client_and_pin()
+            self.label_clientName.setText(client.name)
+            debt = client.get_debt()
+            self.label_clientBalance.setText(self.shopping_backend.format_money(-debt))
+            color = "#176b00" if debt <= 0 else "#6b0000"
+            self.label_clientBalance.setStyleSheet("color:" + color + ";")
+            self.label_for_balance.setText("Kontostand:")
+        except InvalidClientException:
+            self.label_clientName.setText("")
+            self.label_clientBalance.setText("")
+            self.label_for_balance.setText("")
+
     def getClient(self):
         try:
             return self._clients[int(self.lineEdit_client.text())]
@@ -164,35 +185,38 @@ class SelectClientDialog(QtWidgets.QDialog, Ui_SelectClientDialog):
         return str(self.lineEdit_pin.text())
 
     def check_client_and_pin(self, require_admin=False):
-        """Check client number and PIN"""
+        """Check client number and PIN.
+        Return client object if valid customer and PIN, else raise an InvalidClientException."""
         # Check client number
         kunde = self.getClient()
         if kunde is None:
-            msgBox = QtWidgets.QMessageBox(self)
-            msgBox.setText(
-                "Unter der Kundennummer konnte leider nichts gefunden werden."
-            )
-            msgBox.exec_()
-            return False
+            raise InvalidClientException("Diese Kundennummer gibt es nicht.")
 
         # Check PIN
         if not kunde.test_pin(str(self.lineEdit_pin.text())):
-            msgBox = QtWidgets.QMessageBox(self)
-            msgBox.setText("Falscher PIN oder Kundennummer.")
-            msgBox.exec_()
-            return False
+            raise InvalidClientException("Falsche PIN.")
 
         if require_admin and not kunde.is_admin():
-            msgBox = QtWidgets.QMessageBox(self)
-            msgBox.setText(
+            raise InvalidClientException(
                 "Das angegebene Konto hat keine Administratorrechte.\n (Kommentar muss mit #admin# beginnen)"
             )
-            msgBox.exec_()
-            return False
         return kunde
 
+    def check_client_and_pin_with_gui_error(self, require_admin=False):
+        """Check client number and PIN.
+        If customer and PIN are valid, return the client object.
+        Else, return False and show a GUI error message box.
+        """
+        try:
+            return self.check_client_and_pin(require_admin)
+        except InvalidClientException as e:
+            msgBox = QtWidgets.QMessageBox(self)
+            msgBox.setText(str(e))
+            msgBox.exec_()
+            return False
+
     def accept(self):
-        kunde = self.check_client_and_pin()
+        kunde = self.check_client_and_pin_with_gui_error()
         if not kunde:
             return
         msgBox = QtWidgets.QMessageBox(self)
@@ -212,7 +236,7 @@ class SelectClientDialog(QtWidgets.QDialog, Ui_SelectClientDialog):
         QtWidgets.QDialog.reject(self)
 
     def ask_admin_pin(self):
-        return self.check_client_and_pin(require_admin=True)
+        return self.check_client_and_pin_with_gui_error(require_admin=True)
 
     def register(self):
         admin = self.ask_admin_pin()

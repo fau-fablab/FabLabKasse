@@ -430,26 +430,34 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         font.setBold(len(category_path) == 0)
         self.pushButton_start.setFont(font)
 
-        prod_model = QtGui.QStandardItemModel(len(products), 4)
+        prod_model = QtGui.QStandardItemModel(len(products), 5)
         for i, p in enumerate(products):
+            prod_id = QtGui.QStandardItem(str(p.prod_id))
+            prod_id.setData(p.prod_id)
+            # prod_id.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+            light_font = QtGui.QFont()
+            light_font.setPointSize(10)
+            prod_id.setFont(light_font)
+            prod_model.setItem(i, 0, prod_id)
+
             name = QtGui.QStandardItem(p.name)
-            name.setData(p.prod_id)
-            prod_model.setItem(i, 0, name)
+            prod_model.setItem(i, 1, name)
 
             loc = QtGui.QStandardItem()
             loc.setText(p.location)
-            prod_model.setItem(i, 1, loc)
+            prod_model.setItem(i, 2, loc)
 
             uos = QtGui.QStandardItem(p.unit)
-            prod_model.setItem(i, 2, uos)
+            prod_model.setItem(i, 3, uos)
 
             price = QtGui.QStandardItem(self.shoppingBackend.format_money(p.price))
-            prod_model.setItem(i, 3, price)
+            prod_model.setItem(i, 4, price)
 
-        prod_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("Artikel"))
-        prod_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Lagerort"))
-        prod_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Einheit"))
-        prod_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Preis"))
+        prod_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("Nr"))
+        prod_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Artikel"))
+        prod_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Lagerort"))
+        prod_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Einheit"))
+        prod_model.setHorizontalHeaderItem(4, QtGui.QStandardItem("Preis"))
 
         self.table_products.setModel(prod_model)
         # adjust height: large enough for precise touching, chosen such that the last item is "half cut off" to make it obvious that you need to scroll further
@@ -461,9 +469,12 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         QtCore.QTimer.singleShot(
             0,
             functools.partial(
-                resize_table_columns, self.table_products, [5, 2.5, 2, 1]
+                resize_table_columns, self.table_products, [0.7, 5, 2.5, 2, 1]
             ),
         )
+
+        # give back focus to PLU entry
+        self.lineEdit.setFocus()
 
     def addOrderLine(self, prod_id, qty=0):
         logging.debug(
@@ -893,10 +904,9 @@ def main():
 
     # Set style to KDE Breeze
     app.setStyle("breeze")
-    app.setFont(QtGui.QFont("Roboto"))
-    app.setStyleSheet(
-        'QWidget {font-family: "Roboto"; font-weight:400;}'
-    )  # workaround for some edge cases
+    font = QtGui.QFont("Roboto")
+    app.setFont(font)
+    app.setStyleSheet('QWidget {font-family: "Roboto";}')  # Roboto light
     QtGui.QIcon.setThemeName("breeze")
     logging.debug(f"icon theme: {QtGui.QIcon.themeName()}")
     logging.debug(f"icon paths: {[str(x) for x in QtGui.QIcon.themeSearchPaths()]}")

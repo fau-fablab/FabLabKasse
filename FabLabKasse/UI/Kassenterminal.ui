@@ -285,7 +285,10 @@ QListView::item { height: 2em; }
     width: 40px;
 }
 QTableView::item { height: 2em; }
-* { font-size:12pt;}</string>
+* { font-size:12pt;}
+QTableView {
+alternate-background-color: rgb(239, 239, 239); background-color: white;
+}</string>
             </property>
             <property name="verticalScrollBarPolicy">
              <enum>Qt::ScrollBarAlwaysOn</enum>
