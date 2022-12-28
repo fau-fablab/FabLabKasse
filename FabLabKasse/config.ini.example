@@ -17,7 +17,8 @@ receipt = yes
 [backend]
 ; which payment is used for products, categories, order storage, ...
 backend=dummy
-;backend=legacy_offline_kassenbuch ; FAU FabLab
+; for FAU FabLab:
+;backend=legacy_offline_kassenbuch
 
 [idle_reset]
 ; enable automatic reset of the product view after a timeout

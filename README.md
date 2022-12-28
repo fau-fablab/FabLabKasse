@@ -33,9 +33,7 @@ Have fun and give feedback!
 
 # Testing features without real hardware
 
-(assuming the example config settings)
-
-- receipt printing: run `./tools/dummy-printserver` to roughly see how a receipt printer's output would look [please note that receipt printing is not yet implemented on all shopping backends]
+- receipt printing: run `./tools/dummy-printserver` to roughly see how a receipt printer's output would look. Please note that receipt printing is not yet implemented on all shopping backends, also not in the example config.
 
 # Debugging
 
