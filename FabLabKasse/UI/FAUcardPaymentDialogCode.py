@@ -24,7 +24,7 @@ class FAUcardPaymentDialog(QtWidgets.QDialog, Ui_FAUcardPaymentDialog):
     # Signal to tell the payment handler to terminate the thread
     request_termination = QtCore.Signal()
 
-    def __init__(self, parent, amount):
+    def __init__(self, parent, amount, shopping_backend):
         """
         Initializes the FAUcardPaymentDialog. It sets it's member variables and sets up the GUI, including
         a QTimer to periodically update the GUI to show life sign.
@@ -32,6 +32,8 @@ class FAUcardPaymentDialog(QtWidgets.QDialog, Ui_FAUcardPaymentDialog):
         :type parent: QObject
         :param amount: Amount the user has to pay (only used to display)
         :type amount: Decimal
+        :param shopping_backend: current instance of ShoppingBackend
+        :type shopping_backend: shopping.backend.abstract.AbstractShoppingBackend
         """
         QtWidgets.QDialog.__init__(self, parent)
         logging.info("FAUcardPayment: started")
@@ -44,7 +46,8 @@ class FAUcardPaymentDialog(QtWidgets.QDialog, Ui_FAUcardPaymentDialog):
 
         # Set up member variables and fill GUI
         self.amount = amount
-        self.label_betrag.setText(f"{str(self.amount)} €".replace(".", ","))
+        self.shopping_backend = shopping_backend
+        self.label_betrag.setText(self.shopping_backend.format_money(self.amount))
         self.label_status.setText("Starte FAUcard-Zahlung\n")
         self.counter = 0
         self.thread_aborted = False
@@ -179,14 +182,14 @@ class FAUcardPaymentDialog(QtWidgets.QDialog, Ui_FAUcardPaymentDialog):
                 response[0] == Status.decreasing_balance
             ):  # Card and Balance recognized
                 self.label_status.setText(
-                    f"Buche {str(self.amount)}€ ab\n".replace(".", ",")
+                    f"Buche {self.shopping_backend.format_money(self.amount)} ab\n"
                 )
                 self.response_ack.emit(False)
             # Successfully decreased: Inform the user the payment is done and close after 2 seconds
             elif response[0] == Status.decreasing_done:
                 self.utimer.stop()
                 self.label_status.setText(
-                    f"Vielen Dank für deine Zahlung von {str(self.amount)}.\nBitte das Aufräumen nicht vergessen!"
+                    f"Vielen Dank für deine Zahlung von {self.shopping_backend.format_money(self.amount)}.\nBitte das Aufräumen nicht vergessen!"
                 )
                 self.utimer.singleShot(5000, self.accept)
                 self.response_ack.emit(False)

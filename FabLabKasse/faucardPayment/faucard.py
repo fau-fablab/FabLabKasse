@@ -19,21 +19,24 @@ from .faucardStates import Status, Info
 
 
 class PayupFAUCard(QtCore.QObject):
-    def __init__(self, parent, amount):
+    def __init__(self, parent, amount, shopping_backend):
         """
         Initializes the PayupFAUCard Process
         :param parent: Parent QObject
         :type parent: QtCore.QObject
         :param amount: amount to pay
         :type amount: Decimal
+        :param shopping_backend: current instance of ShoppingBackend
+        :type shopping_backend: shopping.backend.abstract.AbstractShoppingBackend
         """
         QtCore.QObject.__init__(self)
         assert isinstance(amount, Decimal), "PayupFAUCard: Amount to pay not Decimal"
         assert amount > 0, "PayupFAUCard: amount is negativ"
 
         self.amount = amount
+        self.shopping_backend = shopping_backend
         self.thread = QtCore.QThread()
-        self.dialog = FAUcardPaymentDialog(parent=parent, amount=self.amount)
+        self.dialog = FAUcardPaymentDialog(parent=parent, amount=self.amount, shopping_backend=self.shopping_backend)
         self.dialog.request_termination.connect(
             self.threadTerminationRequested, type=QtCore.Qt.DirectConnection
         )
