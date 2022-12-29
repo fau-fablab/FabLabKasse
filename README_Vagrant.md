@@ -4,7 +4,7 @@
 - run `vagrant up`, wait a long time
 - you now have a VirtualBox Ubuntu VM with the software running. The git repository is accessible from inside the VM as /home/vagrant/FabLabKasse.
 
-Use `vagrant rsync` to 
+Use `vagrant rsync` to sync the files from outside the VM into the VM. This is also automatically called by `vagrant up` (under certain conditions - once per VM boot?).
 
 Use `vagrant ssh` to get a shell inside the VM. From there you can:
 
