@@ -36,7 +36,9 @@ class PayupFAUCard(QtCore.QObject):
         self.amount = amount
         self.shopping_backend = shopping_backend
         self.thread = QtCore.QThread()
-        self.dialog = FAUcardPaymentDialog(parent=parent, amount=self.amount, shopping_backend=self.shopping_backend)
+        self.dialog = FAUcardPaymentDialog(
+            parent=parent, amount=self.amount, shopping_backend=self.shopping_backend
+        )
         self.dialog.request_termination.connect(
             self.threadTerminationRequested, type=QtCore.Qt.DirectConnection
         )

@@ -343,7 +343,11 @@ class FAUCardPayment(AbstractPaymentMethod):
         return cfg.getboolean("payup_methods", "FAUcard")
 
     def _show_dialog(self):
-        pay_func = PayupFAUCard(parent=self.parent, amount=self.amount_to_pay, shopping_backend=self.shopping_backend)
+        pay_func = PayupFAUCard(
+            parent=self.parent,
+            amount=self.amount_to_pay,
+            shopping_backend=self.shopping_backend,
+        )
         self.print_receipt = True
         self.successful = pay_func.executePayment()
         self.amount_paid = pay_func.getPaidAmount()
