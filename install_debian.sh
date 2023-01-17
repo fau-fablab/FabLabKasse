@@ -23,7 +23,7 @@ sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install git
 # Python2 stuff - TODO remove
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python-pip python2.7
-sudo pip install -r requirements.txt
+sudo pip install -r requirementspython2.txt
 # Python3 stuff
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-pip python3 python3-dateutil python3-lxml python3-crypto python3-termcolor python3-serial python3-qrcode python3-docopt python3-requests python3-simplejson python3-sphinx
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-qtpy python3-pyqt5 pyqt5-dev-tools

@@ -31,5 +31,5 @@ sphinx_rtd_theme
 #faucardpayment
 enum34==1.1.6
 
-# To read our product json
-dataclasses-json
+# To read our product json, this package is not available for Python 2
+# dataclasses-json
