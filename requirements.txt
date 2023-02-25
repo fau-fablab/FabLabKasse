@@ -16,7 +16,7 @@ qtpy
 python-escpos==2.2.0
 
 # testing
-hypothesis<=1.19.0
+hypothesis
 
 # clis (kassenbuch.py)
 argparse
