@@ -239,14 +239,14 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
                     idle_threshold = cfg.getint("idle_reset", "threshold_time")
                 self.idleTracker = pxss.IdleTracker(1000 * idle_threshold)
                 (idle_state, _, _) = self.idleTracker.check_idle()
-                if idle_state is "disabled":
+                if idle_state == "disabled":
                     self.idleCheckTimer.stop()
                     logging.warning(
                         "Automatic reset on idle is disabled since idleTracker returned `disabled`."
                     )
                 self.idleCheckTimer = QtCore.QTimer()
                 self.idleCheckTimer.setInterval(
-                    idle_threshold * 1000 / 2
+                    int(idle_threshold * 1000 / 2)
                 )  # to avoid spamming the log, we only check in long intervals
                 self.idleCheckTimer.timeout.connect(self._reset_if_idle)
                 self.idleCheckTimer.start()

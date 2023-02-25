@@ -95,15 +95,6 @@ def main():
 
     cfg = scriptHelper.getConfig()
 
-    if not ("--no-update" in sys.argv):
-        # start product import for some offline methods that load from a text file
-        print("updating products [use --no-update to skip]")
-        if cfg.get("backend", "backend") == "legacy_offline_kassenbuch":
-            subprocess.call(
-                "./shopping/backend/legacy_offline_kassenbuch_tools/importProdukteOERP.py",
-                env=myEnv,
-            )
-
     def check_winpdb_version():
         """returns true if version of winpdb is larger than 1.4.8
 

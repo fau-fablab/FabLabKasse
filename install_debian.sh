@@ -21,17 +21,18 @@ fi
 # Install dependencies
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install git
-# Python2 stuff - TODO remove
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python-pip python2.7
-sudo pip install -r requirementspython2.txt
+
 # Python3 stuff
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-pip python3 python3-dateutil python3-lxml python3-crypto python3-termcolor python3-serial python3-qrcode python3-docopt python3-requests python3-simplejson python3-sphinx
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-pip python3 python3-dateutil python3-lxml python3-termcolor python3-serial python3-qrcode python3-docopt python3-requests python3-simplejson python3-sphinx
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-qtpy python3-pyqt5 pyqt5-dev-tools
 sudo python3 -m pip install -r requirements.txt
 
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install xserver-xorg git nodm ssh x11-apps xterm breeze breeze-icon-theme fonts-roboto-fontface curl
 # try to install xrandr command
-apt-get -y install x11-xserver-utils || true
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install x11-xserver-utils || true
+# Dependencies only for Testing / Vagrant automation (dummy printserver / dummy FAUCard device)
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install psmisc socat
+
 # Setup user and 'kiosk mode' desktop manager that autostarts FabLabKasse
 $RUNNING_IN_VAGRANT && INSTALL_USER=vagrant || INSTALL_USER=kasse
 $RUNNING_IN_VAGRANT || adduser kasse --disabled-password # not used in Vagrant, but in real system
