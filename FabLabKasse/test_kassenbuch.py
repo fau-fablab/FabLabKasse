@@ -141,9 +141,9 @@ class KassenbuchTestCase(unittest.TestCase):
         self.assertEqual(query, pristine_query)
 
     @given(
-        rechnung_date=hypothesis.strategies.datetimes(min_value=datetime(1900,1,1)),
-        from_date=hypothesis.strategies.datetimes(min_value=datetime(1900,1,1)),
-        until_date=hypothesis.strategies.datetimes(min_value=datetime(1900,1,1)),
+        rechnung_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
+        from_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
+        until_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
     )
     def test_get_rechnungen(self, rechnung_date, from_date, until_date):
         """test the get_rechnungen function"""
@@ -159,9 +159,9 @@ class KassenbuchTestCase(unittest.TestCase):
             self.assertFalse(query)
 
     @given(
-        buchung_date=hypothesis.strategies.datetimes(min_value=datetime(1900,1,1)),
-        from_date=hypothesis.strategies.datetimes(min_value=datetime(1900,1,1)),
-        until_date=hypothesis.strategies.datetimes(min_value=datetime(1900,1,1)),
+        buchung_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
+        from_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
+        until_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
     )
     def test_get_buchungen(self, buchung_date, from_date, until_date):
         """test the get_buchungen function"""
