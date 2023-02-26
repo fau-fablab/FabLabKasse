@@ -28,7 +28,7 @@ from .kassenbuch import (
     parse_args,
 )
 from .kassenbuch import argparse_parse_date, argparse_parse_currency
-from hypothesis import given
+from hypothesis import given, example
 from hypothesis.strategies import text
 import hypothesis.strategies
 import dateutil
@@ -115,30 +115,9 @@ class KassenbuchTestCase(unittest.TestCase):
     )
     def test_datestring_generator(self, from_date, until_date):
         """test the datestring_generator in Kasse"""
-        query = Kasse._date_query_generator(
-            "buchung", from_date=from_date, until_date=until_date
-        )
-        pristine_query = (
-            "SELECT id FROM buchung WHERE datum >= Datetime('{from_date}') AND "
-            "datum < Datetime('{until_date}')".format(
-                from_date=from_date, until_date=until_date
-            )
-        )
-        self.assertEqual(query, pristine_query)
-        query = Kasse._date_query_generator("buchung", until_date=until_date)
-        pristine_query = (
-            "SELECT id FROM buchung WHERE datum < Datetime('{until_date}')".format(
-                until_date=until_date
-            )
-        )
-        self.assertEqual(query, pristine_query)
-        query = Kasse._date_query_generator("buchung", from_date=from_date)
-        pristine_query = (
-            "SELECT id FROM buchung WHERE datum >= Datetime('{from_date}')".format(
-                from_date=from_date
-            )
-        )
-        self.assertEqual(query, pristine_query)
+        # Test removed because it was just a 1:1 copy of the code.
+        # This function is not tested separately, but indirectly via the test of get_rechnungen.
+        pass
 
     @given(
         rechnung_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
@@ -148,7 +127,7 @@ class KassenbuchTestCase(unittest.TestCase):
     def test_get_rechnungen(self, rechnung_date, from_date, until_date):
         """test the get_rechnungen function"""
         kasse = Kasse(sqlite_file=":memory:")
-        rechnung = Rechnung(datum=rechnung_date.strftime("%Y-%m-%d %H:%M:%S.%f"))
+        rechnung = Rechnung(datum=rechnung_date)
         rechnung.store(kasse.cur)
         kasse.con.commit()
 
@@ -163,22 +142,26 @@ class KassenbuchTestCase(unittest.TestCase):
         from_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
         until_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
     )
+    @example(
+        buchung_date=datetime(2000, 1, 1, 1, 0),
+        from_date=datetime(2000, 1, 1, 0, 0),
+        until_date=datetime(2000, 1, 1, 1, 0, 0, 1),
+    )
     def test_get_buchungen(self, buchung_date, from_date, until_date):
         """test the get_buchungen function"""
         kasse = Kasse(sqlite_file=":memory:")
-        rechnung = Rechnung(datum=buchung_date.strftime("%Y-%m-%d %H:%M:%S.%f"))
+        rechnung = Rechnung(datum=buchung_date)
         rechnung.store(kasse.cur)
         buchung = Buchung(
             konto="somewhere",
             betrag="0",
             rechnung=rechnung.id,
             kommentar="Passing By And Thought I'd Drop In",
-            datum=buchung_date.strftime("%Y-%m-%d %H:%M:%S.%f"),
+            datum=buchung_date,
         )
         buchung._store(kasse.cur)
         kasse.con.commit()
 
-        # TODO load_from_row ist sehr anfällig gegen kaputte datetimes, das sollte am besten schon sauber in die Datenbank
         query = kasse.get_buchungen(from_date, until_date)
         if from_date <= buchung_date < until_date:
             self.assertTrue(query)

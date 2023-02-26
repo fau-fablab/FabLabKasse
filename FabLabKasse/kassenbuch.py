@@ -58,6 +58,24 @@ if "FabLabKasse" not in sys.modules:
 
 from FabLabKasse import scriptHelper
 
+# format for serializing the date to SQLite
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
+
+
+def date2str(date: datetime) -> str:
+    """
+    Serialize datetime to string for storing in SQLite DB
+    """
+    assert isinstance(date, datetime)
+    return date.strftime(DATE_FORMAT)
+
+
+def str2date(datestr: str) -> datetime:
+    """
+    Deserialize datetime from string stored in SQLite DB
+    """
+    return datetime.strptime(datestr, DATE_FORMAT)
+
 
 def moneyfmt(value, places=2, curr="", sep=".", dp=",", pos="", neg="-", trailneg=""):
     """Convert Decimal to a money formatted string.
@@ -130,7 +148,7 @@ class Rechnung(object):
             self.datum = datetime.now()
         else:
             self.datum = datum
-
+        assert isinstance(datum, datetime)
         self.positionen = []
 
     @property
@@ -203,13 +221,13 @@ class Rechnung(object):
 
     @classmethod
     def load_from_row(cls, row, cur):
-        datum = datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S.%f")
+        datum = str2date(row[1])
         b = cls(id=row[0], datum=datum)
         b._load_positionen(cur)
         return b
 
     def store(self, cur):
-        cur.execute("INSERT INTO rechnung (datum) VALUES (?)", (self.datum,))
+        cur.execute("INSERT INTO rechnung (datum) VALUES (?)", (date2str(self.datum),))
         self.id = cur.lastrowid
 
         for pos in self.positionen:
@@ -294,13 +312,20 @@ class Buchung(object):
     __slots__ = ["id", "datum", "konto", "rechnung", "betrag", "kommentar"]
 
     def __init__(
-        self, konto, betrag, rechnung=None, kommentar=None, id=None, datum=None
+        self,
+        konto,
+        betrag,
+        rechnung=None,
+        kommentar=None,
+        id=None,
+        datum: datetime = None,
     ):
         self.id = id
         if not datum:
             self.datum = datetime.now()
         else:
             self.datum = datum
+        assert isinstance(datum, datetime)
         self.konto = konto
         self.rechnung = rechnung
         self.betrag = betrag
@@ -326,10 +351,9 @@ class Buchung(object):
 
     @classmethod
     def load_from_row(cls, row):
-        datum = datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S.%f")
         b = cls(
             id=row[0],
-            datum=datum,
+            datum=str2date(row[1]),
             konto=row[2],
             rechnung=row[3],
             betrag=Decimal(row[4]),
@@ -342,7 +366,7 @@ class Buchung(object):
             "INSERT INTO buchung (datum, konto, rechnung, betrag, kommentar) VALUES "
             + "(?, ?, ?, ?, ?)",
             (
-                self.datum,
+                date2str(self.datum),
                 self.konto,
                 self.rechnung,
                 str(self.betrag),
@@ -511,9 +535,6 @@ class Kasse(object):
         :type until_date: datetime.datetime | None
         :return: query string
         """
-        # TODO comparing against these strings might make problems with py3
-        # --> best import unicode_literals from future
-        # --> check whole file if this import is problematic
         known_tables = ["buchung", "rechnung"]
         if from_table not in known_tables:
             raise NotImplementedError("unimplemented table {0}".format(from_table))
@@ -522,17 +543,17 @@ class Kasse(object):
         if from_date and until_date:
             query = (
                 query
-                + " WHERE datum >= Datetime('{from_date}') AND datum < Datetime('{until_date}')".format(
-                    from_date=from_date, until_date=until_date
+                + " WHERE datum >= '{from_date}' AND datum < '{until_date}'".format(
+                    from_date=date2str(from_date), until_date=date2str(until_date)
                 )
             )
         elif from_date:
-            query = query + " WHERE datum >= Datetime('{from_date}')".format(
-                from_date=from_date
+            query = query + " WHERE datum >= '{from_date}'".format(
+                from_date=date2str(from_date)
             )
         elif until_date:
-            query = query + " WHERE datum < Datetime('{until_date}')".format(
-                until_date=until_date
+            query = query + " WHERE datum < '{until_date}'".format(
+                until_date=date2str(until_date)
             )
 
         return query
@@ -966,10 +987,9 @@ class Kundenbuchung(object):
 
     @classmethod
     def load_from_row(cls, row):
-        datum = datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S.%f")
         b = cls(
             id=row[0],
-            datum=datum,
+            datum=str2date(row[1]),
             kunde=row[2],
             rechnung=row[3],
             betrag=Decimal(row[4]),
@@ -983,7 +1003,7 @@ class Kundenbuchung(object):
                 "INSERT INTO kundenbuchung (datum, kunde, rechnung, betrag, kommentar) "
                 + "VALUES (?, ?, ?, ?, ?)",
                 (
-                    self.datum,
+                    date2str(self.datum),
                     self.kunde,
                     self.rechnung,
                     str(self.betrag),
@@ -996,7 +1016,7 @@ class Kundenbuchung(object):
                 "UPDATE kundenbuchung SET datum=?, kunde=?, rechnung=?, betrag=?, "
                 + "kommentar=? WHERE id=?",
                 (
-                    self.datum,
+                    date2str(self.datum),
                     self.kunde,
                     self.rechnung,
                     str(self.betrag),
