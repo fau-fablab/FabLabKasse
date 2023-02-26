@@ -34,6 +34,9 @@ import hypothesis.strategies
 import dateutil
 from datetime import datetime, timedelta
 from decimal import Decimal
+import subprocess
+import os
+import random
 
 
 class KassenbuchTestCase(unittest.TestCase):
@@ -66,7 +69,49 @@ class KassenbuchTestCase(unittest.TestCase):
         self.assertTrue(args.hide_receipts)
         self.assertEqual(args.from_date, dateutil.parser.parse("2016-12-31"))
         self.assertEqual(args.until_date, dateutil.parser.parse("2017-1-23"))
+
+        # test ensure_dummy_db
+        args = parse_args("--ensure-dummy-db show".split(" "))
+        self.assertTrue(args.ensure_dummy_db)
+        args = parse_args("show".split(" "))
+        self.assertFalse(args.ensure_dummy_db)
         # TODO more tests: Everytime you fix a bug in argparser, add a test
+
+    def test_shell_interface(self):
+        """
+        test calling kassenbuch.py from shell
+        """
+
+        def call_kb(command: str) -> str:
+            """
+            call kassenbuch.py --ensure-dummy-db $command
+
+            command is a single string containing the space-separated arguments
+
+            Return value is the script output.
+
+            Raise an exception if the script doesn't return with 0.
+
+            Note that this requires that the database name in config.ini is set to "development.sqlite3"
+            """
+            path_to_here = os.path.dirname(os.path.realpath(__file__))
+            cmd = [
+                path_to_here + "/kassenbuch.py",
+                "--ensure-dummy-db",
+            ] + command.split(" ")
+            cmd = [x.encode("UTF-8") for x in cmd]
+            result = subprocess.run(cmd, encoding="UTF-8", capture_output=True)
+            self.assertEqual(result.returncode, 0, "Command failed: " + repr(result))
+            return result.stdout
+
+        call_kb("summary")
+        call_kb("show")
+        call_kb("client list")
+        randstr = str(random.randint(0, 1e30))
+        comment = "My Comment Äöü " + randstr
+        call_kb("transfer TestA TestB 123.45 " + comment)
+        result_show = call_kb("show")
+        self.assertTrue(comment in result_show)
 
     def test_parsing(self):
         """test argument parsing helper"""

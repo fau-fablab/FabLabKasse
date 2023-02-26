@@ -148,7 +148,7 @@ class Rechnung(object):
             self.datum = datetime.now()
         else:
             self.datum = datum
-        assert isinstance(datum, datetime)
+        assert isinstance(self.datum, datetime)
         self.positionen = []
 
     @property
@@ -325,7 +325,9 @@ class Buchung(object):
             self.datum = datetime.now()
         else:
             self.datum = datum
-        assert isinstance(datum, datetime)
+        assert isinstance(self.datum, datetime), "unexpected type of date: " + repr(
+            datum
+        )
         self.konto = konto
         self.rechnung = rechnung
         self.betrag = betrag
@@ -1200,6 +1202,12 @@ def parse_args(argv=sys.argv[1:]):
     :rtype: object
     """
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--ensure-dummy-db",
+        action="store_true",
+        dest="ensure_dummy_db",
+        help="Check that the database used is a dummy database. Otherwise exit with error.",
+    )
     subparsers = parser.add_subparsers(title="actions", dest="action")
 
     DATE_HELP = "datetime e.g. ISO formatted, (2016-12-31 [13:37:42])"
@@ -1493,6 +1501,14 @@ def main():
     startup_time = datetime.now()
     # TODO does not help if until argument is given that is greater than the current date
     # (and doesn't work at timezone jumps etc.)
+
+    if args.ensure_dummy_db:
+        db_file = cfg.get("general", "db_file")
+        if db_file != "development.sqlite3":
+            print(
+                f"Error: Refusing to run on production databsae. The argument '--ensure-dummy-db' was used, but the database is not 'development.sqlite3' but '{db_file}'."
+            )
+            sys.exit(1)
 
     if "comment" in args:
         args.comment = " ".join(args.comment)
