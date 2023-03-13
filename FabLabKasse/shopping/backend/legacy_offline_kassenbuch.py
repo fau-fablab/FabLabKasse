@@ -106,7 +106,7 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
         ), "for this payment method you need to configure 'payout_impossible_product_id == 9994"
         # products.append(Product(prod_id=9994, name=u"nicht rückzahlbarer Rest", unit=u"Euro", location="-", price=Decimal("1"), categ_id=None))
         AbstractOfflineShoppingBackend.__init__(
-            self, cfg, categories, products, generate_root_category=False
+            self, cfg, categories, products, generate_root_category=True
         )
 
     def list_clients(self):
