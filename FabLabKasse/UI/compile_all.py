@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
 from qtpy import uic
 import fnmatch
 import os
@@ -32,12 +31,10 @@ def main():
         if fnmatch.fnmatch(filename, "*.ui"):
             print(file)
             with open(prefix + file[:-2] + "py", "w") as f:
-                uic.compileUi(file, f, execute=True)
+                uic.compileUi(file, f, from_imports=True)
         if fnmatch.fnmatch(filename, "*.qrc"):
             print(file)
             subprocess.call(["pyrcc5", filename, "-o", prefix + file[:-4] + "_rc.py"])
-
-    subprocess.call(["futurize", "-wn", "-0", prefix])
 
 
 if __name__ == "__main__":
