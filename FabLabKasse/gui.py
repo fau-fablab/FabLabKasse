@@ -676,7 +676,7 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
             if order_line.qty != qty:
                 # quantity was rounded up, notify user
                 QtWidgets.QToolTip.showText(
-                    self.label_unit.mapToGlobal(QtWidgets.QPoint(0, -30)),
+                    self.label_unit.mapToGlobal(QtCore.QPoint(0, -30)),
                     f"Eingabe wird auf {format_decimal(order_line.qty)} {order_line.unit} aufgerundet!",
                 )
             else:
