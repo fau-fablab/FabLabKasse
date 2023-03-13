@@ -102,3 +102,5 @@ class KeyboardDialog(QtWidgets.QDialog, Ui_KeyboardDialog):
                 btn.setText(str(btn.text()).upper())
             else:
                 btn.setText(str(btn.text()).lower())
+
+        self.pushButton_minus.setText("_" if self.caps else "-")
