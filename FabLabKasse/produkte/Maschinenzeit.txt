@@ -1,2 +1,0 @@
-0650;Benutzung Thermotransfer-Presse;Benutzung;1.0;DECIMAL;[]
-1444;Benutzung Festool-Gerät (Minimum, nach Ermessen);Benutzung;2.0;DECIMAL;[]

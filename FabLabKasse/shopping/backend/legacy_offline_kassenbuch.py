@@ -29,7 +29,6 @@ from decimal import Decimal
 from ..payment_methods import ManualCashPayment, FAUCardPayment
 from ... import scriptHelper
 from ...kassenbuch import Kasse, Rechnung, Buchung, Kunde
-from ...produkt import Produkt
 import socket
 import itertools
 import sqlite3
@@ -39,58 +38,65 @@ class ShoppingBackend(AbstractOfflineShoppingBackend):
     def __init__(self, cfg):
         self._kasse = Kasse(cfg.get("general", "db_file"))
 
-        produkte, produkte_wald = Produkt.load_from_dir("produkte/")
-        categ_id_counter = itertools.count(start=1)
-        categories = []
-        products = []
+        categories = [
+            Category(categ_id=7, name="Lasercutter", parent_id=0),
+            Category(categ_id=1, name="3D Printer", parent_id=0),
+            Category(categ_id=42, name="Laser Material", parent_id=7),
+            Category(categ_id=43, name="Laser Time", parent_id=7),
+            Category(categ_id=44, name="Other", parent_id=0),
+        ]
 
-        def convert_products(prod_list, current_category):
-            for p in prod_list:
-                qty_rounding = 0
-                if p.verkaufseinheiten[p.basiseinheit]["input_mode"] == "INTEGER":
-                    qty_rounding = 1
-                else:
-                    qty_rounding = Decimal("0.01")
-                products.append(
-                    Product(
-                        prod_id=int(p.PLU),
-                        name=p.name,
-                        unit=p.basiseinheit,
-                        price=p.verkaufseinheiten[p.basiseinheit]["preis"],
-                        location="",
-                        categ_id=current_category.categ_id,
-                        qty_rounding=qty_rounding,
-                        text_entry_required=("Kommentar" in p.name),
-                    )
-                )
-
-        def create_category(name, super_category):
-            new_categ = Category(
-                categ_id=next(categ_id_counter),
-                name=name,
-                parent_id=super_category.categ_id,
-            )
-            categories.append(new_categ)
-            return new_categ
-
-        def recursively_add_categories(name, data, super_category):
-            # add a category:
-            # 1. the category itself
-            current_category = create_category(name, super_category)
-            # 2. the contained products
-            convert_products(data[1], current_category)
-            # 3. recurse: contained subcategories
-            for (sub_name, sub_data) in data[
-                0
-            ].items():  # walk through dict of subcategories
-                recursively_add_categories(sub_name, sub_data, current_category)
-
-        root = Category(
-            categ_id=0, name="root pseudocategory, not used later", parent_id=None
-        )
-        categories.append(root)
-        for (name, data) in produkte_wald.items():
-            recursively_add_categories(name, data, root)
+        products = [
+            Product(
+                prod_id=1,
+                name="Laser Time commercial",
+                price=1,
+                unit="minute",
+                location="-",
+                categ_id=43,
+            ),
+            Product(
+                prod_id=2,
+                name="Laser Time noncommercial",
+                price=Decimal(".5"),
+                unit="minute",
+                location="-",
+                categ_id=43,
+            ),
+            Product(
+                prod_id=123,
+                name="Acrylic 3mm",
+                unit="Sheet 60x30cm",
+                location="Shelf E3.1",
+                price=Decimal("11.31"),
+                categ_id=42,
+            ),
+            Product(
+                prod_id=9212,
+                name="Comment / enter price",
+                unit="Euro",
+                location="-",
+                price=1,
+                categ_id=44,
+                text_entry_required=True,
+            ),
+            Product(
+                prod_id=9999,
+                name="Donation",
+                unit="Euro",
+                location="-",
+                price=1,
+                categ_id=44,
+            ),
+            Product(
+                prod_id=9994,
+                name="Rest that could not be paid out",
+                unit="Euro",
+                location="-",
+                price=Decimal("1"),
+                categ_id=None,
+            ),
+        ]
 
         assert (
             cfg.getint("payup_methods", "overpayment_product_id") == 9999

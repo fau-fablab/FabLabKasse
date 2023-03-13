@@ -208,7 +208,7 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         # Connect lineEdit.returnPressed to be the same as clicking on ok button
         self.lineEdit.returnPressed.connect(self.on_ok_clicked)
 
-        # Connect produktTree to add selected produkt
+        # Add product to cart when selecting a product from the table
         self.table_products.clicked.connect(self.on_product_clicked)
 
         # Connect to table_order changed selection
@@ -222,7 +222,7 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         # Shopping carts/orders
         self.updateOrder()
 
-        # currently selected produkt group
+        # currently selected product group
         self.current_category = self.shoppingBackend.get_root_category()
 
         # Initialize categories and products later, after resize events are done
@@ -503,6 +503,7 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
             if line.qty == 0 and line.delete_if_zero_qty:
                 self.shoppingBackend.delete_order_line(line.order_line_id)
 
+        # Retrieve selected product from table
         idx = self.table_products.currentIndex()
         row = idx.row()
         model = idx.model()
@@ -510,10 +511,11 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
             return
         prod_id = model.item(row, 0).data()
 
+        # Add selected product to table
         self.addOrderLine(prod_id)
-        self.leaveSearch(
-            keepResultsVisible=True
-        )  # show basket, but also keep search results visible
+
+        # show basket, but also keep search results visible
+        self.leaveSearch(keepResultsVisible=True)
 
     def payup(self):
         """ask the user to pay the current order.

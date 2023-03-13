@@ -1,6 +1,0 @@
-1510;TESA Doppelseitiges Klebeband, 25m x 50mm;Meter;0.3;DECIMAL;['Verbrauchsmaterial', 'Klebeband']
-9247;Gewebeklebeband leicht ablösbar 50mm neongelb (Gerband);Meter;0.3;DECIMAL;['Verbrauchsmaterial', 'Klebeband']
-9991;Ausgleich Kundenkonto - bitte Kundenkonto als Kommentar;Euro;1.0;DECIMAL;[]
-9994;nicht auszahlbarer Rest;Euro;1.0;DECIMAL;['Kassensystem Interna']
-9997;Kommentar / Freie Preiseingabe;Euro;1.0;DECIMAL;[]
-9999;Spende;Euro;1.0;DECIMAL;[]
