@@ -9,7 +9,7 @@ simplejson
 Sphinx
 natsort
 monotonic
-portalocker==0.5.6
+portalocker
 future
 qtpy
 
