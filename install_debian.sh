@@ -35,8 +35,8 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get -y install psmisc socat
 
 # Setup user and 'kiosk mode' desktop manager that autostarts FabLabKasse
 $RUNNING_IN_VAGRANT && INSTALL_USER=vagrant || INSTALL_USER=kasse
-$RUNNING_IN_VAGRANT || adduser kasse --disabled-password # not used in Vagrant, but in real system
-# not needed: qt4-designer winpdb
+(! $RUNNING_IN_VAGRANT && ! test -d /home/kasse ) && sudo adduser kasse --disabled-password # not used in Vagrant, but in real system
+
 # some package installs lightdm; we don't want it.
 sudo apt-get -y remove lightdm
 echo "NODM_ENABLED=true" | sudo tee -a /etc/default/nodm
@@ -48,7 +48,7 @@ rm -f /home/$INSTALL_USER/.xsession
 if $RUNNING_IN_VAGRANT; then
 	[ -d /home/$INSTALL_USER/FabLabKasse ] || ln -s /vagrant /home/$INSTALL_USER/FabLabKasse
 else
-	sudo -u $INSTALL_USER git clone --recursive https://github.com/fau-fablab/FabLabKasse /home/$INSTALL_USER/FabLabKasse
+	[ -d /home/$INSTALL_USER/FabLabKasse ] || sudo -u $INSTALL_USER git clone --recursive https://github.com/fau-fablab/FabLabKasse /home/$INSTALL_USER/FabLabKasse
 fi
 
 if $RUNNING_IN_VAGRANT; then
