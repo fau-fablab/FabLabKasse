@@ -20,6 +20,12 @@ backend=dummy
 ; for FAU FabLab:
 ;backend=legacy_offline_kassenbuch
 
+; url of the json containing the product categories
+categories_json=https://brain.fablab.fau.de/build/pricelist/categories_Alle_Produkte.json
+
+; url of the json containing all products
+products_json=https://brain.fablab.fau.de/build/pricelist/price_list-Alle_Produkte.html.json
+
 [idle_reset]
 ; enable automatic reset of the product view after a timeout
 enabled = true
