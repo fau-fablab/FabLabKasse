@@ -27,3 +27,6 @@ sphinx_rtd_theme
 
 # To read our product json
 dataclasses-json
+
+# to download the product json
+urlretrieve
