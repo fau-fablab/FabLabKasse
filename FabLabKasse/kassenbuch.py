@@ -545,18 +545,12 @@ class Kasse(object):
         if from_date and until_date:
             query = (
                 query
-                + " WHERE datum >= '{from_date}' AND datum < '{until_date}'".format(
-                    from_date=date2str(from_date), until_date=date2str(until_date)
-                )
+                + f" WHERE datum >= '{date2str(from_date)}' AND datum < '{date2str(until_date)}'"
             )
         elif from_date:
-            query = query + " WHERE datum >= '{from_date}'".format(
-                from_date=date2str(from_date)
-            )
+            query = query + f" WHERE datum >= '{date2str(from_date)}'"
         elif until_date:
-            query = query + " WHERE datum < '{until_date}'".format(
-                until_date=date2str(until_date)
-            )
+            query = query + f" WHERE datum < '{date2str(until_date)}'"
 
         return query
 
@@ -590,7 +584,11 @@ class Kasse(object):
     def rechnungen(self):
         return self.get_rechnungen()
 
-    def get_rechnungen(self, from_date:Optional[datetime]=None, until_date:Optional[datetime]=None):
+    def get_rechnungen(
+        self,
+        from_date: Optional[datetime] = None,
+        until_date: Optional[datetime] = None,
+    ):
         """
         get invoices between the given dates.
 
