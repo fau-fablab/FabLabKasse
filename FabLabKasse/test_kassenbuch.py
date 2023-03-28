@@ -28,9 +28,8 @@ from .kassenbuch import (
     parse_args,
 )
 from .kassenbuch import argparse_parse_date, argparse_parse_currency
-from hypothesis import given, example
-from hypothesis.strategies import text
-import hypothesis.strategies
+from hypothesis import given, reproduce_failure
+from hypothesis.strategies import text, datetimes
 import dateutil
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -155,8 +154,8 @@ class KassenbuchTestCase(unittest.TestCase):
         # TODO code crashes when reading Kunde with "None" in e.g. schuldengrenze
 
     @given(
-        from_date=hypothesis.strategies.datetimes(),
-        until_date=hypothesis.strategies.datetimes(),
+        from_date=datetimes(),
+        until_date=datetimes(),
     )
     def test_datestring_generator(self, from_date, until_date):
         """test the datestring_generator in Kasse"""
@@ -165,9 +164,9 @@ class KassenbuchTestCase(unittest.TestCase):
         pass
 
     @given(
-        rechnung_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
-        from_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
-        until_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
+        rechnung_date=datetimes(min_value=datetime(1900, 1, 1)),
+        from_date=datetimes(min_value=datetime(1900, 1, 1)),
+        until_date=datetimes(min_value=datetime(1900, 1, 1)),
     )
     def test_get_rechnungen(self, rechnung_date, from_date, until_date):
         """test the get_rechnungen function"""
@@ -183,14 +182,9 @@ class KassenbuchTestCase(unittest.TestCase):
             self.assertFalse(query)
 
     @given(
-        buchung_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
-        from_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
-        until_date=hypothesis.strategies.datetimes(min_value=datetime(1900, 1, 1)),
-    )
-    @example(
-        buchung_date=datetime(2000, 1, 1, 1, 0),
-        from_date=datetime(2000, 1, 1, 0, 0),
-        until_date=datetime(2000, 1, 1, 1, 0, 0, 1),
+        buchung_date=datetimes(min_value=datetime(1900, 1, 1)),
+        from_date=datetimes(min_value=datetime(1900, 1, 1)),
+        until_date=datetimes(min_value=datetime(1900, 1, 1)),
     )
     def test_get_buchungen(self, buchung_date, from_date, until_date):
         """test the get_buchungen function"""

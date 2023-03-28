@@ -16,7 +16,7 @@ qtpy
 python-escpos==2.2.0
 
 # testing
-hypothesis
+hypothesis>=6
 
 # clis (kassenbuch.py)
 argparse
@@ -28,5 +28,3 @@ sphinx_rtd_theme
 # To read our product json
 dataclasses-json
 
-# to download the product json
-urlretrieve

@@ -1504,7 +1504,7 @@ def main():
         db_file = cfg.get("general", "db_file")
         if db_file != "development.sqlite3":
             print(
-                f"Error: Refusing to run on production databsae. The argument '--ensure-dummy-db' was used, but the database is not 'development.sqlite3' but '{db_file}'."
+                f"Error: Refusing to run on production database. The argument '--ensure-dummy-db' was used, but the database is not 'development.sqlite3' but '{db_file}'."
             )
             sys.exit(1)
 
