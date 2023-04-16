@@ -20,10 +20,10 @@ backend=dummy
 ; for FAU FabLab:
 ;backend=legacy_offline_kassenbuch
 
-; url of the json containing the product categories
+; url of the json containing the product categories - only for legacy_offline_kassenbuch
 categories_json=https://brain.fablab.fau.de/build/pricelist/categories_Alle_Produkte.json
 
-; url of the json containing all products
+; url of the json containing all products - only for legacy_offline_kassenbuch
 products_json=https://brain.fablab.fau.de/build/pricelist/price_list-Alle_Produkte.html.json
 
 [idle_reset]

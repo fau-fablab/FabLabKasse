@@ -265,12 +265,19 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, cfg, categories, products, generate_root_category=False):
+    def __init__(
+        self,
+        cfg,
+        categories,
+        products,
+        generate_root_category=False,
+        root_category_id=0,
+    ):
         super(AbstractOfflineShoppingBackend, self).__init__(cfg)
         self._current_order = None
 
         self.tree = OfflineCategoryTree(
-            root_category_id=0,
+            root_category_id=root_category_id,
             categories=categories,
             products=products,
             generate_root_category=generate_root_category,
@@ -283,7 +290,7 @@ class AbstractOfflineShoppingBackend(AbstractShoppingBackend):
 
     def get_root_category(self):
         """return id of root category"""
-        return 0
+        return self.tree.get_root_category().categ_id
 
     def get_subcategories(self, current_category):
         # return [Category(categ_id=7, name="Lasercutter"), Category(categ_id=1, name="3D Printer")]
