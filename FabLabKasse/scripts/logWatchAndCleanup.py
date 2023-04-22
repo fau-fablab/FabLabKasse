@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -27,7 +27,6 @@ run this script by starting logWatchAndCleanup.sh which lives in the same direct
 # it is recommended to run this script before midnight, because the logs wrap over at midnight and might change in the middle of running this script
 
 """
-# this script should work without changes under python3. ScriptHelpers dependencies (ConfigParser) are currently not ported to python3, so this remains python2.7
 
 from __future__ import print_function
 import sys
@@ -49,12 +48,14 @@ def main():
     errorLines = {}
     # gzip all old logfiles blafu.log.2014-12-24
     for f in os.listdir("."):
-        isOldUnzippedLog = bool(re.match(r'[^/]*\.log\.[0-9]{4}-[0-9]{2}-[0-9]{2}$', f))
+        isOldUnzippedLog = bool(re.match(r"[^/]*\.log\.[0-9]{4}-[0-9]{2}-[0-9]{2}$", f))
         isNewLog = f.endswith(".log")
-        oldZippedLog = re.match(r'[^/]*\.log\.([0-9]{4}-[0-9]{2}-[0-9]{2}).gz$', f)
+        oldZippedLog = re.match(r"[^/]*\.log\.([0-9]{4}-[0-9]{2}-[0-9]{2}).gz$", f)
         if oldZippedLog:  # something like "asf.log.2015-04-12.gz"
             fileDate = dateutil.parser.parse(oldZippedLog.group(1))  # get file date
-            if datetime.datetime.now() - fileDate > datetime.timedelta(LOG_MAX_AGE, 0, 0):
+            if datetime.datetime.now() - fileDate > datetime.timedelta(
+                LOG_MAX_AGE, 0, 0
+            ):
                 # print("cleaning up: "+f)
                 os.unlink(f)
         if isOldUnzippedLog or isNewLog:
@@ -68,12 +69,16 @@ def main():
 
             # found gzip old logfile
             if isOldUnzippedLog:
-                assert subprocess.call(["gzip", f]) == 0,  "calling gzip failed"
+                assert subprocess.call(["gzip", f]) == 0, "calling gzip failed"
 
     if not errorLines:
         sys.exit(0)
 
-    print("Hi, this is FabLabKasse/scripts/logWatch.sh.\nThere were warnings or errors in the recent logfile.\nPrinting the recent {0} ones per file:\n".format(MAX_ERRORS_PER_LOG))
+    print(
+        "Hi, this is FabLabKasse/scripts/logWatch.sh.\nThere were warnings or errors in the recent logfile.\nPrinting the recent {0} ones per file:\n".format(
+            MAX_ERRORS_PER_LOG
+        )
+    )
     for file in sorted(errorLines.keys()):
         print("\n\n========\n{0}\n========".format(file))
         for line in errorLines[file]:

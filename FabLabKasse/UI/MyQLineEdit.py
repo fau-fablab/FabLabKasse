@@ -2,15 +2,16 @@
 # of Basket.
 # Thats why focusInEvent is overwritten and a new signal, focused, is emitted, when widget is focused
 
-from PyQt4.QtGui import QLineEdit
-from PyQt4.QtCore import pyqtSignal
+from qtpy.QtWidgets import QLineEdit
+from qtpy.QtCore import Signal
 
 
 class MyQLineEdit(QLineEdit):
 
     """QLineEdit with extra signals focused() and clicked() that are emitted when the user interacts with the box"""
-    focused = pyqtSignal()
-    clicked = pyqtSignal()
+
+    focused = Signal()
+    clicked = Signal()
 
     def focusInEvent(self, event):
         QLineEdit.focusInEvent(self, event)

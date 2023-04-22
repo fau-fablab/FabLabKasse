@@ -1,3 +1,3 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-OK = 0x00;
+OK = 0x00

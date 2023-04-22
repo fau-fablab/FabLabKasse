@@ -1,40 +1,50 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 
+from __future__ import absolute_import
 import codecs
 from FabLabKasse import scriptHelper
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 import sqlite3
 from datetime import datetime
 from decimal import Decimal
-from PyQt4 import QtCore, Qt, QtGui
+from qtpy import QtCore, QtWidgets, QtGui
 
-from MagPosLog import MagPosLog
+from .MagPosLog import MagPosLog
 from ..UI.FAUcardPaymentDialogCode import FAUcardPaymentDialog
-from FAUcardPaymentThread import FAUcardThread
-from faucardStates import Status, Info
+from .FAUcardPaymentThread import FAUcardThread
+from .faucardStates import Status, Info
 
 
 class PayupFAUCard(QtCore.QObject):
-    def __init__(self, parent, amount):
+    def __init__(self, parent, amount, shopping_backend):
         """
         Initializes the PayupFAUCard Process
         :param parent: Parent QObject
         :type parent: QtCore.QObject
         :param amount: amount to pay
         :type amount: Decimal
+        :param shopping_backend: current instance of ShoppingBackend
+        :type shopping_backend: shopping.backend.abstract.AbstractShoppingBackend
         """
         QtCore.QObject.__init__(self)
         assert isinstance(amount, Decimal), "PayupFAUCard: Amount to pay not Decimal"
         assert amount > 0, "PayupFAUCard: amount is negativ"
 
         self.amount = amount
+        self.shopping_backend = shopping_backend
         self.thread = QtCore.QThread()
-        self.dialog = FAUcardPaymentDialog(parent=parent, amount=self.amount)
-        self.dialog.request_termination.connect(self.threadTerminationRequested, type= QtCore.Qt.DirectConnection)
-        self.worker = FAUcardThread(dialog=self.dialog, amount=self.amount, thread=self.thread)
+        self.dialog = FAUcardPaymentDialog(
+            parent=parent, amount=self.amount, shopping_backend=self.shopping_backend
+        )
+        self.dialog.request_termination.connect(
+            self.threadTerminationRequested, type=QtCore.Qt.DirectConnection
+        )
+        self.worker = FAUcardThread(
+            dialog=self.dialog, amount=self.amount, thread=self.thread
+        )
 
     def executePayment(self):
         """
@@ -49,7 +59,7 @@ class PayupFAUCard(QtCore.QObject):
         # Execute the GUI
         success = self.dialog.exec_()
 
-        if success == Qt.QDialog.Accepted:
+        if success == QtWidgets.QDialog.Accepted:
             return True
         else:
             # Wait for thread to finish cleanup
@@ -78,10 +88,15 @@ class PayupFAUCard(QtCore.QObject):
         Completes the log entry in the MagPosLog and closes all open threads and dialogs
         """
         if self.thread.isRunning():
-            QtCore.QMetaObject.invokeMethod(self.worker, "set_ack", QtCore.Qt.QueuedConnection, Qt.Q_ARG(bool, False))
+            QtCore.QMetaObject.invokeMethod(
+                self.worker,
+                "set_ack",
+                QtCore.Qt.QueuedConnection,
+                QtCore.Q_ARG(bool, False),
+            )
         self.close()
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def threadTerminationRequested(self):
         """
         Terminates the self.thread if requested.
@@ -97,8 +112,18 @@ class PayupFAUCard(QtCore.QObject):
         """
         self.dialog.close()
         if self.thread.isRunning():
-            QtCore.QMetaObject.invokeMethod(self.worker, "set_should_finish_log", QtCore.Qt.QueuedConnection, Qt.Q_ARG(bool, False))
-            QtCore.QMetaObject.invokeMethod(self.worker, "set_ack", QtCore.Qt.QueuedConnection, Qt.Q_ARG(bool, False))
+            QtCore.QMetaObject.invokeMethod(
+                self.worker,
+                "set_should_finish_log",
+                QtCore.Qt.QueuedConnection,
+                QtCore.Q_ARG(bool, False),
+            )
+            QtCore.QMetaObject.invokeMethod(
+                self.worker,
+                "set_ack",
+                QtCore.Qt.QueuedConnection,
+                QtCore.Q_ARG(bool, False),
+            )
             self.thread.wait(100)
             if not self.thread.isRunning():
                 return
@@ -114,21 +139,21 @@ def check_last_transaction():
     :rtype: bool
     """
     cfg = scriptHelper.getConfig()
-    con = sqlite3.connect(cfg.get('magna_carta', 'log_file'))
+    con = sqlite3.connect(cfg.get("magna_carta", "log_file"))
     cur = con.cursor()
-    con.text_factory = unicode
+    con.text_factory = str
     return FAUcardThread.check_last_transaction(cur=cur, con=con)
 
 
-def finish_log(info = Info.OK):
+def finish_log(info=Info.OK):
     """
     Part
     Finishes last MagPosLog Entry by setting its state to Status.booking_done after the internal booking was done
     """
     cfg = scriptHelper.getConfig()
-    con = sqlite3.connect(cfg.get('magna_carta', 'log_file'))
+    con = sqlite3.connect(cfg.get("magna_carta", "log_file"))
     cur = con.cursor()
-    con.text_factory = unicode
+    con.text_factory = str
 
     cur.execute("SELECT id, status, info FROM MagPosLog ORDER BY id DESC LIMIT 1")
     row = cur.fetchone()
@@ -136,6 +161,8 @@ def finish_log(info = Info.OK):
     # Check if last entry was about an not yet booked but payed payment
     if row[1] == Status.decreasing_done.value and row[2] == Info.OK.value:
         id = row[0]
-        cur.execute("UPDATE MagPosLog SET datum=(?), status=(?), info=(?) WHERE id=(?)",
-                    (datetime.now(), Status.booking_done.value, info.value, id))
+        cur.execute(
+            "UPDATE MagPosLog SET datum=(?), status=(?), info=(?) WHERE id=(?)",
+            (datetime.now(), Status.booking_done.value, info.value, id),
+        )
         con.commit()

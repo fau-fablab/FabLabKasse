@@ -1,27 +1,33 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 
+from __future__ import print_function
+from __future__ import absolute_import
 import codecs
 import logging
 import sqlite3
-from PyQt4 import QtCore, Qt
+from qtpy import QtCore, QtWidgets
 from decimal import Decimal
 from datetime import datetime
 
-from faucardStates import Status, Info
-from MagPosLog import MagPosLog
+from .faucardStates import Status, Info
+from .MagPosLog import MagPosLog
 from ..shopping.backend.abstract import float_to_decimal
 
 
-try:                    # Test if interface is available
-    from magpos import magpos, codes
-except ImportError as e:     # Load Dummy otherwise
-    print e
-    from dinterface import magpos, codes
+try:  # Test if interface is available
+    from .magpos import magpos, codes
+except ImportError as e:  # Load Dummy otherwise
+    logging.warning(
+        "failed to import 'magpos' plugin class, falling back to dummy interface: "
+        + repr(e)
+    )
+    print(e)
+    from .dinterface import magpos, codes
 
 from FabLabKasse import scriptHelper
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 
 class FAUcardThread(QtCore.QObject):
@@ -31,13 +37,13 @@ class FAUcardThread(QtCore.QObject):
     """
 
     # Signal zum auslesen der Antwort
-    response_ready = QtCore.pyqtSignal([list])
+    response_ready = QtCore.Signal([list])
     # Signal signalieren eines Transaction Fehlers
-    transaction_error = QtCore.pyqtSignal()
+    transaction_error = QtCore.Signal()
     # Signal to change the Enabled state of Dialogs cancel button
-    set_cancel_button_enabled = QtCore.pyqtSignal(bool)
+    set_cancel_button_enabled = QtCore.Signal(bool)
     # Signals process end
-    process_aborted = QtCore.pyqtSignal()
+    process_aborted = QtCore.Signal()
 
     class UserAbortionError(Exception):
         def __init__(self, func):
@@ -67,14 +73,14 @@ class FAUcardThread(QtCore.QObject):
         :param amount: Amount to be paid
         :type amount: Decimal
         :param thread: Thread the process should work in
-        :type thread: Qt.QThread
+        :type thread: QtCore.QThread
         """
         self.cfg = scriptHelper.getConfig()
         QtCore.QObject.__init__(self)
         logging.info("FAU-Terminal: thread is being initialized")
 
         assert isinstance(amount, (Decimal)), "PayupFAUCard: Amount to pay not Decimal"
-        
+
         # Initialize class variables
         self.status = Status.initializing
         self.info = Info.OK
@@ -82,7 +88,9 @@ class FAUcardThread(QtCore.QObject):
         self.old_balance = None
         self.new_balance = None
         self.amount = amount
-        self.amount_cents = int(float_to_decimal(amount * 100, 0))		# Floating point precision causes error -> round with float_to_decimal.
+        self.amount_cents = int(
+            float_to_decimal(amount * 100, 0)
+        )  # Floating point precision causes error -> round with float_to_decimal.
         self.cancel = False
         self.ack = False
         self.sleep_counter = 0
@@ -101,18 +109,28 @@ class FAUcardThread(QtCore.QObject):
         self.moveToThread(thread)
         # Connect signal and slots from GUI and thread
         self.response_ready.connect(dialog.update_gui, type=QtCore.Qt.QueuedConnection)
-        self.transaction_error.connect(dialog.show_transaction_error, type=QtCore.Qt.QueuedConnection)
-        self.set_cancel_button_enabled.connect(dialog.set_cancel_button_enabled, type=QtCore.Qt.QueuedConnection)
-        self.process_aborted.connect(dialog.process_aborted, type=QtCore.Qt.QueuedConnection)
+        self.transaction_error.connect(
+            dialog.show_transaction_error, type=QtCore.Qt.QueuedConnection
+        )
+        self.set_cancel_button_enabled.connect(
+            dialog.set_cancel_button_enabled, type=QtCore.Qt.QueuedConnection
+        )
+        self.process_aborted.connect(
+            dialog.process_aborted, type=QtCore.Qt.QueuedConnection
+        )
         dialog.response_ack[bool].connect(self.set_ack, type=QtCore.Qt.QueuedConnection)
-        dialog.pushButton_abbrechen.clicked.connect(self.user_abortion, type=QtCore.Qt.QueuedConnection)
-        dialog.rejected.connect(self.user_abortion, type= QtCore.Qt.QueuedConnection)
+        dialog.pushButton_abbrechen.clicked.connect(
+            self.user_abortion, type=QtCore.Qt.QueuedConnection
+        )
+        dialog.rejected.connect(self.user_abortion, type=QtCore.Qt.QueuedConnection)
         thread.started.connect(self.run, type=QtCore.Qt.QueuedConnection)
-        thread.terminated.connect(dialog.thread_terminated, type=QtCore.Qt.QueuedConnection)
-        thread.terminated.connect(self.terminate, type=QtCore.Qt.QueuedConnection)
+        thread.finished.connect(
+            dialog.thread_terminated, type=QtCore.Qt.QueuedConnection
+        )
+        thread.finished.connect(self.terminate, type=QtCore.Qt.QueuedConnection)
 
     # set response-flag
-    @QtCore.pyqtSlot(bool)
+    @QtCore.Slot(bool)
     def set_ack(self, cf):
         """
         Sets the Acknowledge flag and Cancel flag
@@ -122,7 +140,7 @@ class FAUcardThread(QtCore.QObject):
         self.cancel = cf
 
     # set if thread should finish logfile with booking entry
-    @QtCore.pyqtSlot(bool)
+    @QtCore.Slot(bool)
     def set_should_finish_log(self, val):
         """
         Sets the finish logfile flag
@@ -131,13 +149,12 @@ class FAUcardThread(QtCore.QObject):
         """
         self.should_finish_log = val
 
-
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def user_abortion(self):
-        """ ets cancel flag to cancel the payment """
+        """sets cancel flag to cancel the payment"""
         self.cancel = True
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def terminate(self):
         """
         Terminates the Process on fatal Error
@@ -164,16 +181,16 @@ class FAUcardThread(QtCore.QObject):
             raise self.UserAbortionError(msg)
 
     def sleep(self, seconds):
-        """ Sleep function for the thread """
+        """Sleep function for the thread"""
         if seconds is 0:
             return
 
         counter = self.sleep_counter
-        while self.sleep_counter is not seconds*10:
+        while self.sleep_counter is not seconds * 10:
             if self.cancel == True:
                 raise self.UserAbortionError("sleep")
             if counter == self.sleep_counter:
-                Qt.QTimer.singleShot(100, self.sleep_timer)
+                QtCore.QTimer.singleShot(100, self.sleep_timer)
                 counter += 1
             else:
                 # Process SLOT calls to retrieve new sleep_counter
@@ -181,12 +198,12 @@ class FAUcardThread(QtCore.QObject):
 
         self.sleep_counter = 0
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def sleep_timer(self):
-        """ Increases the sleep_counter by one"""
-        self.sleep_counter +=1
+        """Increases the sleep_counter by one"""
+        self.sleep_counter += 1
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def quit(self):
         """
         Quits the Process on user cancel or balance underflow
@@ -194,14 +211,14 @@ class FAUcardThread(QtCore.QObject):
         self.cancel = True
 
         if self.info == Info.OK and self.status is not Status.decreasing_done:
-                self.info = Info.user_abort
+            self.info = Info.user_abort
         if self.log is not None:
             self.log.set_status(self.status, self.info)
         if self.pos is not None:
             self.pos.close()
         self.set_cancel_button_enabled.emit(True)
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def run(self):
         """
         Billing routine for FAU-Card payment. Runs following steps:
@@ -219,16 +236,16 @@ class FAUcardThread(QtCore.QObject):
             return
 
         # Init MagPosLog in worker thread
-        self.con = sqlite3.connect(self.cfg.get('magna_carta', 'log_file'))
+        self.con = sqlite3.connect(self.cfg.get("magna_carta", "log_file"))
         self.cur = self.con.cursor()
-        self.con.text_factory = unicode
+        self.con.text_factory = str
         self.log = MagPosLog(self.amount, self.cur, self.con)
 
         try:
             logging.debug("FAUcardThread: Checking for unacknowledged transaction")
             # 0. Check log file if last entry was not booked
             MagPosLog.check_last_entry(self.cur, self.con)
-            
+
             # 1. Check last Transaction
             if not self.check_last_transaction(self.cur, self.con):
                 raise self.CheckLastTransactionFailed
@@ -244,8 +261,11 @@ class FAUcardThread(QtCore.QObject):
             self.log.set_cardnumber(self.card_number)
             self.old_balance = value[1]
             self.log.set_oldbalance(self.old_balance)
-            logging.debug("FAUcardThread: Card Number: {0} ; Old Balance: {1}".format(self.card_number, self.old_balance))
-
+            logging.debug(
+                "FAUcardThread: Card Number: {0} ; Old Balance: {1}".format(
+                    self.card_number, self.old_balance
+                )
+            )
 
             # let user short time to stop transaction if wanted
             self.sleep(2)
@@ -270,12 +290,23 @@ class FAUcardThread(QtCore.QObject):
             logging.fatal("FAUcardThread: TransactionError occured\n{0}".format(e))
             self.transaction_error.emit()
             self.terminate()
-        except (magpos.serial.SerialException, magpos.ConnectionTimeoutError, IOError) as e:
-            logging.error("FAUcardThread: serial exception forced termination\nException:\n{}".format(e))
+        except (
+            magpos.serial.SerialException,
+            magpos.ConnectionTimeoutError,
+            IOError,
+        ) as e:
+            logging.error(
+                "FAUcardThread: serial exception forced termination\nException:\n{}".format(
+                    e
+                )
+            )
             self.terminate()
         except self.UserAbortionError as e:
             logging.info(e)
-            if self.status is Status.decreasing_balance and self.info is not Info.con_error:
+            if (
+                self.status is Status.decreasing_balance
+                and self.info is not Info.con_error
+            ):
                 self.pos.response_ack()  # Befehl zum abbuchen löschen
             self.quit()
         except self.BalanceUnderflowError as e:
@@ -316,14 +347,17 @@ class FAUcardThread(QtCore.QObject):
         cfg = scriptHelper.getConfig()
         value = [False]
         try:
-            pos = magpos.MagPOS(cfg.get('magna_carta', 'device_port'))
+            pos = magpos.MagPOS(cfg.get("magna_carta", "device_port"))
             if pos.start_connection() is True:
                 value = pos.get_last_transaction_result()
                 pos.response_ack()
             pos.close()
         except (magpos.serial.SerialException, magpos.ConnectionTimeoutError):
-            logging.error("CheckTransaction: Magnabox COM-Port '{}', serial malfunction".format(
-                          cfg.get('magna_carta', 'device_port')))
+            logging.error(
+                "CheckTransaction: Magnabox COM-Port '{}', serial malfunction".format(
+                    cfg.get("magna_carta", "device_port")
+                )
+            )
             return False
         except magpos.ResponseError as e:
             logging.error("CheckTransaction: {}".format(e))
@@ -331,14 +365,32 @@ class FAUcardThread(QtCore.QObject):
 
         # Choose logging or nop based on check result
         if value[0] is magpos.codes.OK:  # Last transaction was successful
-            logging.error("CheckTransaction: Kassenterminal vor erfolgreicher Buchung abgestürzt.")
-            MagPosLog.save_transaction_result(cur, con, value[1], Decimal(value[2])/100, Info.transaction_ok.value)
-            logging.error(u"CheckTransaction: Buchung für Karte {0} über Betrag {1} EURCENT fehlt".format(value[1], value[2]) )
-        elif value[0] is 0 and value[1] is 0 and value[2] is 0:  # Last transaction was acknowledged
+            logging.error(
+                "CheckTransaction: Kassenterminal vor erfolgreicher Buchung abgestürzt."
+            )
+            MagPosLog.save_transaction_result(
+                cur, con, value[1], Decimal(value[2]) / 100, Info.transaction_ok.value
+            )
+            logging.error(
+                "CheckTransaction: Buchung für Karte {0} über Betrag {1} EURCENT fehlt".format(
+                    value[1], value[2]
+                )
+            )
+        elif (
+            value[0] is 0 and value[1] is 0 and value[2] is 0
+        ):  # Last transaction was acknowledged
             pass
         else:  # Failure during last transaction
-            logging.warning("CheckTransaction: Letzter Bezahlvorgang nicht erfolgreich ausgeführt.")
-            MagPosLog.save_transaction_result(cur, con, value[1], Decimal(value[2])/100, Info.transaction_error.value)
+            logging.warning(
+                "CheckTransaction: Letzter Bezahlvorgang nicht erfolgreich ausgeführt."
+            )
+            MagPosLog.save_transaction_result(
+                cur,
+                con,
+                value[1],
+                Decimal(value[2]) / 100,
+                Info.transaction_error.value,
+            )
 
         return True
 
@@ -355,7 +407,7 @@ class FAUcardThread(QtCore.QObject):
         self.log.set_status(self.status, self.info)
 
         # 2. Create MagPos Object
-        self.pos = magpos.MagPOS(self.cfg.get('magna_carta', 'device_port'))
+        self.pos = magpos.MagPOS(self.cfg.get("magna_carta", "device_port"))
         # 3. Try to start connection
         if not self.pos.start_connection():
             raise self.ConnectionError()
@@ -447,15 +499,21 @@ class FAUcardThread(QtCore.QObject):
         lost = False
 
         value = []
-        
+
         # 1. Try to decrease balance
         while retry:
             retry = False
-            self.set_cancel_button_enabled.emit(True)   # User must be able to abort if he decides to
+            self.set_cancel_button_enabled.emit(
+                True
+            )  # User must be able to abort if he decides to
             try:
-                self.check_user_abort("decreasing balance: User Aborted")  # Will only be executed if decrease command has not yet been executed
+                self.check_user_abort(
+                    "decreasing balance: User Aborted"
+                )  # Will only be executed if decrease command has not yet been executed
                 logging.debug("FAUcard: Trying to decrease balance")
-                value = self.pos.decrease_card_balance_and_token(self.amount_cents, self.card_number)
+                value = self.pos.decrease_card_balance_and_token(
+                    self.amount_cents, self.card_number
+                )
 
             # Catch ResponseError if not Card on Reader and retry
             except magpos.ResponseError as e:
@@ -467,7 +525,11 @@ class FAUcardThread(QtCore.QObject):
                 else:
                     raise e
             # 1.b Connection error
-            except (magpos.serial.SerialException, magpos.ConnectionTimeoutError, IOError), e:
+            except (
+                magpos.serial.SerialException,
+                magpos.ConnectionTimeoutError,
+                IOError,
+            ) as e:
                 logging.warning("FAUcardThread: {0}".format(e))
                 self.info = Info.con_error
                 self.log.set_status(self.status, self.info)
@@ -493,7 +555,9 @@ class FAUcardThread(QtCore.QObject):
                         self.pos.close()
 
                         # retry serial connection
-                        self.pos = magpos.MagPOS(self.cfg.get('magna_carta', 'device_port'))
+                        self.pos = magpos.MagPOS(
+                            self.cfg.get("magna_carta", "device_port")
+                        )
 
                         # clear previous command and response
                         self.pos.start_connection()
@@ -502,7 +566,11 @@ class FAUcardThread(QtCore.QObject):
                         value = self.pos.get_last_transaction_result()
 
                     # Ignore expected errors
-                    except (magpos.serial.SerialException, magpos.ConnectionTimeoutError, IOError):
+                    except (
+                        magpos.serial.SerialException,
+                        magpos.ConnectionTimeoutError,
+                        IOError,
+                    ):
                         lost = True
 
                 self.info = Info.con_back
@@ -511,7 +579,9 @@ class FAUcardThread(QtCore.QObject):
                 # 3. Check last payment details
                 if value[1] == self.card_number and value[2] == self.amount_cents:
                     if value[0] == magpos.codes.OK:
-                        logging.info("FAUcard: 3.a The payment was successfully executed")
+                        logging.info(
+                            "FAUcard: 3.a The payment was successfully executed"
+                        )
                         value[0] = value[1]
                         value[1] = self.old_balance
                         value[2] = self.old_balance - self.amount_cents
@@ -528,16 +598,23 @@ class FAUcardThread(QtCore.QObject):
                     continue
 
         # 5. Check if payment was correct and log it
-        if value[0] == self.card_number and value[1] == self.old_balance and (value[2]+self.amount_cents) == self.old_balance:
+        if (
+            value[0] == self.card_number
+            and value[1] == self.old_balance
+            and (value[2] + self.amount_cents) == self.old_balance
+        ):
             logging.info("FAUCard: payment correct, writing to log")
             self.status = Status.decreasing_done
             self.info = Info.OK
             self.log.set_status(self.status, self.info)
             new_balance = value[2]
         else:
-            logging.error("FAUCard: Payment went wrong (double booking, wrong amount, or similar error). This is a serious error. Check kassenbuch, the MagPosLog database, and gui.log to find out what exactly went wrong.")
-            raise magpos.TransactionError(value[0], value[1], value[2], self.amount_cents)
-
+            logging.error(
+                "FAUCard: Payment went wrong (double booking, wrong amount, or similar error). This is a serious error. Check kassenbuch, the MagPosLog database, and gui.log to find out what exactly went wrong."
+            )
+            raise magpos.TransactionError(
+                value[0], value[1], value[2], self.amount_cents
+            )
 
         self.timestamp_payed = datetime.now()
         # Update GUI and wait for response
@@ -572,9 +649,13 @@ class FAUcardThread(QtCore.QObject):
         :return: amount payed if transaction complete, 0 otherwise
         :rtype: decimal
         """
-        if self.card_number is not None and self.new_balance is not None and self.old_balance is not None:
-            payed = Decimal(self.old_balance-self.new_balance)
-            payed = payed/100
+        if (
+            self.card_number is not None
+            and self.new_balance is not None
+            and self.old_balance is not None
+        ):
+            payed = Decimal(self.old_balance - self.new_balance)
+            payed = payed / 100
             return payed
         else:
             return Decimal(0)

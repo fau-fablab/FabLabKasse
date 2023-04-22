@@ -21,17 +21,7 @@ If you just want to play, you can try Vagrant to automatically setup a VM (see n
 
 If you have a standalone PC or VM only for FabLabKasse, you can also use `FabLabKasse/scripts/install_debian.sh`, which sets up a kiosk system that autostarts FabLabKasse.
 
- - needed debian packages:
-
-        apt-get install python-pip python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort python-qrcode python-docopt python-requests python-simplejson python-sphinx
-        pip install -r requirements.txt
-
- - for the real terminal implementation: xserver-xorg git nodm ssh x11-apps xterm curl
- - for the style: kde-style-oxygen
- - for font: fonts-crosextra-carlito # or download Carlito-Regular.ttf from http://openfontlibrary.org/de/font/carlito#Carlito-Regular to ~/.fonts/
- - for development: qt4-designer
- - for graphical debugging: winpdb
-
+Else, you can set up a Debian or Ubuntu system and apply the section "install dependencies" of the above script.
 
 Modem-Manager interferes with the serial port. It is highly recommended to remove it:
     apt-get remove modemmanager
@@ -100,7 +90,9 @@ TODO ... importProdukte.py ...
 4.  Setting up the terminal
 ---------------------------
 
-Please take a look at install_debian.sh, which does most of the tasks described in this section
+Please take a look at install_debian.sh, which does most of the tasks described in this section.
+
+(Internal note for FAU FabLab: Cronjobs, mail, firewall etc are set up by `FabLabKasse-interna/install.sh` which lives in a separate repo.)
 
 You need a touchscreen (preferably USB with 1280x1024 resolution, preferably a model which does not require special calibration).
 
@@ -119,16 +111,12 @@ TODO: cronjobs
 setup daily cronjobs for
 
     /home/kasse/FabLabKasse/scripts/logWatchAndCleanup.sh # mail warnings and errors in logfile, gzip and log cleanup -- without this files will be kept as uncompressed plaintext, but also deleted after 14 days
-    /home/kasse/FabLabKasse/scripts/backup.sh # for SSH backup, needs adjusting (TODO make configurable)
-    /home/kasse/FabLabKasse/scripts/databaseSnapshotAndSummary.sh # for some statistics, needs adjusting (TODO make configurable)
 
-setup mail system so that you receive error messages from cronjobs
+and according to your needs, set up your own backup, statistics et cetera.
 
-recommended setup firewall:
+Setup mail system so that you receive error messages from cronjobs.
 
-    apt-get install iptables-persistent
-    cp tools/iptables/rules.v* /etc/iptables/
-    service netfilter-persistent restart
+Setup firewall as desired.
 
 5. Using
 --------

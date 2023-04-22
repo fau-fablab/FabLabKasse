@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -17,16 +17,18 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtGui import QTableView
-from PyQt4 import QtGui, QtCore
+from qtpy.QtWidgets import QTableView
+from qtpy import QtGui, QtCore
 import functools
 from FabLabKasse.UI.GUIHelper import resize_table_columns
+
 
 class CartTableView(QTableView):
     """Extends the funxtionality of a normal QTableView in order to supply a cart-view
 
     for usage see the cart-view in Kassenterminal and the cart-view in the app-checkout
     """
+
     def update_cart(self, shoppingBackend):
         """update table with current order lines"""
         order_lines = shoppingBackend.get_order_lines()
@@ -52,17 +54,26 @@ class CartTableView(QTableView):
             name = QtGui.QStandardItem(line.name)
             order_model.setItem(i, 2, name)
 
-            price_unit = QtGui.QStandardItem(shoppingBackend.format_money(line.price_per_unit))
+            price_unit = QtGui.QStandardItem(
+                shoppingBackend.format_money(line.price_per_unit)
+            )
             order_model.setItem(i, 3, price_unit)
 
-            subtotal = QtGui.QStandardItem(shoppingBackend.format_money(line.price_subtotal))
+            subtotal = QtGui.QStandardItem(
+                shoppingBackend.format_money(line.price_subtotal)
+            )
             order_model.setItem(i, 4, subtotal)
 
         # Set Model
         self.setModel(order_model)
+
         # Change column width to useful values
         # needs to be delayed so that resize events for the scrollbar happens first, otherwise it reports a scrollbar width of 100px at the very first call
-        QtCore.QTimer.singleShot(0, functools.partial(resize_table_columns, self, [4, 6, 20, 5, 5]))
-        # TODO the 100ms delay is a workaround that is necessary because the first call often comes too early.
-        # this workaround looks not so good, a nicer solution would be good
-        QtCore.QTimer.singleShot(100, functools.partial(resize_table_columns, self, [4, 6, 20, 5, 5]))
+        QtCore.QTimer.singleShot(1, self.resize_table)
+        # the 100ms delay is a workaround that is necessary because the first call often comes too early.
+        # It is not clear if this workaround is still necessary, but who cares...
+        QtCore.QTimer.singleShot(100, self.resize_table)
+
+    def resize_table(self):
+        # Update column width to useful values
+        resize_table_columns(self, [4, 6, 20, 5, 5])

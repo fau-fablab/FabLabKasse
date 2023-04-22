@@ -18,18 +18,37 @@ if [ ! -f requirements.txt ]; then
     exit 1
 fi
 
-# Install dependencies
+
+# ~~~~~~~~~~~~~~~
+# Install dependencies for running and development
+# This is the part that you will need when developing FablabKasse
+# ~~~~~~~~~~~~~~~
+
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install git
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python-pip python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-qrcode python-docopt python-requests python-simplejson python-sphinx
-sudo pip install -r requirements.txt
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install xserver-xorg git nodm ssh x11-apps xterm kde-style-oxygen fonts-crosextra-carlito curl
+# Python3 stuff
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-pip python3 python3-dateutil python3-lxml python3-termcolor python3-serial python3-qrcode python3-docopt python3-requests python3-simplejson python3-sphinx
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-qtpy python3-pyqt5 pyqt5-dev-tools
+sudo python3 -m pip install -r requirements.txt
+# Dependencies only for Testing / Vagrant automation (dummy printserver / dummy FAUCard device)
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install psmisc socat
+
+
+# ~~~~~~~~~~~~~~~~
+# Set up auto-start
+# DO NOT run this on your standard PC, it will mess up your system configuration!
+# Intended for use in a separate VM or on the real cash system.
+# ~~~~~~~~~~~~~~~
+
+# Graphical environment and styling
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install xserver-xorg git nodm ssh x11-apps xterm breeze breeze-icon-theme fonts-roboto-fontface curl
 # try to install xrandr command
-apt-get -y install x11-xserver-utils || true
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install x11-xserver-utils || true
+
 # Setup user and 'kiosk mode' desktop manager that autostarts FabLabKasse
 $RUNNING_IN_VAGRANT && INSTALL_USER=vagrant || INSTALL_USER=kasse
-$RUNNING_IN_VAGRANT || adduser kasse --disabled-password # not used in Vagrant, but in real system
-# not needed: qt4-designer winpdb
+(! $RUNNING_IN_VAGRANT && ! test -d /home/kasse ) && sudo adduser kasse --disabled-password # not used in Vagrant, but in real system
+
 # some package installs lightdm; we don't want it.
 sudo apt-get -y remove lightdm
 echo "NODM_ENABLED=true" | sudo tee -a /etc/default/nodm
@@ -37,11 +56,11 @@ echo "NODM_USER=$INSTALL_USER" | sudo tee -a /etc/default/nodm
 # modemmanager interferes with serial port devices:
 sudo apt-get -y remove modemmanager
 
-rm /home/$INSTALL_USER/.xsession || true
+rm -f /home/$INSTALL_USER/.xsession
 if $RUNNING_IN_VAGRANT; then
 	[ -d /home/$INSTALL_USER/FabLabKasse ] || ln -s /vagrant /home/$INSTALL_USER/FabLabKasse
 else
-	sudo -u $INSTALL_USER git clone --recursive https://github.com/fau-fablab/FabLabKasse /home/$INSTALL_USER/FabLabKasse
+	[ -d /home/$INSTALL_USER/FabLabKasse ] || sudo -u $INSTALL_USER git clone --recursive https://github.com/fau-fablab/FabLabKasse /home/$INSTALL_USER/FabLabKasse
 fi
 
 if $RUNNING_IN_VAGRANT; then
@@ -52,10 +71,10 @@ else
     ln -s /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh /home/$INSTALL_USER/.xsession
 fi
 
-# the OpenERP import requires a german locale -- add it.
+# For consistency with the target system, use a German locale. The code should also work in other locales but this is not yet tested.
 echo 'de_DE.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen
-# cd /usr/share/locales && sudo ./install-language-pack de_DE
-sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+sudo locale-gen
+locale -a
 
 # allow shutdown/reboot for any user
 sudo cp /home/$INSTALL_USER/FabLabKasse/FabLabKasse/tools/sudoers.d/kassenterm-reboot-shutdown /etc/sudoers.d/

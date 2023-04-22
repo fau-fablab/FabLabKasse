@@ -1,18 +1,14 @@
 # FabLabKasse
 code climate: [![Code Climate](https://codeclimate.com/github/fau-fablab/FabLabKasse/badges/gpa.svg)](https://codeclimate.com/github/fau-fablab/FabLabKasse)
-[![Code Health](https://landscape.io/github/fau-fablab/FabLabKasse/development/landscape.svg?style=flat)](https://landscape.io/github/fau-fablab/FabLabKasse/development)
-[![Code Issues](https://www.quantifiedcode.com/api/v1/project/c80391d892bb409ab44b5fd0fd4573a4/badge.svg)](https://www.quantifiedcode.com/app/project/c80391d892bb409ab44b5fd0fd4573a4)
 
 unittests: [![Build Status](https://travis-ci.org/fau-fablab/FabLabKasse.svg?branch=development)](https://travis-ci.org/fau-fablab/FabLabKasse)
 [![codecov.io](https://codecov.io/github/fau-fablab/FabLabKasse/coverage.svg?branch=development)](https://codecov.io/github/fau-fablab/FabLabKasse?branch=development) (we are proudly untested [TM])
 
 FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops
 
-
+**This software is not ready for generic use by other FabLabs. Currently, too many features are tailored for the specific use-case of FAU FabLab. If you want to adapt this software for your use, please get in contact and also consider a complete rewrite.** 
 
 Please see https://fablabkasse.readthedocs.io for the documentation
-
-
 
 
 
@@ -35,26 +31,36 @@ Have fun and give feedback!
 
 # Testing features without real hardware
 
-(assuming the example config settings)
+The demo VM starts placeholder software for the receipt printing and the FAUCard payment (if the custom plugin is installed).
 
-- automated cash payment: uncomment the device1_... example entries in config.ini to add a simulated cash device accepting and dispensing 10€ notes randomly
-- receipt printing: run `./tools/dummy-printserver` to roughly see how a receipt printer's output would look [please note that receipt printing is not yet implemented on all shopping backends]
+Otherwise, you can start this manually.
+
+- receipt printing: run `./tools/dummy-printserver` to roughly see how a receipt printer's output would look. Please note that receipt printing is not yet implemented on all shopping backends, also not in the example config.
+- FAUCard payment: contained in the custom plugin
 
 # Debugging
 
-for a graphical winpdb debugger, start:
-`./run.py --debug`
-and click "continue" a few times
+`./run.py --debug` or `gui.py --debug` attaches a debugger (FIXME: not implemented, placeholder warning only) and disables the graphical exception-hook.
 
 # Code style guide
 
 All contributions should have a good coding style:
 
+## Formatting
+
+We use black for formatting.
+You can use a dockerized black instance with the container_black.sh shell script. Use it as you would black:
+
+```
+# format everything
+./container_black.sh .
+```
+
+The provided VS Code setting calls this script in order to make sure that you can format with the same version of black.
+When updating the version, make sure that you change it in both the GitHub Workflow and the container script.
+
 ## Low level (formatting, docs)
 
-- Run pylint and fix all warnings and errors (except line length) as far as possible.
-- Follow the conventions set in PEP8, except that a longer line length is okay if it helps readability
-  - to fix whitespace, you can use `autopep8 --in-place --max-line-length=9999 $file"
 - write reStructuredText formatted function docstrings, example:
 ```
 def do_something(value):
@@ -64,12 +70,11 @@ def do_something(value):
     :return: True if the sun shines tomorrow, False otherwise
     :rtype: bool
     :param value: your telephone number
-    :type value: unicode
+    :type value: str
     """
 ```
 
 - for the docstrings, use the type syntax as defined at https://www.jetbrains.com/pycharm/help/type-hinting-in-pycharm.html#d301935e18526
-- custom __repr__() methods must return ASCII strings, not unicode objects.
 
 ## High level (structure)
 

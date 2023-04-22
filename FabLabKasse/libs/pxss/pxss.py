@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2009 Yu-Jie Lin
 # Copyright 2003 David McClosky
 #
@@ -25,12 +25,13 @@
 # modifications by Patrick Kanzler <patrick.kanzler@fablab.fau.de> in 2015.
 
 
+from __future__ import print_function
 from ctypes import *
 import logging
 
 normalmode = True  # this variable is set to False if libXss.so is not found
 try:
-    libXss = CDLL('libXss.so.1')
+    libXss = CDLL("libXss.so.1")
 except OSError:
     # the system does not provide libXss.so
     logging.info("libXss.so not found, IdleState will not be available")
@@ -39,88 +40,154 @@ except OSError:
 
 class Screen(Structure):
     _fields_ = [
-        ('ext_data', c_void_p),         # XExtData *ext_data; /* hook for extension to hang data */
-        ('display', c_void_p),          # struct _XDisplay *display;/* back pointer to display structure */
+        (
+            "ext_data",
+            c_void_p,
+        ),  # XExtData *ext_data; /* hook for extension to hang data */
+        (
+            "display",
+            c_void_p,
+        ),  # struct _XDisplay *display;/* back pointer to display structure */
         # X.h:101:typedef XID Window;
         # X.h:71:typedef unsigned long XID;
-        ('root', c_ulong),              # Window root;        /* Root window id. */
+        ("root", c_ulong),  # Window root;        /* Root window id. */
         # We only need root, but we also need precise size of Screen to offset array index.
-        ('width', c_int),               # int width, height;  /* width and height of screen */
-        ('height', c_int),
-        ('mwidth', c_int),              # int mwidth, mheight;    /* width and height of  in millimeters */
-        ('mheight', c_int),
-        ('ndepths', c_int),             # int ndepths;        /* number of depths possible */
-        ('depths', c_void_p),           # Depth *depths;      /* list of allowable depths on the screen */
-        ('root_depth', c_int),          # int root_depth;     /* bits per pixel */
-        ('root_visual', c_void_p),      # Visual *root_visual;    /* root visual */
+        ("width", c_int),  # int width, height;  /* width and height of screen */
+        ("height", c_int),
+        (
+            "mwidth",
+            c_int,
+        ),  # int mwidth, mheight;    /* width and height of  in millimeters */
+        ("mheight", c_int),
+        ("ndepths", c_int),  # int ndepths;        /* number of depths possible */
+        (
+            "depths",
+            c_void_p,
+        ),  # Depth *depths;      /* list of allowable depths on the screen */
+        ("root_depth", c_int),  # int root_depth;     /* bits per pixel */
+        ("root_visual", c_void_p),  # Visual *root_visual;    /* root visual */
         # GC is structure pointer
-        ('default_gc', c_void_p),       # GC default_gc;      /* GC for the root root visual */
+        (
+            "default_gc",
+            c_void_p,
+        ),  # GC default_gc;      /* GC for the root root visual */
         # X.h:109:typedef XID Colormap;
-        ('cmap', c_ulong),              # Colormap cmap;      /* default color map */
-        ('white_pixel', c_ulong),       # unsigned long white_pixel;
-        ('black_pixel', c_ulong),       # unsigned long black_pixel;  /* White and Black pixel values */
-        ('min_maps', c_int),            # int max_maps, min_maps; /* max and min color maps */
-        ('backing_store', c_int),       # int backing_store;  /* Never, WhenMapped, Always */
-        ('save_unders', c_bool),        # Bool save_unders;
-        ('root_input_mask', c_long),    # long root_input_mask;   /* initial root input mask */
+        ("cmap", c_ulong),  # Colormap cmap;      /* default color map */
+        ("white_pixel", c_ulong),  # unsigned long white_pixel;
+        (
+            "black_pixel",
+            c_ulong,
+        ),  # unsigned long black_pixel;  /* White and Black pixel values */
+        ("min_maps", c_int),  # int max_maps, min_maps; /* max and min color maps */
+        ("backing_store", c_int),  # int backing_store;  /* Never, WhenMapped, Always */
+        ("save_unders", c_bool),  # Bool save_unders;
+        (
+            "root_input_mask",
+            c_long,
+        ),  # long root_input_mask;   /* initial root input mask */
     ]
 
 
 class Display(Structure):
     _fields_ = [
-        ('ext_data', c_void_p),         # XExtData *ext_data; /* hook for extension to hang data */
-        ('private1', c_void_p),         # struct _XPrivate *private1;
-        ('fd', c_int),                  # int fd;         /* Network socket. */
-        ('private2', c_int),            # int private2;
-        ('proto_major_version', c_int),  # int proto_major_version;/* major version of server's X protocol */
-        ('proto_minor_version', c_int),  # int proto_minor_version;/* minor version of servers X protocol */
-        ('vendor', c_char_p),           # char *vendor;       /* vendor of the server hardware */
+        (
+            "ext_data",
+            c_void_p,
+        ),  # XExtData *ext_data; /* hook for extension to hang data */
+        ("private1", c_void_p),  # struct _XPrivate *private1;
+        ("fd", c_int),  # int fd;         /* Network socket. */
+        ("private2", c_int),  # int private2;
+        (
+            "proto_major_version",
+            c_int,
+        ),  # int proto_major_version;/* major version of server's X protocol */
+        (
+            "proto_minor_version",
+            c_int,
+        ),  # int proto_minor_version;/* minor version of servers X protocol */
+        ("vendor", c_char_p),  # char *vendor;       /* vendor of the server hardware */
         # X.h:71:typedef unsigned long XID;
-        ('private3', c_ulong),  # XID private3;
-        ('private4', c_ulong),          # XID private4;
-        ('private5', c_ulong),          # XID private5;
-        ('private6', c_int),            # int private6;
+        ("private3", c_ulong),  # XID private3;
+        ("private4", c_ulong),  # XID private4;
+        ("private5", c_ulong),  # XID private5;
+        ("private6", c_int),  # int private6;
         # XXX NOT SURE
-        ('resource_alloc', c_long),     # XID (*resource_alloc)(  /* allocator function */
-                                        #     struct _XDisplay*
-                                        # );
-        ('byte_order', c_int),          # int byte_order;     /* screen byte order, LSBFirst, MSBFirst */
-        ('bitmap_unit', c_int),         # int bitmap_unit;    /* padding and data requirements */
-        ('bitmap_pad', c_int),          # int bitmap_pad;     /* padding requirements on bitmaps */
-        ('bitmap_bit_order', c_int),    # int bitmap_bit_order;   /* LeastSignificant or MostSignificant */
-        ('nformats', c_int),            # int nformats;       /* number of pixmap formats in list */
-        ('pixmap_format', c_void_p),    # ScreenFormat *pixmap_format;    /* pixmap format list */
-        ('private8', c_int),            # int private8;
-        ('release', c_int),             # int release;        /* release of the server */
-        ('private9', c_void_p),         # struct _XPrivate *private9, *private10;
-        ('private10', c_void_p),
-        ('qlen', c_int),                # int qlen;       /* Length of input event queue */
-        ('last_request_read', c_ulong),  # unsigned long last_request_read; /* seq number of last event read */
-        ('request', c_long),            # unsigned long request;  /* sequence number of last request. */
+        ("resource_alloc", c_long),  # XID (*resource_alloc)(  /* allocator function */
+        #     struct _XDisplay*
+        # );
+        (
+            "byte_order",
+            c_int,
+        ),  # int byte_order;     /* screen byte order, LSBFirst, MSBFirst */
+        (
+            "bitmap_unit",
+            c_int,
+        ),  # int bitmap_unit;    /* padding and data requirements */
+        (
+            "bitmap_pad",
+            c_int,
+        ),  # int bitmap_pad;     /* padding requirements on bitmaps */
+        (
+            "bitmap_bit_order",
+            c_int,
+        ),  # int bitmap_bit_order;   /* LeastSignificant or MostSignificant */
+        (
+            "nformats",
+            c_int,
+        ),  # int nformats;       /* number of pixmap formats in list */
+        (
+            "pixmap_format",
+            c_void_p,
+        ),  # ScreenFormat *pixmap_format;    /* pixmap format list */
+        ("private8", c_int),  # int private8;
+        ("release", c_int),  # int release;        /* release of the server */
+        ("private9", c_void_p),  # struct _XPrivate *private9, *private10;
+        ("private10", c_void_p),
+        ("qlen", c_int),  # int qlen;       /* Length of input event queue */
+        (
+            "last_request_read",
+            c_ulong,
+        ),  # unsigned long last_request_read; /* seq number of last event read */
+        (
+            "request",
+            c_long,
+        ),  # unsigned long request;  /* sequence number of last request. */
         # Xlib.h:87:typedef char *XPointer;
-        ('private11', c_char_p),        # XPointer private11;
-        ('private12', c_char_p),        # XPointer private12;
-        ('private13', c_char_p),        # XPointer private13;
-        ('private14', c_char_p),        # XPointer private14;
-        ('max_request_size', c_uint),   # unsigned max_request_size; /* maximum number 32 bit words in request*/
-        ('db', c_void_p),               # struct _XrmHashBucketRec *db;
-        ('private15', c_int),           # int (*private15)(
-                                        #     struct _XDisplay*
-                                        #     );
-        ('display_name', c_char_p),     # char *display_name; /* "host:display" string used on this connect*/
-        ('default_screen', c_int),      # int default_screen; /* default screen for operations */
-        ('nscreens', c_int),            # int nscreens;       /* number of screens on this server*/
-        ('screens', c_void_p),          # Screen *screens;    /* pointer to list of screens */
+        ("private11", c_char_p),  # XPointer private11;
+        ("private12", c_char_p),  # XPointer private12;
+        ("private13", c_char_p),  # XPointer private13;
+        ("private14", c_char_p),  # XPointer private14;
+        (
+            "max_request_size",
+            c_uint,
+        ),  # unsigned max_request_size; /* maximum number 32 bit words in request*/
+        ("db", c_void_p),  # struct _XrmHashBucketRec *db;
+        ("private15", c_int),  # int (*private15)(
+        #     struct _XDisplay*
+        #     );
+        (
+            "display_name",
+            c_char_p,
+        ),  # char *display_name; /* "host:display" string used on this connect*/
+        (
+            "default_screen",
+            c_int,
+        ),  # int default_screen; /* default screen for operations */
+        (
+            "nscreens",
+            c_int,
+        ),  # int nscreens;       /* number of screens on this server*/
+        ("screens", c_void_p),  # Screen *screens;    /* pointer to list of screens */
         # We do not need the rest
-                                        # unsigned long motion_buffer;    /* size of motion buffer */
-                                        # unsigned long private16;
-                                        # int min_keycode;    /* minimum defined keycode */
-                                        # int max_keycode;    /* maximum defined keycode */
-                                        # XPointer private17;
-                                        # XPointer private18;
-                                        # int private19;
-                                        # char *xdefaults;    /* contents of defaults from server */
-                                        # /* there is more to this structure, but it is private to Xlib */
+        # unsigned long motion_buffer;    /* size of motion buffer */
+        # unsigned long private16;
+        # int min_keycode;    /* minimum defined keycode */
+        # int max_keycode;    /* maximum defined keycode */
+        # XPointer private17;
+        # XPointer private18;
+        # int private19;
+        # char *xdefaults;    /* contents of defaults from server */
+        # /* there is more to this structure, but it is private to Xlib */
     ]
 
 
@@ -128,12 +195,30 @@ class XScreenSaverInfo(Structure):
     _fields_ = [
         # X.h:101:typedef XID Window;
         # X.h:71:typedef unsigned long XID;
-        ('window', c_ulong),            # Window  window;     /* screen saver window - may not exist */
-        ('state', c_int),               # int     state;      /* ScreenSaverOff, ScreenSaverOn, ScreenSaverDisabled*/
-        ('kind', c_int),                # int     kind;       /* ScreenSaverBlanked, ...Internal, ...External */
-        ('til_or_since', c_ulong),      # unsigned long    til_or_since;   /* time til or since screen saver */
-        ('idle', c_ulong),              # unsigned long    idle;      /* total time since last user input */
-        ('eventMask', c_ulong),         # unsigned long   eventMask; /* currently selected events for this client */
+        (
+            "window",
+            c_ulong,
+        ),  # Window  window;     /* screen saver window - may not exist */
+        (
+            "state",
+            c_int,
+        ),  # int     state;      /* ScreenSaverOff, ScreenSaverOn, ScreenSaverDisabled*/
+        (
+            "kind",
+            c_int,
+        ),  # int     kind;       /* ScreenSaverBlanked, ...Internal, ...External */
+        (
+            "til_or_since",
+            c_ulong,
+        ),  # unsigned long    til_or_since;   /* time til or since screen saver */
+        (
+            "idle",
+            c_ulong,
+        ),  # unsigned long    idle;      /* total time since last user input */
+        (
+            "eventMask",
+            c_ulong,
+        ),  # unsigned long   eventMask; /* currently selected events for this client */
     ]
 
 
@@ -151,12 +236,13 @@ def get_info(p_display=None, default_root_window=None, p_info=None):
     libXss.XScreenSaverQueryInfo(p_display, default_root_window, p_info)
     return p_info.contents
 
+
 if normalmode:
-        # Specify return types
+    # Specify return types
     libXss.XOpenDisplay.restype = POINTER(Display)
     libXss.XScreenSaverAllocInfo.restype = POINTER(XScreenSaverInfo)
 
-    _p_display = libXss.XOpenDisplay('')
+    _p_display = libXss.XOpenDisplay("")
     try:
         display = _p_display.contents
 
@@ -176,8 +262,10 @@ if normalmode:
     except ValueError:
         # null pointer problem, this happens when sphinx generates
         # documentation on a system without running X11
-        logging.info("cannot load xss info - not running under X11."
-                     "Idle state will not be available.")
+        logging.info(
+            "cannot load xss info - not running under X11."
+            "Idle state will not be available."
+        )
         normalmode = False
 
 
@@ -190,8 +278,9 @@ class IdleTracker:
     are in milliseconds.  IdleTracker indicates a change in state when
     your idle time exceeds a certain threshold.  See also XSSTracker."""
 
-    def __init__(self, when_idle_wait=5000, when_disabled_wait=120000,
-                 idle_threshold=60000):
+    def __init__(
+        self, when_idle_wait=5000, when_disabled_wait=120000, idle_threshold=60000
+    ):
         """when_idle_wait is the interval at which you should poll when
         you are already idle.  when_disabled_wait is how often you should
         poll if information is unavailable (default: 2 minutes).
@@ -224,18 +313,18 @@ class IdleTracker:
         try:
             self.info = get_info()
         except RuntimeError:  # XSS can raise a RuntimeError if the
-                              # XSS extension cannot be found.
+            # XSS extension cannot be found.
             return ("disabled", self.when_disabled_wait, 0)
 
         idle = self.info.idle
 
         if idle > self.idle_threshold:  # if we meet the threshold for being
-                                       # idle, we are now idle
-            current_state = 'idle'
+            # idle, we are now idle
+            current_state = "idle"
             # we use the standard polling interval
             wait_time = self.when_idle_wait
-        else:                          # otherwise, we are not idle
-            current_state = 'unidle'
+        else:  # otherwise, we are not idle
+            current_state = "unidle"
             # wait time is however long it will take for us to go over the
             # idle threshold
             wait_time = self.idle_threshold - idle
@@ -291,7 +380,7 @@ class XSSTracker:
         try:
             self.info = get_info()
         except RuntimeError:  # XSS can raise a RuntimeError if the
-                              # XSS extension cannot be found.
+            # XSS extension cannot be found.
             return ("disabled", self.when_disabled_wait, 0)
 
         state = self.info.state
@@ -319,25 +408,27 @@ class XSSTracker:
         # a string to describe the change
         if state != self.last_state:
             if state == ScreenSaverOff:  # if we've changed from On to Off
-                                            # they're not idle anymore
-                change = 'unidle'
+                # they're not idle anymore
+                change = "unidle"
             else:
-                change = 'idle'  # if we've changed from Off to On, they've gone
-                                # idle
+                change = "idle"  # if we've changed from Off to On, they've gone
+                # idle
         else:  # otherwise, they haven't changed state
             change = None
 
         self.last_state = state
         return (change, wait_time, self.info.idle)
 
+
 if __name__ == "__main__":
     # this demo shows how you might write a simple poller
     import time
+
     i = IdleTracker(idle_threshold=5000)
     while 1:
         info = i.check_idle()
-        print time.asctime(), info,
+        print(time.asctime(), info, end=" ")
         # don't poll more often than 2 seconds
         wait_time = max(info[1] / 1000, 2)
-        print "wait:", wait_time
+        print("wait:", wait_time)
         time.sleep(wait_time)

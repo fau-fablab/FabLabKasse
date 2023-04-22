@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -17,11 +17,12 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-from PyQt4 import QtGui
-from uic_generated.KeyboardDialog import Ui_KeyboardDialog
+from __future__ import absolute_import
+from qtpy import QtGui, QtWidgets
+from .uic_generated.KeyboardDialog import Ui_KeyboardDialog
 
 
-class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
+class KeyboardDialog(QtWidgets.QDialog, Ui_KeyboardDialog):
     """
     Example code::
 
@@ -40,8 +41,8 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
         else:
             return None
 
-    def __init__(self, parent, question=u'What: '):
-        QtGui.QDialog.__init__(self, parent)
+    def __init__(self, parent, question="What: "):
+        QtWidgets.QDialog.__init__(self, parent)
         self.setupUi(self)
 
         self.caps = True
@@ -50,8 +51,16 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
         self.setWindowTitle(question)
 
         # [a-z0-9] + umlaute + sz
-        for c in list('abcdefghijklmnopqrstuvwxyz0123456789') + ['ue', 'ae', 'oe', 'sz', 'komma',
-                                                                 'dot', 'minus', 'space']:
+        for c in list("abcdefghijklmnopqrstuvwxyz0123456789") + [
+            "ue",
+            "ae",
+            "oe",
+            "sz",
+            "komma",
+            "dot",
+            "minus",
+            "space",
+        ]:
             btn = getattr(self, "pushButton_" + c)
             btn.clicked.connect(self.charKey)
 
@@ -62,7 +71,7 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
         self.pushButton_shift.clicked.connect(self.shift)
 
     def text(self):
-        return unicode(self.lineEdit.text())
+        return str(self.lineEdit.text())
 
     def charKey(self):
         pos = self.lineEdit.cursorPosition()
@@ -70,7 +79,7 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
         oldtext = self.lineEdit.text()
         c = self.sender().text()
         if not c:
-            c = ' '
+            c = " "
         self.lineEdit.setText(oldtext[:pos] + c + oldtext[pos:])
 
         self.lineEdit.setCursorPosition(pos + 1)
@@ -81,15 +90,17 @@ class KeyboardDialog(QtGui.QDialog, Ui_KeyboardDialog):
     def backspace(self):
         oldtext = self.lineEdit.text()
         pos = self.lineEdit.cursorPosition()
-        self.lineEdit.setText(oldtext[:pos - 1] + oldtext[pos:])
+        self.lineEdit.setText(oldtext[: pos - 1] + oldtext[pos:])
         self.lineEdit.setCursorPosition(pos - 1)
 
     def shift(self):
         self.caps = not self.caps
 
-        for c in list('abcdefghijklmnopqrstuvwxyz0123456789') + ['ue', 'ae', 'oe']:
+        for c in list("abcdefghijklmnopqrstuvwxyz0123456789") + ["ue", "ae", "oe"]:
             btn = getattr(self, "pushButton_" + c)
             if self.caps:
-                btn.setText(unicode(btn.text()).upper())
+                btn.setText(str(btn.text()).upper())
             else:
-                btn.setText(unicode(btn.text()).lower())
+                btn.setText(str(btn.text()).lower())
+
+        self.pushButton_minus.setText("_" if self.caps else "-")

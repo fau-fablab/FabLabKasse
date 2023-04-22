@@ -1,15 +1,18 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 pymagpos -- MagnaCarta POS protocol (minimal robust implementation)
 """
+from __future__ import absolute_import
 
 import serial
-import codes
+from . import codes
 import logging
 import time
 
+
 class MagposError(Exception):
-    """ Base Exception Class for this Module """
+    """Base Exception Class for this Module"""
+
     pass
 
 
@@ -17,13 +20,14 @@ class ResponseError(MagposError):
     """
     ResponseError occur when the response to a command does not match the command's OK signal.
     """
+
     def __init__(self, function, code):
         self.code = code
         self.function = function
         self.response = [code]
 
     def store_rawdata(self, response):
-        """ Stores the raw response for evaluation purpose """
+        """Stores the raw response for evaluation purpose"""
         self.raw = response
 
     def read_rawdata(self):
@@ -34,26 +38,28 @@ class ResponseError(MagposError):
         """
         return self.raw
 
-
     def __str__(self):
-        return ("[{0}] Unintended response received:{1}".format(self.function,
-                codes.desc.setdefault(self.code, self.code)))
+        return "[{0}] Unintended response received:{1}".format(
+            self.function, codes.desc.setdefault(self.code, self.code)
+        )
 
 
 class TransactionError(MagposError):
     """
     TransactionError occur when the amount that has been decreased does not match the given amount
     """
+
     def __init__(self, card, old, new, amount):
         self.card = card
-        self.old = float(old)/100
-        self.new = float(new)/100
-        self.amount = float(amount)/100
+        self.old = float(old) / 100
+        self.new = float(new) / 100
+        self.amount = float(amount) / 100
 
     def __str__(self):
         return "Difference in balance does not match the amount that should have been decreased.\
-               \nCard:{0}\t Amount:{1:.2f}\nOld:{2:.2f}\tNew:{3:.2f}"\
-                .format(self.card, self.amount, self.old, self.new)
+               \nCard:{0}\t Amount:{1:.2f}\nOld:{2:.2f}\tNew:{3:.2f}".format(
+            self.card, self.amount, self.old, self.new
+        )
 
 
 class ConnectionTimeoutError(MagposError):
@@ -61,17 +67,19 @@ class ConnectionTimeoutError(MagposError):
     ConnectionTimeoutError occur, when the connection between the USB/RS232 reader and the MagnaBox is broken
     and/or the MagnaBox does not send a response message.
     """
+
     def __init__(self):
         pass
 
     def __str__(self):
-        return ("Serial connection to MagnaBox timed out (did not send command?)")
+        return "Serial connection to MagnaBox timed out (did not send command?)"
 
 
 class MagPOS:
     """
     MagPos Class implements functions to access payment features of the MagnaCarta-Security and Payment-System
     """
+
     def __init__(self, device):
         """
         Initializes the serial port communication on the given device port
@@ -79,7 +87,6 @@ class MagPOS:
         :type device: str
         """
         pass
-
 
     def start_connection(self, retries=5):
         """
@@ -99,7 +106,7 @@ class MagPOS:
         """
         raise NotImplementedError()
 
-    def set_display_mode(self, mode = 0, amount=0):
+    def set_display_mode(self, mode=0, amount=0):
         """
         Sets the display configuration
         :return: True on success, False otherwise
@@ -125,7 +132,6 @@ class MagPOS:
         """
         raise NotImplementedError()
 
-
     def decrease_card_balance_and_token(self, amount, card_number=0, token_index=0):
         """
         Gives command to decrease balance by amount
@@ -149,10 +155,10 @@ class MagPOS:
         raise NotImplementedError()
 
     def close(self):
-        """ Closes serial connection to MagnaBox. Needed to release the serial port for further transactions."""
+        """Closes serial connection to MagnaBox. Needed to release the serial port for further transactions."""
         raise NotImplementedError()
 
 
-if __name__ == '__main__':
-    pos = MagPOS(device='/dev/ttyUSB0')
+if __name__ == "__main__":
+    pos = MagPOS(device="/dev/ttyUSB0")
     pos.start_connection()

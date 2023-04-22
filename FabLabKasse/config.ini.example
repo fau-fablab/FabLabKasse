@@ -1,6 +1,6 @@
 [general]
 ; support mail will be displayed when error occur
-support_mail = kasse@fablab.fau.de
+support_mail = invalid@example.org
 
 ; Path to sqlite3 file
 db_file = development.sqlite3
@@ -14,17 +14,17 @@ hide_cursor = off
 ; Allow receipt printing (on user request)
 receipt = yes
 
-; Collect user statistics
-; currently not implemented
-collect_stats = yes
-collect_userids = no ; if stats are collect, should userids also be read from serial interface
-userid_serial_interface = test123 ; path to sercial interface
-
-
 [backend]
 ; which payment is used for products, categories, order storage, ...
 backend=dummy
-;backend=legacy_offline_kassenbuch ; FAU FabLab
+; for FAU FabLab:
+;backend=legacy_offline_kassenbuch
+
+; url of the json containing the product categories - only for legacy_offline_kassenbuch
+categories_json=https://brain.fablab.fau.de/build/pricelist/categories_Alle_Produkte.json
+
+; url of the json containing all products - only for legacy_offline_kassenbuch
+products_json=https://brain.fablab.fau.de/build/pricelist/price_list-Alle_Produkte.html.json
 
 [idle_reset]
 ; enable automatic reset of the product view after a timeout
@@ -32,70 +32,29 @@ enabled = true
 ; after this threshold time (in s) the reset occurs
 threshold_time = 1800
 
-[mobile_app]
-; load cart via smartphone app
-enabled = no
-; backend server
-server_url = https://ec2-52-28-126-35.eu-central-1.compute.amazonaws.com:4433/checkout/ ; production new
-server_api_key = dummyPassword
-; website that redirects to appstore
-appstore_url = https://fablab.fau.de/app/redirect.php
-
-; custom number of retries
-num_retries = 10
-
-; custom SSL certificate (if not trusted by the system CAs) in .crt file format, which can be exported from most webbrowsers
-; either use a path to a file (the path may not start with 'base64'):
-; ssl_cert = ./foo.crt
-; or use the base64 content of the file, prepended with 'base64://'
-; ssl_cert = base64://LS0tLS1CRUdJ...
-
-; production new:
-ssl_cert = base64://LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tDQpNSUlEdlRDQ0FxV2dBd0lCQWdJRVptVC9HekFO QmdrcWhraUc5dzBCQVFzRkFEQ0JqakVMTUFrR0ExVUVCaE1DDQpSRVV4RHpBTkJnTlZCQWdUQmtK aGVXVnliakVSTUE4R0ExVUVCeE1JUlhKc1lXNW5aVzR4RERBS0JnTlZCQW9UDQpBMFpCVlRFUE1B MEdBMVVFQ3hNR1JtRmlUR0ZpTVR3d09nWURWUVFERXpObFl6SXROVEl0TWpndE1USTJMVE0xDQpM bVYxTFdObGJuUnlZV3d0TVM1amIyMXdkWFJsTG1GdFlYcHZibUYzY3k1amIyMHdIaGNOTVRVd09U QXhNVFV6DQpNek14V2hjTk1UWXdPRE14TVRVek16TXhXakNCampFTE1Ba0dBMVVFQmhNQ1JFVXhE ekFOQmdOVkJBZ1RCa0poDQplV1Z5YmpFUk1BOEdBMVVFQnhNSVJYSnNZVzVuWlc0eEREQUtCZ05W QkFvVEEwWkJWVEVQTUEwR0ExVUVDeE1HDQpSbUZpVEdGaU1Ud3dPZ1lEVlFRREV6TmxZekl0TlRJ dE1qZ3RNVEkyTFRNMUxtVjFMV05sYm5SeVlXd3RNUzVqDQpiMjF3ZFhSbExtRnRZWHB2Ym1GM2N5 NWpiMjB3Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLDQpBb0lCQVFDTzNtc0dv RFJRNVhRcjhKMkx4UExWb1c1Vnh6UGF3YWVKUjhlOTk4cEVEZ0ZqRjNqbmZzUUlMdmRaDQo1Qi9H aXVQYTY4RGxOY3FwN2x5dmdFWGZHN3hMKzRYaGxoSVJKV3V3SFFJRWVoRGFhWU5FcXNWbTRCcUNU TWV1DQp6cW1wZ3E1Zmc4SU5ocHVqNTdwa2ljUzVUVS9QZ3ZxVnk0WnJUWE1wWlpkUzNsYkRlclpN UmxtVE5qZDFBQUpFDQorTFcxSE52OEZFdHFmTkRjWjJlbTRGYVZZTVA1dkl4S0I5S1MvR1luMzU2 bkZzZ3M5dDhKRUZhYWlLMmhmdkxZDQpnTXdlN2pqY0o5bUhxa0I5ZkZDdCtoQy9udGRNQi9SbE9y a0lYUHpMZ1FxeHZkRlBMazBjSElZZk9EZGgzak1IDQp4OThMMHVvVkxSeHUzYlZFcDBRUDRSdkZj aEJ6QWdNQkFBR2pJVEFmTUIwR0ExVWREZ1FXQkJUaG1xVzZPbEpQDQpUVlJSYUdRVmkzRTJzTjVr RWpBTkJna3Foa2lHOXcwQkFRc0ZBQU9DQVFFQVArcSs5QzBkQi9VNnFFZmxEWjhmDQpOQ2srMXN1 UENKcEhGSWUrNS96ZU1TcUN0MG5RRDY1QkRTOFQ3b2poMm5LUmNzQklZK2VxU1lKZDdPZG5ZUUNx DQpqdGFqNGNnckxVZ3lDQVg0aWxJSDBVR01rek1uUEU3ZzEyWlF1OGFLMFhSci9KUk54ZDd2QUZt SkNIRW9oUGhNDQptVTcxUDBBZTFzdEk2cWFYM2s0aUVJUUR4cHdYc3dCdS9CV25PWWlnejVyV0l0 SnRDT0JIYWdrbUpEdlBFZzdXDQpYdTR6RGF0QjFoNTFJQmpsZW4rUm5PNDZvc2Z2NU1ObXNoL3ZH cmV0L3g2QlZkYWoyb0RSRllmUkIxR3FHQy9sDQoyNzEweU81VUhHRzJqazVnNG1WbGdlaUg1ek13 b0FCVFVhbFk0VlRQeGRUbXJDcFNqUU1mZXZadWRtMFN1TStIDQpWQT09DQotLS0tLUVORCBDRVJU SUZJQ0FURS0tLS0tDQo=
-
-; custom timeout in seconds
-;timeout = 10
-
 
 [receipt]
-header: FAU FabLab
-    Friedrich-Alexander-Universit채t
-    Erlangen-N체rnberg
+header: Demo Shop
+    Foo
+    Bar
 
-footer: Vielen Dank und bis bald!
-    https://fablab.fau.de
+footer: Thank you!
+    https://example.org
 
 host = localhost
 port = 4242
-logo = FAU_FABLAB_kassenlogo.png
+logo = logo_demo.png
 
 [payup_methods]
 ; Enabled payment methods
-; usually you want either cash or cash_manual, not both...
-cash = on
 cash_manual = on
-FAUcard = off
+FAUcard = on
 client = on
 ; set these to products costing 1€ each
 ; "Donation" (user decided to pay more)
 overpayment_product_id=9999
 ; "Payout impossible" (user wanted to abort, but some part could not be paid back)
 payout_impossible_product_id=9994
-
-[cash_payment]
-; only used when cash=on in [payup_methods]
-; devices (*.py files in cashPayment/server/)
-; please read README_cashPayment.md ! larger devices first, because they are used first for payout.
-;device1=exampleServer
-;device1_name=example1
-;device2=mdbCoinChanger
-;device2_name=muenz
-;device2_port=/dev/ttyACM123
-;device3_port=hwgrep://USB\ VID\:PID\=10c4\:ea60\ SNR\=0001
-; and options
-;device1_foo=baz
-;device2=blab
-;...
 
 [openerp]
 server = xn--eichhrnchen-vfb.fablab.fau.de
@@ -109,3 +68,11 @@ pricelist_id = 1
 version = 7.0
 anonymous_partner_id = 87
 strip_location = TODO
+
+[magna_carta]
+device_name=MagnaCarta
+device_port=/home/vagrant/FabLabKasse/FabLabKasse/faucardPayment/magpos/emulator/fake-serial-dev
+log_file=magposlog_development.sqlite3
+
+
+

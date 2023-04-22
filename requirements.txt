@@ -1,6 +1,5 @@
 python-dateutil
 lxml
-pycrypto
 termcolor
 pyserial
 qrcode
@@ -10,14 +9,14 @@ simplejson
 Sphinx
 natsort
 monotonic
-oerplib  # only for connection to OpenERP/odoo
-portalocker==0.5.6
+portalocker
+future
+qtpy
 
-# dependency of escpos
-Pillow
+python-escpos==2.2.0
 
 # testing
-hypothesis<=1.19.0
+hypothesis>=6
 
 # clis (kassenbuch.py)
 argparse
@@ -26,5 +25,6 @@ argcomplete
 # doc
 sphinx_rtd_theme
 
-#faucardpayment
-enum34==1.1.6
+# To read our product json
+dataclasses-json
+

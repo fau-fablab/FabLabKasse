@@ -10,6 +10,7 @@
 
 # compiled files
 *.pyc
+.qt_for_python/*
 
 # python-hypothesis
 .hypothesis/eval_source

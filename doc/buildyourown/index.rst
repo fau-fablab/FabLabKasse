@@ -83,3 +83,9 @@ And since you managed to read until here, have a picture of the kassenterminal a
 .. image:: terminal.jpg
 
 (Unfortunately without banana for scale. However, the folder is DIN A4.)
+
+
+Some years later
+^^^^^^^^^^^^^^^^
+
+Cash payment fell into disuse and was removed during the porting to Python 3. We only use a university proprietary cashless payment system anymore. Old cash-devices code is still archived in the version history (look for ca. January 2022).

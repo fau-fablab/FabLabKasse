@@ -19,13 +19,6 @@ FabLabKasse.UI.ClientDialogCode module
     :undoc-members:
     :show-inheritance:
 
-FabLabKasse.UI.CheckCartAfterImportDialogCode module
-----------------------------------------------------
-
-..automodule:: FabLabKasse.UI.CheckCartAfterImportDialogCode
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 FabLabKasse.UI.GUIHelper module
 -------------------------------
@@ -40,14 +33,6 @@ FabLabKasse.UI.KeyboardDialogCode module
 ----------------------------------------
 
 .. automodule:: FabLabKasse.UI.KeyboardDialogCode
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-FabLabKasse.UI.LoadFromMobileAppDialogCode module
--------------------------------------------------
-
-.. automodule:: FabLabKasse.UI.LoadFromMobileAppDialogCode
     :members:
     :undoc-members:
     :show-inheritance:
@@ -72,14 +57,6 @@ FabLabKasse.UI.PaymentMethodDialogCode module
 ---------------------------------------------
 
 .. automodule:: FabLabKasse.UI.PaymentMethodDialogCode
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-FabLabKasse.UI.PayupCashDialogCode module
------------------------------------------
-
-.. automodule:: FabLabKasse.UI.PayupCashDialogCode
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -25,6 +25,7 @@ import subprocess
 import time
 from FabLabKasse import scriptHelper
 import shutil
+
 scriptHelper.setupSigInt()
 
 reallyPrint = print
@@ -50,7 +51,9 @@ def main():
         # The lockfile must be in /tmp and not in /run/user because is cleared early during shutdown.
         # This is not a security issue because we don't change the contents of that file, we only touch it.
         # If another user creates that file, this blocks FabLabKasse but is harmless otherwise.
-        print("Waiting for system to finish shutdown. Lockfile {} still exists.".format(SHUTDOWN_LOCKFILE))
+        print(
+            f"Waiting for system to finish shutdown. Lockfile {SHUTDOWN_LOCKFILE} still exists."
+        )
         time.sleep(1)
     currentDir = os.path.dirname(__file__) + "/"
     os.chdir(currentDir)
@@ -61,17 +64,22 @@ def main():
         # load example config
         # test that there is no config.ini yet
         if file_exists("config.ini"):
-            print("Warning: Configuration FabLabKasse/config.ini already exists, will not overwrite it.")
+            print(
+                "Warning: Configuration FabLabKasse/config.ini already exists, will not overwrite it."
+            )
             if "--only-load-config" not in sys.argv:
-                print("You can just start run.py without the --example argument to make this message disappear.")
+                print(
+                    "You can just start run.py without the --example argument to make this message disappear."
+                )
                 time.sleep(2)
         else:
-            print("loading example configuration file. edit FabLabKasse/config.ini to change. You do not need the --example parameter later.")
+            print(
+                "loading example configuration file. edit FabLabKasse/config.ini to change. You do not need the --example parameter later."
+            )
             shutil.copyfile("config.ini.example", "config.ini")
     if "--only-load-config" in sys.argv:
-         # the Vagrant VM provisioning script uses this to copy a default config before the first start.
-         sys.exit(0)
-
+        # the Vagrant VM provisioning script uses this to copy a default config before the first start.
+        sys.exit(0)
 
     os.chdir(currentDir + "/FabLabKasse/UI/")
     subprocess.call("./compile_all.py")
@@ -81,15 +89,11 @@ def main():
     myEnv = dict(os.environ)
     myEnv["LANG"] = "de_DE.UTF-8"
     myEnv["PYTHONIOENCODING"] = "UTF-8"
-    myEnv["PYTHONPATH"] = currentDir  # FabLabKasse git folder should be the main module starting point
+    myEnv[
+        "PYTHONPATH"
+    ] = currentDir  # FabLabKasse git folder should be the main module starting point
 
     cfg = scriptHelper.getConfig()
-
-    if not ('--no-update' in sys.argv):
-        # start product import for some offline methods that load from a text file
-        print("updating products [use --no-update to skip]")
-        if cfg.get("backend", "backend") == "legacy_offline_kassenbuch":
-            subprocess.call("./shopping/backend/legacy_offline_kassenbuch_tools/importProdukteOERP.py", env=myEnv)
 
     def check_winpdb_version():
         """returns true if version of winpdb is larger than 1.4.8
@@ -99,6 +103,7 @@ def main():
         :return: True, if winpdb-version is sufficient
         :rtype: Boolean
         """
+
         def versiontuple(v):
             """simple tupel for comparing versions"""
             return tuple(map(int, (v.split("."))))
@@ -111,14 +116,14 @@ def main():
     def runShutdown(program):
         """run sudo <program> and wait forever until the system reboots / shuts down"""
         open(SHUTDOWN_LOCKFILE, "a").close()
-        print("calling {0}".format(program))
+        print(f"calling {program}")
         time.sleep(1)
         if subprocess.call(["sudo", program]) != 0:
-            print("cannot sudo {0}".format(program))
+            print(f"cannot sudo {program}")
             time.sleep(5)
         else:
             while True:
-                print("Waiting for system {0}".format(program))
+                print(f"Waiting for system {program}")
                 sys.stdout.flush()
                 time.sleep(1)
 
@@ -127,13 +132,15 @@ def main():
     debug = ""
     if "--debug" in sys.argv:
         debug = "--debug"
-    gui = subprocess.Popen("python2.7 -m FabLabKasse.gui {}".format(debug).split(" "), env=myEnv)
+    gui = subprocess.Popen(f"python3 -m FabLabKasse.gui {debug}".split(" "), env=myEnv)
     if debug:
         time.sleep(1)
         if not check_winpdb_version():
             print("WARNING: your version of winpdb is probably not supported")
             print("consider updating winpdb")
-        debugger = subprocess.Popen(["winpdb", "-a", os.path.abspath("gui.py")], stdin=subprocess.PIPE)
+        debugger = subprocess.Popen(
+            ["winpdb", "-a", os.path.abspath("gui.py")], stdin=subprocess.PIPE
+        )
         debugger.stdin.write("gui")
         debugger.stdin.close()
     gui.communicate()
@@ -146,6 +153,7 @@ def main():
     if os.access("./shutdown-now", os.R_OK):
         os.unlink("./shutdown-now")
         runShutdown("poweroff")
+
 
 if __name__ == "__main__":
     main()

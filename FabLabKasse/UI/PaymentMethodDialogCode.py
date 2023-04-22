@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops.
@@ -17,16 +17,15 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-from PyQt4 import Qt, QtGui, QtCore
+from qtpy import QtWidgets, QtGui, QtCore
 from .uic_generated.PaymentMethodDialog import Ui_PaymentMethodDialog
 from ..shopping.payment_methods import PAYMENT_METHODS
 import functools
 
 
-class PaymentMethodDialog(QtGui.QDialog, Ui_PaymentMethodDialog):
-
+class PaymentMethodDialog(QtWidgets.QDialog, Ui_PaymentMethodDialog):
     def __init__(self, parent, cfg, amount):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setupUi(self)
         self.cfg = cfg
 
@@ -40,8 +39,10 @@ class PaymentMethodDialog(QtGui.QDialog, Ui_PaymentMethodDialog):
         # select available methods (according to config file)
         first_button = True
         for method in PAYMENT_METHODS:
-            button = Qt.QPushButton(method.get_title())
-            button.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+            button = QtWidgets.QPushButton(method.get_title())
+            button.setSizePolicy(
+                QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+            )
             # cannot use lambda here because the variable 'method' will change
             # in the next iteration... python is counterintuitive here....
             button.clicked.connect(functools.partial(self.acceptAndSetMethod, method))
