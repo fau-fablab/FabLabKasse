@@ -18,20 +18,32 @@ if [ ! -f requirements.txt ]; then
     exit 1
 fi
 
-# Install dependencies
+
+# ~~~~~~~~~~~~~~~
+# Install dependencies for running and development
+# This is the part that you will need when developing FablabKasse
+# ~~~~~~~~~~~~~~~
+
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install git
-
 # Python3 stuff
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-pip python3 python3-dateutil python3-lxml python3-termcolor python3-serial python3-qrcode python3-docopt python3-requests python3-simplejson python3-sphinx
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-qtpy python3-pyqt5 pyqt5-dev-tools
 sudo python3 -m pip install -r requirements.txt
+# Dependencies only for Testing / Vagrant automation (dummy printserver / dummy FAUCard device)
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install psmisc socat
 
+
+# ~~~~~~~~~~~~~~~~
+# Set up auto-start
+# DO NOT run this on your standard PC, it will mess up your system configuration!
+# Intended for use in a separate VM or on the real cash system.
+# ~~~~~~~~~~~~~~~
+
+# Graphical environment and styling
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install xserver-xorg git nodm ssh x11-apps xterm breeze breeze-icon-theme fonts-roboto-fontface curl
 # try to install xrandr command
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install x11-xserver-utils || true
-# Dependencies only for Testing / Vagrant automation (dummy printserver / dummy FAUCard device)
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install psmisc socat
 
 # Setup user and 'kiosk mode' desktop manager that autostarts FabLabKasse
 $RUNNING_IN_VAGRANT && INSTALL_USER=vagrant || INSTALL_USER=kasse
@@ -59,10 +71,8 @@ else
     ln -s /home/$INSTALL_USER/FabLabKasse/FabLabKasse/scripts/xsession.sh /home/$INSTALL_USER/.xsession
 fi
 
-# the OpenERP import requires a german locale -- add it.
+# For consistency with the target system, use a German locale. The code should also work in other locales but this is not yet tested.
 echo 'de_DE.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen
-# cd /usr/share/locales && sudo ./install-language-pack de_DE
-#sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
 sudo locale-gen
 locale -a
 

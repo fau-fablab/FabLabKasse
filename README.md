@@ -6,11 +6,9 @@ unittests: [![Build Status](https://travis-ci.org/fau-fablab/FabLabKasse.svg?bra
 
 FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-based workshops
 
-
+**This software is not ready for generic use by other FabLabs. Currently, too many features are tailored for the specific use-case of FAU FabLab. If you want to adapt this software for your use, please get in contact and also consider a complete rewrite.** 
 
 Please see https://fablabkasse.readthedocs.io for the documentation
-
-
 
 
 
@@ -33,13 +31,16 @@ Have fun and give feedback!
 
 # Testing features without real hardware
 
+The demo VM starts placeholder software for the receipt printing and the FAUCard payment (if the custom plugin is installed).
+
+Otherwise, you can start this manually.
+
 - receipt printing: run `./tools/dummy-printserver` to roughly see how a receipt printer's output would look. Please note that receipt printing is not yet implemented on all shopping backends, also not in the example config.
+- FAUCard payment: contained in the custom plugin
 
 # Debugging
 
-for a graphical winpdb debugger, start:
-`./run.py --debug`
-and click "continue" a few times
+`./run.py --debug` or `gui.py --debug` attaches a debugger (FIXME: not implemented, placeholder warning only) and disables the graphical exception-hook.
 
 # Code style guide
 
@@ -74,7 +75,6 @@ def do_something(value):
 ```
 
 - for the docstrings, use the type syntax as defined at https://www.jetbrains.com/pycharm/help/type-hinting-in-pycharm.html#d301935e18526
-- custom __repr__() methods must return ASCII strings, not unicode objects. (OUTDATED - has changed with python3! TODO FIXME)
 
 ## High level (structure)
 

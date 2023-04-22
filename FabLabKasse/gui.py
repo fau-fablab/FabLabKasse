@@ -872,14 +872,7 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
 
 def main():
     if "--debug" in sys.argv:
-        print("waiting for debugger")
-        print(
-            "please open winpdb [does also work on linux despite the name],\n set password to 'gui'\n, attach"
-        )
-        print("(or use run.py --debug which does everything for you)")
-        import rpdb2
-
-        rpdb2.start_embedded_debugger("gui")
+        logging.warn("FIXME: Here you could add a command to attach a debugger")
     # catch SIGINT
     scriptHelper.setupSigInt()
     # setup logging

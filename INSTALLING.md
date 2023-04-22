@@ -21,17 +21,7 @@ If you just want to play, you can try Vagrant to automatically setup a VM (see n
 
 If you have a standalone PC or VM only for FabLabKasse, you can also use `FabLabKasse/scripts/install_debian.sh`, which sets up a kiosk system that autostarts FabLabKasse.
 
- - needed debian packages:
-
-        apt-get install python-pip python-qt4-dev python2.7 python-qt4 python-dateutil python-lxml pyqt4-dev-tools python-crypto python-termcolor python-serial python-natsort python-qrcode python-docopt python-requests python-simplejson python-sphinx
-        pip install -r requirements.txt
-
- - for the real terminal implementation: xserver-xorg git nodm ssh x11-apps xterm curl
- - for the style: kde-style-oxygen
- - for font: fonts-crosextra-carlito # or download Carlito-Regular.ttf from http://openfontlibrary.org/de/font/carlito#Carlito-Regular to ~/.fonts/
- - for development: qt4-designer
- - for graphical debugging: winpdb
-
+Else, you can set up a Debian or Ubuntu system and apply the section "install dependencies" of the above script.
 
 Modem-Manager interferes with the serial port. It is highly recommended to remove it:
     apt-get remove modemmanager
