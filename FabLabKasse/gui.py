@@ -267,12 +267,10 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         dialog = QtWidgets.QMessageBox(self)
         dialog.setWindowModality(QtCore.Qt.WindowModal)
         dialog.setText("Was soll passieren?")
-        dialog.addButton("Produkte neu laden", QtWidgets.QMessageBox.YesRole)
-        rebootButton = dialog.addButton(
-            "Automat Neustart", QtWidgets.QMessageBox.YesRole
-        )
+        dialog.addButton("Produkte\nneu laden", QtWidgets.QMessageBox.YesRole)
+        rebootButton = dialog.addButton("Neustart", QtWidgets.QMessageBox.YesRole)
         shutdownButton = dialog.addButton(
-            "Automat Herunterfahren", QtWidgets.QMessageBox.YesRole
+            "Herunterfahren", QtWidgets.QMessageBox.YesRole
         )
         dialog.addButton(QtWidgets.QMessageBox.Cancel)
         if dialog.exec_() == QtWidgets.QMessageBox.Cancel:
@@ -901,7 +899,19 @@ def main():
     app.setStyle("breeze")
     font = QtGui.QFont("Roboto")
     app.setFont(font)
-    app.setStyleSheet('QWidget {font-family: "Roboto";}')  # Roboto light
+
+    # style: Roboto (light), minimum size for message boxes
+    # for source of QMessageBox see https://codebrowser.dev/qt5/qtbase/src/widgets/dialogs/qmessagebox.cpp.html
+    app.setStyleSheet(
+        """
+        QWidget {font-family: "Roboto";}
+        QMessageBox { border: 1px solid #9d9d9d;}
+        QMessageBox QLabel, QMessageBox QPushButton { font-size:15pt; }
+        QMessageBox QLabel#qt_msgbox_label { min-height: 300px; }
+        QMessageBox QDialogButtonBox { min-width: 700px; }
+        QMessageBox QPushButton { margin:16px; min-width:150px; min-height:3em; }
+        """
+    )
     QtGui.QIcon.setThemeName("breeze")
     logging.debug(f"icon theme: {QtGui.QIcon.themeName()}")
     logging.debug(f"icon paths: {[str(x) for x in QtGui.QIcon.themeSearchPaths()]}")
