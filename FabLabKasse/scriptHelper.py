@@ -85,7 +85,7 @@ def setupGraphicalExceptHook():
                 email = "den Verantwortlichen"
             msgbox = QtWidgets.QMessageBox()
             txt = "Entschuldigung, das Programm wird wegen eines Fehlers beendet."
-            infotxt = """Wenn dir Rückgeld entgangen ist, melde dich bei {0} und gebe neben einer
+            infotxt = """Bitte melde dich bei {0} und gebe neben einer
              Fehlerbeschreibung folgende Uhrzeit an:{1}.""".format(
                 email, str(datetime.datetime.today())
             )
