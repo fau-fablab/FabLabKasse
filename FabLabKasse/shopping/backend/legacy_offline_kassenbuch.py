@@ -44,7 +44,7 @@ def load_json_from_url(url):
         return json.load(f)
 
 
-def load_categories_from_web(cfg) -> (list[Category], int):
+def load_categories_from_web(cfg) -> (list, int):
     """
     Download and parse list of categories
 
@@ -142,9 +142,7 @@ def load_products_from_web(cfg):
     return products
 
 
-def remove_empty_categories(
-    products: list[Product], categories: list[Category]
-) -> list[Category]:
+def remove_empty_categories(products: list, categories: list) -> list:
     """
     take a list of Products and Categories. Recursively remove all categories that contain no products.
     """
