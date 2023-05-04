@@ -33,15 +33,49 @@ import socket
 import itertools
 import sqlite3
 import urllib.request
+import urllib.parse  # for url encoding for "caching" the json
 import json
+import logging
+import contextlib  # for "caching" the json
+import os
 
 
 def load_json_from_url(url):
     """
     Fetch JSON from URL and decode it
     """
-    with urllib.request.urlopen(url) as f:
+    with download_with_fallback(url) as f:
         return json.load(f)
+
+
+@contextlib.contextmanager
+def download_with_fallback(url):
+    """
+    Downloads the resource at the given URL and saves it locally.
+    In case the download fails, a previous locally downloaded version is used.
+    If no prior download was successful,
+    """
+    filename = f"out/{urllib.parse.quote(url, '')}"
+    os.makedirs("out", exist_ok=True)
+    try:
+        logging.debug(f"Downloading from {url} to {filename}…")
+        urllib.request.urlretrieve(url, filename)
+        with open(filename) as f:
+            yield f
+    except Exception as exc:
+        if os.path.isfile(filename):
+            logging.error(
+                f"Failed to download from {url}, using local cached version at {filename} instead. This version may be outdated.",
+                exc_info=exc,
+            )
+            with open(filename) as f:
+                yield f
+        else:
+            logging.error(
+                f"Failed to download from {url}. In addition, no cached version exists. Falling back to direct download…"
+            )
+            with urllib.request.urlopen(url) as f:
+                yield f
 
 
 def load_categories_from_web(cfg) -> (list, int):
