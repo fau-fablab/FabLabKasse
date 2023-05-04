@@ -87,3 +87,16 @@ echo "Warning: For using it on a real system, cronjobs must be setup manually, p
 sudo service nodm stop
 sleep 2
 sudo service nodm start
+
+# append if no such line, similar to https://fai-project.org/doc/man/ainsl.html.
+# Adapted from https://unix.stackexchange.com/questions/530537/more-elegant-approach-to-append-text-to-a-file-only-if-the-string-doesnt-exist/530722#530722
+#
+# first argument: what to append
+# second argument: the file to append to
+ainsl() {
+  p="$1"; (grep -q "${p}" || echo "${p}" >&0) <>"$2"
+}
+
+ainsl "cd ~/FabLabKasse/FabLabKasse" "/home/$INSTALL_USER/.bashrc"
+ainsl "alias kb=~/FabLabKasse/FabLabKasse/kassenbuch.py" "/home/$INSTALL_USER/.bash_aliases"
+ainsl "alias enableServiceMode=~/FabLabKasse/FabLabKasse/enableServiceMode.sh" "/home/$INSTALL_USER/.bash_aliases"
