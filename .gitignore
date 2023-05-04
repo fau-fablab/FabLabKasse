@@ -21,3 +21,6 @@ htmlcov
 
 # virtual environment
 .*env*
+
+# "cached" json files and other generated files
+out/
