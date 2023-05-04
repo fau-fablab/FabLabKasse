@@ -86,7 +86,6 @@ def format_decimal(value):
     """convert float, Decimal, int to a string with a locale-specific decimal point"""
     return str(value).replace(".", locale.localeconv()["decimal_point"])
 
-
 class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
     def __init__(self):
         logging.info("GUI startup")
@@ -251,6 +250,17 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
                 self.idleCheckTimer.timeout.connect(self._reset_if_idle)
                 self.idleCheckTimer.start()
 
+    def askUser(self, question):
+        """ask the user a question and return whether she agreed."""
+        reply = QtWidgets.QMessageBox.question(
+            self,
+            "Message",
+            question,
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.No,
+        )
+        return reply == QtWidgets.QMessageBox.Yes
+
     def restart(self):
         # Ask if restart is okay
         dialog = QtWidgets.QMessageBox(self)
@@ -319,8 +329,8 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         if not checkServiceModeEnabled():
             return
 
-        dialog.setText("Automat sperren?")
-        if dialog.exec_() != QtWidgets.QMessageBox.Yes:
+        dialog = QtWidgets.QMessageBox(self)
+        if not self.askUser("Automat sperren?"):
             return
         while True:
             dialog = QtWidgets.QMessageBox(self)
@@ -566,21 +576,10 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         logging.info(f"payment ended. result: {paymentmethod}")
         assert paymentmethod.amount_paid >= 0
 
-        def askUser():
-            """ask the user whether he wants a receipt, return True if he does."""
-            reply = QtWidgets.QMessageBox.question(
-                self,
-                "Message",
-                "Brauchst du eine Quittung?",
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                QtWidgets.QMessageBox.No,
-            )
-            return reply == QtWidgets.QMessageBox.Yes
-
         # Receipt printing
         if cfg.getboolean("general", "receipt"):
             if paymentmethod.print_receipt == "ask":
-                paymentmethod.print_receipt = askUser()
+                paymentmethod.print_receipt = self.askUser("Brauchst du eine Quittung?")
             if paymentmethod.print_receipt:
                 try:
                     # TOOD show amount returned on receipt (needs some rework, because it is not yet stored in the order and so we cannot re-print receipts)
