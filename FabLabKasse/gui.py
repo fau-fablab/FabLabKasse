@@ -86,6 +86,7 @@ def format_decimal(value):
     """convert float, Decimal, int to a string with a locale-specific decimal point"""
     return str(value).replace(".", locale.localeconv()["decimal_point"])
 
+
 class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
     def __init__(self):
         logging.info("GUI startup")
