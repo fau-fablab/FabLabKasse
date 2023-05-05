@@ -24,3 +24,6 @@ htmlcov
 
 # "cached" json files and other generated files
 out/
+
+# optional plugin for card payment - separate git repo
+FabLabKasse/faucardPayment/magpos
