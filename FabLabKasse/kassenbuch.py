@@ -44,6 +44,7 @@ import os
 import random
 import doctest
 from typing import Optional
+import unicodedata
 
 try:
     import argcomplete
@@ -300,10 +301,14 @@ class Rechnung(object):
         )
         printer.image(cfg.get("receipt", "logo"))
         printer.text("\n")
-        printer.text(
-            self.receipt(
+        receipt_text = self.receipt(
                 header=cfg.get("receipt", "header"), footer=cfg.get("receipt", "footer")
             )
+        # work around python-escpos not supporting unicode:
+        # replace unicode by ASCII approximation (ä -> a)
+        receipt_text = unicodedata.normalize('NFKD', receipt_text).encode('ascii', 'ignore').decode('ascii')
+        printer.text(
+            receipt_text
         )
         printer.cut(mode="PART")
 
