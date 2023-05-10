@@ -305,7 +305,7 @@ class Rechnung(object):
                 header=cfg.get("receipt", "header"), footer=cfg.get("receipt", "footer")
             )
         )
-        printer.cut()
+        printer.cut(mode="PART")
 
 
 class Buchung(object):
