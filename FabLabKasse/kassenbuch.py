@@ -299,6 +299,7 @@ class Rechnung(object):
             cfg.get("receipt", "host"),
             cfg.getint("receipt", "port"),
             profile=cfg.get("receipt", "profile"),
+            magic_encode_args={"defaultsymbol": ""},
         )
         printer.image(cfg.get("receipt", "logo"))
         printer.text("\n")
