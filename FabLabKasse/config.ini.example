@@ -44,6 +44,7 @@ footer: Thank you!
 host = localhost
 port = 4242
 logo = logo_demo.png
+profile = RP-F10-80mm
 
 [payup_methods]
 ; Enabled payment methods
