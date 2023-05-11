@@ -302,14 +302,16 @@ class Rechnung(object):
         printer.image(cfg.get("receipt", "logo"))
         printer.text("\n")
         receipt_text = self.receipt(
-                header=cfg.get("receipt", "header"), footer=cfg.get("receipt", "footer")
-            )
+            header=cfg.get("receipt", "header"), footer=cfg.get("receipt", "footer")
+        )
         # work around python-escpos not supporting unicode:
         # replace unicode by ASCII approximation (ä -> a)
-        receipt_text = unicodedata.normalize('NFKD', receipt_text).encode('ascii', 'ignore').decode('ascii')
-        printer.text(
-            receipt_text
+        receipt_text = (
+            unicodedata.normalize("NFKD", receipt_text)
+            .encode("ascii", "ignore")
+            .decode("ascii")
         )
+        printer.text(receipt_text)
         printer.cut(mode="PART")
 
 
