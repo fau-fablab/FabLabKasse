@@ -35,7 +35,7 @@ threshold_time = 1800
 
 [receipt]
 header: Demo Shop
-    Foo
+    Fooöüẞß
     Bar
 
 footer: Thank you!

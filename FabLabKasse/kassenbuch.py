@@ -299,14 +299,14 @@ class Rechnung(object):
             cfg.get("receipt", "host"),
             cfg.getint("receipt", "port"),
             profile=cfg.get("receipt", "profile"),
-            magic_encode_args={"defaultsymbol": ""},
+            magic_encode_args={"defaultsymbol": " "},
         )
         printer.image(cfg.get("receipt", "logo"))
         printer.text("\n")
         printer.text(
             self.receipt(
                 header=cfg.get("receipt", "header"), footer=cfg.get("receipt", "footer")
-            )
+            ).replace("ẞ", "ß")
         )
         printer.cut(mode="PART")
 
