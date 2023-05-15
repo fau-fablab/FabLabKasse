@@ -13,7 +13,7 @@ portalocker
 future
 qtpy
 
-python-escpos==2.2.0
+python-escpos==3.0a9
 
 # testing
 hypothesis>=6

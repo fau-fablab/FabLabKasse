@@ -44,7 +44,6 @@ import os
 import random
 import doctest
 from typing import Optional
-import unicodedata
 
 try:
     import argcomplete
@@ -297,21 +296,18 @@ class Rechnung(object):
 
     def print_receipt(self, cfg):
         printer = escpos_printer.Network(
-            cfg.get("receipt", "host"), cfg.getint("receipt", "port")
+            cfg.get("receipt", "host"),
+            cfg.getint("receipt", "port"),
+            profile=cfg.get("receipt", "profile"),
+            magic_encode_args={"defaultsymbol": " "},
         )
         printer.image(cfg.get("receipt", "logo"))
         printer.text("\n")
-        receipt_text = self.receipt(
-            header=cfg.get("receipt", "header"), footer=cfg.get("receipt", "footer")
+        printer.text(
+            self.receipt(
+                header=cfg.get("receipt", "header"), footer=cfg.get("receipt", "footer")
+            ).replace("ẞ", "ß")
         )
-        # work around python-escpos not supporting unicode:
-        # replace unicode by ASCII approximation (ä -> a)
-        receipt_text = (
-            unicodedata.normalize("NFKD", receipt_text)
-            .encode("ascii", "ignore")
-            .decode("ascii")
-        )
-        printer.text(receipt_text)
         printer.cut(mode="PART")
 
 

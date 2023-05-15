@@ -35,7 +35,7 @@ threshold_time = 1800
 
 [receipt]
 header: Demo Shop
-    Foo
+    Fooöüẞß
     Bar
 
 footer: Thank you!
@@ -44,6 +44,8 @@ footer: Thank you!
 host = localhost
 port = 4242
 logo = logo_demo.png
+; printer type - from https://mike42.me/escpos-printer-db/ https://github.com/receipt-print-hq/escpos-printer-db
+profile = RP-F10-80mm
 
 [payup_methods]
 ; Enabled payment methods
