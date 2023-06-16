@@ -1,10 +1,20 @@
 #!/usr/bin/env python3
-from __future__ import print_function
+
+
+import sys
+import os
+
+# WORKAROUND For absolute imports to work even if generateLog.py is called as a script - adapted from https://stackoverflow.com/a/49375740
+if "FabLabKasse" not in sys.modules:
+    sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../../")
+
+
 import argparse
 from datetime import datetime, timedelta
 import sqlite3
 import codecs
 from decimal import Decimal
+from FabLabKasse.faucardPayment.faucardStates import Status, Info
 
 # from FabLabKasse import scriptHelper
 
@@ -41,7 +51,7 @@ def dummy_cards(s):
         raise argparse.ArgumentTypeError(msg)
 
 
-def verify_sum(curKb, start, end, magposSum):
+def verify_sum(curKb, start, end, magposSumWithoutIgnored, magposSumIgnored):
     """Checks wether the sum from the MagPosLog equals the Sum in Kassenbuch.
     Possible Failures are a missing transaction in the Kassenbuch if Kasse crashed
     after payment"""
@@ -52,30 +62,15 @@ def verify_sum(curKb, start, end, magposSum):
             (start, end),
         )
         for row in curKb.fetchall():
-            if Decimal(row[0]) < 0:  # STORNO can only be due to testing -> ignore
-                continue
-            if (
-                isinstance(row[1], str) and "Nachtrag" in row[1]
-            ):  # Found possible Manual Transfer to fix crash of Kassenterminal, ask to skip
-                print(
-                    'Found possible Fix: Kassenbuch Entry: Amount {0} at time {1} contains comment "{2}". Ignore the amount in verification? (y/n)\n'.format(
-                        str(row[0]), row[2], row[1]
-                    )
-                )
-                if query_yes_no() == True:  # Skip this
-                    continue
-
             kbSumme += Decimal(row[0]).quantize(Decimal(".01"))
 
-        if kbSumme != magposSum:
+        if kbSumme != magposSumWithoutIgnored:
             print(
-                "Sum Difference: MagPos: {0} \tKassenbuch: {1}".format(
-                    magposSum, kbSumme
-                )
+                f"Sum Difference: MagPos (excluding {magposSumIgnored} € ignored bookings): {magposSumWithoutIgnored} €. \tKassenbuch: {kbSumme} €"
             )
         else:
             print("No Sum Difference between MagPosLog and Kassenbuch")
-        return kbSumme == magposSum
+        return kbSumme == magposSumWithoutIgnored
 
     except sqlite3.OperationalError as e:
         print("Failed to verify sum: {0}".format(e))
@@ -163,7 +158,7 @@ if __name__ == "__main__":
         cur = con.cursor()
         con.text_factory = str
         cur.execute(
-            "SELECT timestamp_payed, cardnumber, oldbalance, amount, newbalance,  datum, ID FROM MagPosLog WHERE timestamp_payed >= ? AND timestamp_payed <= ? ORDER BY timestamp_payed ASC",
+            "SELECT timestamp_payed, cardnumber, oldbalance, amount, newbalance,  datum, status, info, payed, ID FROM MagPosLog WHERE datum >= ? AND datum <= ? ORDER BY datum ASC",
             (startdate, enddate),
         )
 
@@ -194,8 +189,62 @@ if __name__ == "__main__":
         counter = 0
         # Write one row for each row in database
         for row in cur.fetchall():
-            timestamp = datetime.strptime(row[0].split(".")[0], "%Y-%m-%d %H:%M:%S")
+
+            def str2date(x):
+                """
+                convert string x in format "2023-05-25 00:00:00.12309213" to datetime, ignoring milliseconds
+                """
+                if x is None:
+                    return x
+                else:
+                    return datetime.strptime(x.split(".")[0], "%Y-%m-%d %H:%M:%S")
+
+            timestamp = str2date(row[0])
+            datum = str2date(row[5])
+
             amount = Decimal(row[3]).quantize(Decimal(".01"))
+
+            status = Status(row[6])
+            info = Info(row[7])
+            paid = bool(row[8])
+
+            booking_txt = f"MagPosBooking(datum={datum}, timestamp_payed={timestamp}, status={status}, info={info}, paid={paid}, amount={amount})"
+
+            # print(booking_txt)
+
+            if not paid:
+                # Normal states for "not paid" are:
+                # - initializing
+                # - wait for card
+                # - not enough balance on card
+                # All other states are suspicious.
+                if status not in [
+                    Status.initializing,
+                    Status.waiting_card,
+                    Status.balance_underflow,
+                ]:
+                    print(
+                        "WARNING: Found unpaid booking in suspicious state. Assuming that this booking exited BEFORE taking money from the FauCard. Please check manually: "
+                        + booking_txt
+                    )
+
+            if paid:
+                if status != Status.booking_done:
+                    print(
+                        "WARNING: Found paid booking in suspicious state. Assuming that this booking DID take money from the FauCard. Please check manually: "
+                        + booking_txt
+                    )
+
+            # We assume that the "paid" flag in the database is correct (1 if money was taken from the FAUCard and 0 otherwise).
+            if not paid:
+                # ignore all bookings that did not take money (e.g., canceled by user)
+                continue
+
+            if timestamp is None:
+                print(
+                    f"WARNING: Booking at {datum} has no timestamp_payed. Maybe a crash occured?"
+                )
+                timestamp = datum
 
             if counter == 0:
                 firstdate = timestamp
@@ -218,15 +267,10 @@ if __name__ == "__main__":
             # There should only be one result. Otherwise throw exception.
             if safetyCounter == 0:
                 print(
-                    "An Error occured: Query for amount {0} at timestamp {1} failed. Please verify that proceeding is ok! (y/n)\n".format(
+                    "An Error occured: Can not find corresponding invoice (Rechnung) for amount {0} at timestamp {1}.".format(
                         str(amount), timestamp
                     )
                 )
-                if query_yes_no() == False:  # Abort if choice
-                    print("Cancled log generation")
-                    outputfile.close()
-                    con.close()
-                    quit()
                 nonbookedlist.append(
                     "ID: {0}, Card: {1}, timestamp: {2}, amount: {3}".format(
                         row[6], row[1], timestamp, str(amount)
@@ -253,9 +297,6 @@ if __name__ == "__main__":
             # print "{0} - {1} - {2}".format(row[3], Decimal(row[3]), Decimal(row[3]).quantize(Decimal('.01')))
             if "{}".format(row[1]) in args.ignore:  # ignore the sum if testcard
                 ignored += amount  # increment Sum for verify
-            elif safetyCounter == 0:  # or as it will not show up in the booking
-                summe += amount  # add to summe as it needs to be in the invoice
-                ignored -= amount  # remove from ignored to have it added to the KBsum to match up
             else:
                 summe += amount  # increment Sum for summary
 
@@ -274,8 +315,6 @@ if __name__ == "__main__":
         # Set Booking dates to start and enddate if nothing was found to check kassenbuch
         if firstbooking is None:  # Did not find any data
             firstbooking = startdate
-        if lastbooking is None:  # Did not find any data
-            lastbooking = enddate
         print("first: {}".format(firstbooking))
 
         if args.detail is True:
@@ -317,7 +356,7 @@ if __name__ == "__main__":
         )  # .format(cfg.get('magna_carta', 'serial')))
         outputfile.write("Der anfallende Betrag betraegt: {0}\n".format(summe))
         outputfile.write("Testkarten: {}\n".format(", ".join(args.ignore)))
-        if verify_sum(curKb, firstbooking, lastbooking, summe + ignored):
+        if verify_sum(curKb, startdate, enddate, summe, ignored):
             outputfile.write(
                 "Der Betrag im MagposLog entspricht dem im Kassenbuch: JA\n"
             )
@@ -333,7 +372,7 @@ if __name__ == "__main__":
             for payment in nonbookedlist:
                 outputfile.write("{0} {1}\n".format(nb_cnt, payment))
                 nb_cnt = nb_cnt + 1
-        print("Ignored {} EUR (negative means missing bookings)".format(str(ignored)))
+        print("Ignored {}".format(str(ignored)))
     except IOError as e:
         print("ERROR: Saving CSV and / or Summary failed")
         print("IOERROR: {0}".format(e))
