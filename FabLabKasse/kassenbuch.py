@@ -45,6 +45,10 @@ import random
 import doctest
 from typing import Optional
 
+import locale
+
+locale.setlocale(locale.LC_ALL, "de_DE.utf8")  # or else locale.currency will fail
+
 try:
     import argcomplete
 except ImportError:
@@ -75,6 +79,19 @@ def str2date(datestr: str) -> datetime:
     Deserialize datetime from string stored in SQLite DB
     """
     return datetime.strptime(datestr, DATE_FORMAT)
+
+
+def decimal_to_str_2_de(d: Decimal) -> str:
+    """
+    Don't be mad at me, I did not write the .replace bit, I just moved it to a more prominent place.
+    Feel free to use, e.g., locale instead. Even though it seems that this kind of formatting does not use locale and hence in all likelihood always uses
+    a "." as decimal separator, it is not immediately obvious and I don't want to risk anyone getting a heart attack over this ;)
+    """
+    return "{:.2f}".format(d).replace(".", ",")
+
+
+def decimal_to_str(d: Decimal) -> str:
+    return "{0:f}".format(d)
 
 
 def moneyfmt(value, places=2, curr="", sep=".", dp=",", pos="", neg="-", trailneg=""):
@@ -237,7 +254,7 @@ class Rechnung(object):
                 + "produkt_ref) VALUES (?, ?, ?, ?, ?, ?)",
                 (
                     pos["rechnung"],
-                    str(pos["anzahl"]),
+                    decimal_to_str(p["anzahl"]),
                     pos["einheit"],
                     pos["artikel"],
                     str(pos["einzelpreis"]),
@@ -274,7 +291,7 @@ class Rechnung(object):
                 r += "\n"
             r += "{anzahl_fmt:>8} {einheit:<14.14} {einzelpreis_fmt:>18}".format(
                 einzelpreis_fmt=moneyfmt(p["einzelpreis"], places=3),
-                anzahl_fmt="{:.2f}".format(p["anzahl"]).replace(".", ","),
+                anzahl_fmt=decimal_to_str_2_de(p["anzahl"]),
                 **p,
             )
             r += separator
@@ -1067,35 +1084,6 @@ class Kundenbuchung(object):
         return s
 
 
-class UnicodeWriter(object):
-    """
-    A CSV writer which will write rows to CSV file "f",
-    which is encoded in the given encoding.
-    """
-
-    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
-        # Redirect output to a queue
-        self.queue = io.StringIO()
-        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
-        self.stream = f
-        self.encoder = codecs.getincrementalencoder(encoding)()
-
-    def writerow(self, row):
-        self.writer.writerow([str(s) for s in row])
-        # Fetch str output from the queue ...
-        data = self.queue.getvalue()
-        # ... and reencode it into the target encoding
-        data = self.encoder.encode(data)
-        # write to the target stream
-        self.stream.write(data)
-        # empty queue
-        self.queue.truncate(0)
-
-    def writerows(self, rows):
-        for row in rows:
-            self.writerow(row)
-
-
 def parse_date(value):
     """
     parse date from string or None
@@ -1254,9 +1242,9 @@ def parse_args(argv=sys.argv[1:]):
     parser_export.add_argument(
         "outfile",
         action="store",
-        type=argparse.FileType("wb"),
+        type=argparse.FileType(mode="w", encoding="utf8"),
         default="-",
-        help="the output file, - for stdout",
+        help="the output file, - for stdout. keep in mind that this uses utf-8 even for stdout",
     )
     parser_export.add_argument(
         "--from",
@@ -1526,7 +1514,7 @@ def main():
     elif args.action == "export":
         if args.what == "book":
             # TODO Use csv.DictWriter
-            writer = UnicodeWriter(args.outfile)
+            writer = csv.writer(args.outfile)
             # Header
             writer.writerow(["DATUM", "KONTO", "BETRAG", "RECH.NR.", "KOMMENTAR"])
             # Content
@@ -1535,14 +1523,13 @@ def main():
                     [
                         str(b.datum),
                         str(b.konto),
-                        "{0:.2f}".format(b.betrag),
+                        locale.currency(b.betrag, symbol=False),
                         str(b.rechnung),
                         str(b.kommentar),
                     ]
                 )
         elif args.what == "invoices":
-            # TODO Use csv.DictWriter
-            writer = UnicodeWriter(args.outfile)
+            writer = csv.writer(args.outfile)
             # Header
             writer.writerow(
                 [
@@ -1564,10 +1551,10 @@ def main():
                             str(r.id),
                             str(r.datum),
                             p["artikel"],
-                            str(p["anzahl"]),
+                            decimal_to_str(p["anzahl"]),
                             p["einheit"],
-                            "{0:.2f}".format(p["einzelpreis"]),
-                            "{0:.2f}".format(r.summe_position(p)),
+                            locale.currency(p["einzelpreis"], symbol=False),
+                            locale.currency(r.summe_position(p), symbol=False),
                             p["produkt_ref"],
                         ]
                     )
