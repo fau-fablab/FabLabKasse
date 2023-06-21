@@ -81,19 +81,6 @@ def str2date(datestr: str) -> datetime:
     return datetime.strptime(datestr, DATE_FORMAT)
 
 
-def decimal_to_str_2_de(d: Decimal) -> str:
-    """
-    Don't be mad at me, I did not write the .replace bit, I just moved it to a more prominent place.
-    Feel free to use, e.g., locale instead. Even though it seems that this kind of formatting does not use locale and hence in all likelihood always uses
-    a "." as decimal separator, it is not immediately obvious and I don't want to risk anyone getting a heart attack over this ;)
-    """
-    return "{:.2f}".format(d).replace(".", ",")
-
-
-def decimal_to_str(d: Decimal) -> str:
-    return "{0:f}".format(d)
-
-
 def moneyfmt(value, places=2, curr="", sep=".", dp=",", pos="", neg="-", trailneg=""):
     """Convert Decimal to a money formatted string.
     ::
@@ -254,7 +241,7 @@ class Rechnung(object):
                 + "produkt_ref) VALUES (?, ?, ?, ?, ?, ?)",
                 (
                     pos["rechnung"],
-                    decimal_to_str(p["anzahl"]),
+                    str(pos["anzahl"]),
                     pos["einheit"],
                     pos["artikel"],
                     str(pos["einzelpreis"]),
@@ -291,7 +278,7 @@ class Rechnung(object):
                 r += "\n"
             r += "{anzahl_fmt:>8} {einheit:<14.14} {einzelpreis_fmt:>18}".format(
                 einzelpreis_fmt=moneyfmt(p["einzelpreis"], places=3),
-                anzahl_fmt=decimal_to_str_2_de(p["anzahl"]),
+                anzahl_fmt="{:.2f}".format(p["anzahl"]).replace(".", ","),
                 **p,
             )
             r += separator
