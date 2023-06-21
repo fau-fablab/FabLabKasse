@@ -66,7 +66,10 @@ def verify_sum(curKb, start, end, magposSumWithoutIgnored, magposSumIgnored):
 
         if kbSumme != magposSumWithoutIgnored:
             print(
-                f"Sum Difference: MagPos (excluding {magposSumIgnored} € ignored bookings): {magposSumWithoutIgnored} €. \tKassenbuch: {kbSumme} €"
+                f"Sums differ: MagPos (excluding {magposSumIgnored} € ignored bookings): {magposSumWithoutIgnored} €. \t != \tKassenbuch: {kbSumme} €"
+            )
+            print(
+                f"Difference: (MagPus - ignored - Kassenbuch) = {magposSumWithoutIgnored-kbSumme} €"
             )
         else:
             print("No Sum Difference between MagPosLog and Kassenbuch")
