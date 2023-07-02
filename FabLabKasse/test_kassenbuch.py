@@ -36,6 +36,8 @@ from decimal import Decimal
 import subprocess
 import os
 import random
+import tempfile
+from pathlib import Path
 
 
 class KassenbuchTestCase(unittest.TestCase):
@@ -106,11 +108,16 @@ class KassenbuchTestCase(unittest.TestCase):
         call_kb("summary")
         call_kb("show")
         call_kb("client list")
-        randstr = str(random.randint(0, 1e30))
+        randstr = str(random.randint(0, int(1e30)))
         comment = "My Comment Äöü " + randstr
         call_kb("transfer TestA TestB 123.45 " + comment)
         result_show = call_kb("show")
         self.assertTrue(comment in result_show)
+        with tempfile.TemporaryDirectory() as d:
+            call_kb(f"export book {d}/book.csv");
+            self.assertTrue(comment in Path(f"{d}/book.csv").read_text());
+            call_kb(f"export invoices {d}/invoices.csv");
+            # output of invoices is currently not tested
 
     def test_parsing(self):
         """test argument parsing helper"""
