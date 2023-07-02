@@ -1538,7 +1538,7 @@ def main():
                             str(r.id),
                             str(r.datum),
                             p["artikel"],
-                            decimal_to_str(p["anzahl"]),
+                            str(p["anzahl"]),
                             p["einheit"],
                             locale.currency(p["einzelpreis"], symbol=False),
                             locale.currency(r.summe_position(p), symbol=False),
