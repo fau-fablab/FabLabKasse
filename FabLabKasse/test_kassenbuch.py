@@ -114,9 +114,9 @@ class KassenbuchTestCase(unittest.TestCase):
         result_show = call_kb("show")
         self.assertTrue(comment in result_show)
         with tempfile.TemporaryDirectory() as d:
-            call_kb(f"export book {d}/book.csv");
-            self.assertTrue(comment in Path(f"{d}/book.csv").read_text());
-            call_kb(f"export invoices {d}/invoices.csv");
+            call_kb(f"export book {d}/book.csv")
+            self.assertTrue(comment in Path(f"{d}/book.csv").read_text())
+            call_kb(f"export invoices {d}/invoices.csv")
             # output of invoices is currently not tested
 
     def test_parsing(self):

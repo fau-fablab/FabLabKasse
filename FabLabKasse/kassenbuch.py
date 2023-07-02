@@ -558,7 +558,7 @@ class Kasse(object):
             query = query + f" WHERE datum >= '{date2str(from_date)}'"
         elif until_date:
             query = query + f" WHERE datum < '{date2str(until_date)}'"
-            
+
         query = query + " ORDER BY datum ASC"
         return query
 
