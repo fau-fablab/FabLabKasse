@@ -1331,7 +1331,7 @@ def parse_args(argv=sys.argv[1:]):
     # client
     parser_client = subparsers.add_parser(
         "client",
-        help="Add, show, edit, list clients",
+        help="Add, show, edit, disable, list clients",
     )
     client_subparsers = parser_client.add_subparsers(
         title="actions", dest="client_action"
@@ -1373,6 +1373,18 @@ def parse_args(argv=sys.argv[1:]):
         help="Edit an existing client",
     )
     parser_client_edit.add_argument(
+        "client",
+        action="store",
+        type=argparse_parse_client,
+        help="The name or id of the client",
+    ).completer = client_argcomplete
+    
+    # client disable
+    parser_client_disable = client_subparsers.add_parser(
+        "disable",
+        help="Disable an existing client",
+    )
+    parser_client_disable.add_argument(
         "client",
         action="store",
         type=argparse_parse_client,
@@ -1762,6 +1774,13 @@ def main():
         elif args.client_action == "payup":
 
             kunde.add_buchung(args.amount, args.comment)
+            kunde.store(k.cur)
+
+            k.con.commit()        
+        
+        elif args.client_action == "disable":
+
+            kunde.pin="0000"
             kunde.store(k.cur)
 
             k.con.commit()
