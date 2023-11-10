@@ -1780,7 +1780,7 @@ def main():
 
         elif args.client_action == "disable":
 
-            kunde.pin="0000"
+            kunde.pin = "0000"
             kunde.store(k.cur)
 
             k.con.commit()
@@ -1789,10 +1789,10 @@ def main():
                 "[i] Kundenkonto "
                 + format(kunde.id)
                 + " deaktiviert. Kontostand: "
-                + moneyfmt(kunde.summe) 
+                + moneyfmt(kunde.summe)
                 + " EUR"
             )
-             
+
         elif args.client_action == "list":
 
             print(
