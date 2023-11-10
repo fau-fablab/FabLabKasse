@@ -1378,7 +1378,7 @@ def parse_args(argv=sys.argv[1:]):
         type=argparse_parse_client,
         help="The name or id of the client",
     ).completer = client_argcomplete
-    
+
     # client disable
     parser_client_disable = client_subparsers.add_parser(
         "disable",
@@ -1776,16 +1776,22 @@ def main():
             kunde.add_buchung(args.amount, args.comment)
             kunde.store(k.cur)
 
-            k.con.commit()        
-        
+            k.con.commit()
+
         elif args.client_action == "disable":
 
             kunde.pin="0000"
             kunde.store(k.cur)
 
             k.con.commit()
-            
-            print("[i] Kundenkonto " + format(kunde.id) + " deaktiviert. Kontostand: " + moneyfmt(kunde.summe) + " EUR")
+
+            print(
+                "[i] Kundenkonto "
+                + format(kunde.id)
+                + " deaktiviert. Kontostand: "
+                + moneyfmt(kunde.summe) 
+                + " EUR"
+            )
              
         elif args.client_action == "list":
 
