@@ -1784,7 +1784,9 @@ def main():
             kunde.store(k.cur)
 
             k.con.commit()
-
+            
+            print("[i] Kundenkonto " + format(kunde.id) + " deaktiviert. Kontostand: " + moneyfmt(kunde.summe) + " EUR")
+             
         elif args.client_action == "list":
 
             print(
