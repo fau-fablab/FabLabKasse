@@ -350,6 +350,7 @@ class FAUcardThread(QtCore.QObject):
             pos = magpos.MagPOS(cfg.get("magna_carta", "device_port"))
             if pos.start_connection() is True:
                 value = pos.get_last_transaction_result()
+                # BUG? what happens if there is an Exception during Response_ACK? Should this be delayed to the end of the function? Rewrite "return False"-logic?
                 pos.response_ack()
             pos.close()
         except (magpos.serial.SerialException, magpos.ConnectionTimeoutError):
