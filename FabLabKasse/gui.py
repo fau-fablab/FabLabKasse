@@ -27,6 +27,7 @@ import logging
 import datetime
 import os
 import string
+import time
 from decimal import Decimal, DecimalException
 from qtpy import QtGui, QtCore, QtWidgets
 import functools
@@ -100,6 +101,8 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
             0, lambda: self.setWindowState(QtCore.Qt.WindowMaximized)
         )
         self.shoppingBackend = ShoppingBackend(cfg)
+        """time when the program was started, used for auto-restart"""
+        self.startup_time = time.monotonic()
 
         # TODO check at startup for all cfg.get* calls
         cfg.getint("payup_methods", "overpayment_product_id")
@@ -263,6 +266,9 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         return reply == QtWidgets.QMessageBox.Yes
 
     def restart(self):
+        """
+        Restart menu clicked
+        """
         # Ask if restart is okay
         dialog = QtWidgets.QMessageBox(self)
         dialog.setWindowModality(QtCore.Qt.WindowModal)
@@ -287,16 +293,61 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         if dialog.exec_() == QtWidgets.QMessageBox.Cancel:
             return
 
-        # trigger reboot ('sudo reboot' will be executed by run.py)
         result = dialog.clickedButton()
+        restartType = "restart"
+        # trigger restart/reboot ('sudo reboot' will be executed by run.py)
         if result == rebootButton:
+            restartType = "reboot"
+        elif result == shutdownButton:
+            restartType = "shutdown"
+        self.do_restart(restartType)
+
+    def do_restart(self, restart_type="restart"):
+        """
+        trigger restart/shutdown/reboot without further confirmation
+
+        :param restart_type: "restart" (Software restart), "reboot" (OS reboot) or "shutdown" (OS shutdown)
+
+        The actual reboot/shutdown will be performed by run.py.
+        For "restart", the program exits, terminating the X11 session. It will then be restarted by the desktop session manager after auto-login.
+        """
+        if restart_type == "reboot":
             with open("./reboot-now", "w") as f:
                 f.write("42")
-        elif result == shutdownButton:
+        elif restart_type == "shutdown":
             with open("./shutdown-now", "w") as f:
                 f.write("42")
         logging.info("exiting because of restart request")
         self.close()
+
+    def autoRebootOnUpdates(self):
+        """
+        Automatically restart/reboot if required:
+
+        - reboot when /var/run/reboot-required is present (created by unattended-upgrades)
+        - restart after 48 hours to ensure the product list is up to date
+
+        See do_restart() for implementation details.
+
+        This function does not care about the current UI state. Therefore it should not be called, e.g., in the middle of a payment.
+
+        Assumption: This function is only called directly after a successful payment, before the user has any chance to add new things to the cart or even start a new payment.
+        """
+        dialog = QtWidgets.QMessageBox(self)
+        dialog.setWindowModality(QtCore.Qt.WindowModal)
+        dialog.setText(
+            "Danke für deine Bezahlung.\nDie Kasse wird jetzt für ein Update neu gestartet."
+        )
+        dialog.addButton(QtWidgets.QMessageBox.Cancel)
+        dialog.addButton(QtWidgets.QMessageBox.Ok)
+        dialog.setDefaultButton(QtWidgets.QMessageBox.Ok)
+        dialog.setEscapeButton(QtWidgets.QMessageBox.Cancel)
+        if dialog.exec_() != QtWidgets.QMessageBox.Ok:
+            return
+        if os.path.isfile("/var/run/reboot-required"):
+            self.do_restart("reboot")
+        elif time.monotonic() > self.startup_time + 48 * 3600:
+            self.do_restart("restart")
 
     def serviceMode(self):
         """was the service mode enabled recently? check and disable again"""
@@ -603,6 +654,7 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
             self.shoppingBackend.set_current_order(None)
             self.updateOrder()
             self.on_start_clicked()
+            self.autoRebootOnUpdates()
         return paymentmethod.successful
 
     def getSelectedOrderLineId(self):
