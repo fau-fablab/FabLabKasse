@@ -333,7 +333,7 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
 
         Assumption: This function is only called directly after a successful payment, before the user has any chance to add new things to the cart or even start a new payment.
         """
-        
+
         # Determine if reboot/restart is needed
         if os.path.isfile("/var/run/reboot-required"):
             restart_type = "reboot"
@@ -341,10 +341,10 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
             restart_type = "restart"
         else:
             restart_type = None
-            
+
         if restart_type is None:
             return
-        
+
         dialog = QtWidgets.QMessageBox(self)
         dialog.setWindowModality(QtCore.Qt.WindowModal)
         dialog.setText(
@@ -356,7 +356,7 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         dialog.setEscapeButton(QtWidgets.QMessageBox.Cancel)
         if dialog.exec_() != QtWidgets.QMessageBox.Ok:
             return
-        
+
         self.do_restart(restart_type)
 
     def serviceMode(self):
