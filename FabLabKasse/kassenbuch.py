@@ -305,14 +305,18 @@ class Rechnung(object):
             profile=cfg.get("receipt", "profile"),
             magic_encode_args={"defaultsymbol": " "},
         )
-        printer.image(cfg.get("receipt", "logo"))
-        printer.text("\n")
-        printer.text(
-            self.receipt(
-                header=cfg.get("receipt", "header"), footer=cfg.get("receipt", "footer")
-            ).replace("ẞ", "ß")
-        )
-        printer.cut(mode="PART")
+        try:
+            printer.image(cfg.get("receipt", "logo"))
+            printer.text("\n")
+            printer.text(
+                self.receipt(
+                    header=cfg.get("receipt", "header"),
+                    footer=cfg.get("receipt", "footer"),
+                ).replace("ẞ", "ß")
+            )
+            printer.cut(mode="PART")
+        finally:
+            printer.close()
 
 
 class Buchung(object):
