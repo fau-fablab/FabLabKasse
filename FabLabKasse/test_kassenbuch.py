@@ -100,8 +100,8 @@ class KassenbuchTestCase(unittest.TestCase):
                 path_to_here + "/kassenbuch.py",
                 "--ensure-dummy-db",
             ] + command.split(" ")
-            cmd = [x.encode("UTF-8") for x in cmd]
-            result = subprocess.run(cmd, encoding="UTF-8", capture_output=True)
+            cmd_bytes = [x.encode("UTF-8") for x in cmd]
+            result = subprocess.run(cmd_bytes, encoding="UTF-8", capture_output=True)
             self.assertEqual(result.returncode, 0, "Command failed: " + repr(result))
             return result.stdout
 

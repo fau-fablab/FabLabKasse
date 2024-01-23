@@ -38,6 +38,7 @@ import json
 import logging
 import contextlib  # for "caching" the json
 import os
+from typing import Tuple
 
 
 def load_json_from_url(url):
@@ -78,7 +79,7 @@ def download_with_fallback(url):
                 yield f
 
 
-def load_categories_from_web(cfg) -> (list[Category], int):
+def load_categories_from_web(cfg) -> Tuple[list[Category], int]:
     """
     Download and parse list of categories
 
