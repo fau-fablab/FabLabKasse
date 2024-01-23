@@ -1,11 +1,27 @@
 #!/bin/bash
 set -e
-# provisioning for Debian / Ubuntu
+
+# Provisioning script for Debian / Ubuntu.
+# Can be used for several cases:
+# - standard PC or VM --> full graphical installation in "Kiosk mode" with autorun etc.
+# - Vagrant VM --> full graphical installation, modified paths
+# - GitHub Actions --> non-graphical installation (no Xserver etc.), modified paths
+
+
+# Detect CI (GitHub/Vagrant)
+
+GITHUB_ACTIONS="${GITHUB_ACTIONS:-false}"
+[ -d /home/vagrant ] && echo "Running under Vagrant, using the vagrant user" && RUNNING_IN_VAGRANT=true || RUNNING_IN_VAGRANT=false
+
 echo "ONLY RUN THIS SCRIPT on a disposable VM or a PC specially for setting up kasse. It will change your xsession and uninstall some packages."
 echo "press ctrl-c to exit, Enter to continue (will continue automatically under Vagrant provisioner)"
-read
 
-[ -d /home/vagrant ] && echo "Running under Vagrant, using the vagrant user" && RUNNING_IN_VAGRANT=true || RUNNING_IN_VAGRANT=false
+if $GITHUB_ACTIONS; then
+    echo "continuing, we are in GitHub CI"
+else
+    read
+fi
+
 
 # change to the git directory
 if $RUNNING_IN_VAGRANT; then
@@ -40,13 +56,22 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get -y install psmisc socat
 # Intended for use in a separate VM or on the real cash system.
 # ~~~~~~~~~~~~~~~
 
-# Graphical environment and styling
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install xserver-xorg git nodm ssh x11-apps xterm breeze breeze-icon-theme fonts-roboto-fontface curl
-# try to install xrandr command
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install x11-xserver-utils || true
+if ! $GITHUB_ACTIONS; then
+    # Graphical environment and styling
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -y install xserver-xorg git nodm ssh x11-apps xterm breeze breeze-icon-theme fonts-roboto-fontface curl
+    # try to install xrandr command
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -y install x11-xserver-utils || true
+fi
 
 # Setup user and 'kiosk mode' desktop manager that autostarts FabLabKasse
-$RUNNING_IN_VAGRANT && INSTALL_USER=vagrant || INSTALL_USER=kasse
+if $RUNNING_IN_VAGRANT; then
+    INSTALL_USER=vagrant
+elif $GITHUB_ACTIONS; then
+    INSTALL_USER=runner
+else
+    INSTALL_USER=kasse
+fi
+
 (! $RUNNING_IN_VAGRANT && ! test -d /home/kasse ) && sudo adduser kasse --disabled-password # not used in Vagrant, but in real system
 
 # some package installs lightdm; we don't want it.
@@ -59,6 +84,8 @@ sudo apt-get -y remove modemmanager
 rm -f /home/$INSTALL_USER/.xsession
 if $RUNNING_IN_VAGRANT; then
 	[ -d /home/$INSTALL_USER/FabLabKasse ] || ln -s /vagrant /home/$INSTALL_USER/FabLabKasse
+elif $GITHUB_ACTIONS; then
+    ln -s $(pwd) /home/$INSTALL_USER/FabLabKasse
 else
 	[ -d /home/$INSTALL_USER/FabLabKasse ] || sudo -u $INSTALL_USER git clone --recursive https://github.com/fau-fablab/FabLabKasse /home/$INSTALL_USER/FabLabKasse
 fi
@@ -80,13 +107,21 @@ locale -a
 sudo cp /home/$INSTALL_USER/FabLabKasse/FabLabKasse/tools/sudoers.d/kassenterm-reboot-shutdown /etc/sudoers.d/
 
 # load example config if no config.ini exists
-cd /home/$INSTALL_USER/FabLabKasse/ && sudo -u $INSTALL_USER ./run.py --example --only-load-config
+SUDO_TO_INSTALL_USER_CMD="sudo -u $INSTALL_USER"
+if $GITHUB_ACTIONS; then
+    # for whatever reason, sudo-ing to the INSTALL_USER doesn't work correctly on GitHub Actions.
+    SUDO_TO_INSTALL_USER_CMD=""
+fi
+
+cd /home/$INSTALL_USER/FabLabKasse/ && $SUDO_TO_INSTALL_USER_CMD ./run.py --example --only-load-config
 echo "Warning: if no config exists, an example config will be installed. Please change it if you use this for a real system"
 echo "Warning: For using it on a real system, cronjobs must be setup manually, please see INSTALLING.md"
 
-sudo service nodm stop
-sleep 2
-sudo service nodm start
+if ! $GITHUB_ACTIONS; then
+    sudo service nodm stop
+    sleep 2
+    sudo service nodm start
+fi
 
 # append if no such line, similar to https://fai-project.org/doc/man/ainsl.html.
 # Adapted from https://unix.stackexchange.com/questions/530537/more-elegant-approach-to-append-text-to-a-file-only-if-the-string-doesnt-exist/530722#530722
