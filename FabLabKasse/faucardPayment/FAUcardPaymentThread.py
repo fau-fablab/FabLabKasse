@@ -15,6 +15,10 @@ from .faucardStates import Status, Info
 from .MagPosLog import MagPosLog
 from ..shopping.backend.abstract import float_to_decimal
 
+from typing import List, Optional
+from ..UI.FAUcardPaymentDialogCode import (
+    FAUcardPaymentDialog,
+)  # only needed for type annotations
 
 try:  # Test if interface is available
     from .magpos import magpos, codes
@@ -25,6 +29,8 @@ except ImportError as e:  # Load Dummy otherwise
     )
     print(e)
     from .dinterface import magpos, codes
+
+    # BUG: mypy typechecking is unhappy with this; instead, e.g., magpos.xxx should subclass dinterface.xxx (or should have a common parent abstract class?)
 
 from FabLabKasse import scriptHelper
 from configparser import ConfigParser
@@ -46,25 +52,30 @@ class FAUcardThread(QtCore.QObject):
     process_aborted = QtCore.Signal()
 
     class UserAbortionError(Exception):
-        def __init__(self, func):
+        def __init__(self, func: str) -> None:
             self.func = func
 
-        def __str__(self):
+        def __str__(self) -> str:
             return "PayupFAUCard: User aborted at {}".format(self.func)
 
     class ConnectionError(Exception):
-        def __str__(self):
+        def __str__(self) -> str:
             return "Could not establish connection to the MagnaBox"
 
     class BalanceUnderflowError(Exception):
-        def __str__(self):
+        def __str__(self) -> str:
             return "Zu wenig Guthaben auf der FAU-Karte."
 
     class CheckLastTransactionFailed(Exception):
-        def __str__(self):
+        def __str__(self) -> str:
             return "Failed to check last transaction"
 
-    def __init__(self, dialog, amount, thread=QtCore.QThread.currentThread()):
+    def __init__(
+        self,
+        dialog: FAUcardPaymentDialog,
+        amount: Decimal,
+        thread=QtCore.QThread.currentThread(),
+    ) -> None:
         """
         Initializes the FAUcardThread. Needs to set up some runtime values and moves the whole class to a
         dedicated thread. To establish communication to the GUI it connects signals and slots to the GUI-Dialog
@@ -100,10 +111,10 @@ class FAUcardThread(QtCore.QObject):
         self.timestamp_payed = None
 
         # Can not create sql connection here, needs to be done in worker thread
-        self.con = None
-        self.cur = None
-        self.log = None
-        self.pos = None
+        self.con: Optional[sqlite3.Connection] = None
+        self.cur: Optional[sqlite3.Cursor] = None
+        self.log: Optional[MagPosLog] = None
+        self.pos: Optional[magpos.MagPOS] = None
 
         # Enable multithreading
         self.moveToThread(thread)
@@ -131,7 +142,7 @@ class FAUcardThread(QtCore.QObject):
 
     # set response-flag
     @QtCore.Slot(bool)
-    def set_ack(self, cf):
+    def set_ack(self, cf: bool) -> None:
         """
         Sets the Acknowledge flag and Cancel flag
         """
@@ -141,7 +152,7 @@ class FAUcardThread(QtCore.QObject):
 
     # set if thread should finish logfile with booking entry
     @QtCore.Slot(bool)
-    def set_should_finish_log(self, val):
+    def set_should_finish_log(self, val: bool) -> None:
         """
         Sets the finish logfile flag
         :param val: Contains information if the thread should finish the log file
@@ -150,12 +161,12 @@ class FAUcardThread(QtCore.QObject):
         self.should_finish_log = val
 
     @QtCore.Slot()
-    def user_abortion(self):
+    def user_abortion(self) -> None:
         """sets cancel flag to cancel the payment"""
         self.cancel = True
 
     @QtCore.Slot()
-    def terminate(self):
+    def terminate(self) -> None:
         """
         Terminates the Process on fatal Error
         """
@@ -169,7 +180,7 @@ class FAUcardThread(QtCore.QObject):
         logging.info("Fau-Terminal: thread terminated")
         self.set_cancel_button_enabled.emit(True)
 
-    def check_user_abort(self, msg):
+    def check_user_abort(self, msg: str) -> None:
         """
         Checks Eventloop to process SLOT-Calls from Dialog
         Checks if Cancel Flag was set and aborts process by Exception
@@ -180,12 +191,13 @@ class FAUcardThread(QtCore.QObject):
         if self.cancel == True:
             raise self.UserAbortionError(msg)
 
-    def sleep(self, seconds):
+    def sleep(self, seconds: int) -> None:
         """Sleep function for the thread"""
         if seconds is 0:
             return
 
         counter = self.sleep_counter
+        # BUG? what happens if sleep_counter accidentally (timing glitch, ...) becomes larger than seconds*10?
         while self.sleep_counter is not seconds * 10:
             if self.cancel == True:
                 raise self.UserAbortionError("sleep")
@@ -199,12 +211,12 @@ class FAUcardThread(QtCore.QObject):
         self.sleep_counter = 0
 
     @QtCore.Slot()
-    def sleep_timer(self):
+    def sleep_timer(self) -> None:
         """Increases the sleep_counter by one"""
         self.sleep_counter += 1
 
     @QtCore.Slot()
-    def quit(self):
+    def quit(self) -> None:
         """
         Quits the Process on user cancel or balance underflow
         """
@@ -219,7 +231,7 @@ class FAUcardThread(QtCore.QObject):
         self.set_cancel_button_enabled.emit(True)
 
     @QtCore.Slot()
-    def run(self):
+    def run(self) -> None:
         """
         Billing routine for FAU-Card payment. Runs following steps:
         1. Check last transaction result
@@ -307,6 +319,8 @@ class FAUcardThread(QtCore.QObject):
                 self.status is Status.decreasing_balance
                 and self.info is not Info.con_error
             ):
+                assert self.pos is not None
+                # BUG??? The following comment makes no sense. Sending response_ack can be justified in some cases, but in other cases it can be wrong because it "deletes" the transaction info. --> Better remove response_ack here and instead use try-finally inside _decrease_balance?
                 self.pos.response_ack()  # Befehl zum abbuchen löschen
             self.quit()
         except self.BalanceUnderflowError as e:
@@ -334,7 +348,7 @@ class FAUcardThread(QtCore.QObject):
         logging.info("Fau-Terminal: thread finished")
 
     @staticmethod
-    def check_last_transaction(cur, con):
+    def check_last_transaction(cur: sqlite3.Cursor, con: sqlite3.Connection) -> bool:
         """
         Prüfe auf Fehler bei Zahlung mit der FAU-Karte und speichere das Ergebnis in MagPosLog
         :return: True if the check could be performed, False otherwise (does not take result of check into account)
@@ -398,7 +412,7 @@ class FAUcardThread(QtCore.QObject):
 
         return True
 
-    def _start_connection(self):
+    def _start_connection(self) -> None:
         """
         Initializes connection to MagnaBox by following steps:
         1. Logs status initializing
@@ -406,6 +420,8 @@ class FAUcardThread(QtCore.QObject):
         3. sends start_connection command
         4. Sets display mode
         """
+        assert self.log is not None
+
         # 1. Log status
         self.status = Status.initializing
         self.log.set_status(self.status, self.info)
@@ -423,7 +439,11 @@ class FAUcardThread(QtCore.QObject):
         self.response_ready.emit([Status.waiting_card])
         self._wait_for_ack()
 
-    def _read_card(self):
+    def _read_card(
+        self,
+    ) -> List[
+        int
+    ]:  # BUG: change from List[int] to Tuple[int, int] and change the code accordingly. Lists are only for variable length structures.
         """
         Waits till there is a card on the reader and reads its data by following steps:
         1. Log Status "waiting for card"
@@ -433,18 +453,22 @@ class FAUcardThread(QtCore.QObject):
         :return: Card number and old balance on success, [0,0] otherwise
         :rtype: list[int,int]
         """
+
+        assert self.log is not None
+        assert self.pos is not None
+
         # 1. Log status
         self.status = Status.waiting_card
         self.log.set_status(self.status, self.info)
 
         card_number = 0
         old_balance = 0
-        value = False
 
         # 2. Check if card on reader
-        while value is not True:
+        while True:
             self.check_user_abort("read card: is card on reader?")
-            value = self.pos.card_on_reader()  # Is there a card on reader?
+            if self.pos.card_on_reader():  # Is there a card on reader?
+                break
 
         # 3. Read card data
         retry = True
@@ -471,7 +495,7 @@ class FAUcardThread(QtCore.QObject):
 
         return [card_number, old_balance]
 
-    def _decrease_balance(self):
+    def _decrease_balance(self) -> int:
         """
         Decreases card balance by self.amount_cents by following steps:
         1. Try to decrease balance
@@ -494,6 +518,15 @@ class FAUcardThread(QtCore.QObject):
         :param old_balance: The old balance of the card
         :type old_balance: int
         """
+
+        # BUG? how is "return ... 0 otherwise" handled by the caller? Looks the same as if the card was depleted completely.
+        # Maybe just "return" or "raise", without return argument?
+
+        assert self.log is not None
+        assert self.pos is not None
+        assert self.amount_cents is not None
+        assert self.card_number is not None
+
         # Log new status
         self.status = Status.decreasing_balance
         self.log.set_status(self.status, self.info)
@@ -549,7 +582,7 @@ class FAUcardThread(QtCore.QObject):
             # if connection lost (1.b)
             if lost:
                 logging.warning("FAUcard: connection lost (1.b)")
-                value = []
+                value: Optional[magpos.LastTransactionResult] = None
                 while lost:
                     lost = False
 
@@ -593,11 +626,18 @@ class FAUcardThread(QtCore.QObject):
                         value = tuple(tmp_value)  # TODO - ugly hack
                         break
                     else:
+                        # ??? TODO DOCUMENT THIS BETTER. This is a very very rare case (never happened in ~5 years) but should still be handled properly (or at least raise an Exception and give up without trying to do something untested.)
+                        # There was a transaction (payment attempt) of the expected card number and amount.
+                        # but with status != OK.
+                        # This means that the payment failed for some reason, e.g., because the user removed his card early.
+                        # TODO this should be handled properly, with setting the status in the log DB etc.
+                        # --> Maybe just set retry=true as below?
+                        # TODO check usage of self.log.set_status, sometimes the status/info is changed without calling log.set_status. --> Add a setter/getter for status/info? Or a "update_status" function?
                         logging.warning("FAUcard: 3.b The payment aborted on error")
                         self.response_ready.emit([Info.unknown_error])
                         self.info = Info.unknown_error
                         self.quit()
-                        return
+                        return  # BUG??? should be "raise magpos.SomeError"? Or does quit() never return?
                 else:
                     logging.info("FAUcard: 3.b The transaction has not been executed")
                     retry = True
@@ -630,7 +670,7 @@ class FAUcardThread(QtCore.QObject):
         self.pos.response_ack()
         return new_balance
 
-    def _wait_for_ack(self):
+    def _wait_for_ack(self) -> None:
         """
         Waits for Acknowledge of the controlling Dialog,
         to send an acknowledge to the MagnaBox and continue the process
@@ -639,17 +679,18 @@ class FAUcardThread(QtCore.QObject):
             self.check_user_abort("wait for acknowledge")  # contains processEvents
         self.ack = False
 
-    def finish_log(self, info=Info.OK):
+    def finish_log(self, info=Info.OK) -> None:
         """
         Finishes the log file after the GUI has done the booking.
         :param info: The info code for booking process
         :type info: Info
         """
+        assert self.log is not None
         self.status = Status.booking_done
         self.info = info
         self.log.set_status(self.status, self.info)
 
-    def get_amount_payed(self):
+    def get_amount_payed(self) -> Decimal:
         """
         Returns the amount the card has been decreased
         :return: amount payed if transaction complete, 0 otherwise

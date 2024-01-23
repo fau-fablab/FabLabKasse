@@ -28,6 +28,6 @@ while True:
         if not data:
             print("\n\n========= client disconnected =======\n\n")
             break
-        data = data.decode("ascii", errors="replace")
-        sys.stdout.write(data)
+        data_decoded = data.decode("ascii", errors="replace")
+        sys.stdout.write(data_decoded)
         sys.stdout.flush()
