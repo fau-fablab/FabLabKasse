@@ -1,0 +1,16 @@
+name: Unit Tests
+
+on: [push, pull_request]
+
+jobs:
+  run-unittest:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: ./install_debian.sh
+
+    - name: Run Unittests
+      run: ./run_unittests_locally.sh
