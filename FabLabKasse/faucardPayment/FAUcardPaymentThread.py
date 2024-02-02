@@ -13,6 +13,8 @@ from qtpy import QtCore, QtWidgets
 from decimal import Decimal
 from datetime import datetime
 
+# Test2
+
 from .faucardStates import Status, Info
 from .MagPosLog import MagPosLog
 from ..shopping.backend.abstract import float_to_decimal
