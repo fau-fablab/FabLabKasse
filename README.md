@@ -10,7 +10,11 @@ FabLabKasse, a Point-of-Sale Software for FabLabs and other public and trust-bas
 
 Please see https://fablabkasse.readthedocs.io for the documentation
 
+# Note for FAU FabLab internal usage / Test-VM
 
+If you are a member of the FAU FabLab, please first read the internal overview: https://github.com/fau-fablab/FabLabKasse-interna/blob/master/README.md
+
+It contains important information on the FAU FabLab specific configuration and add-ons.
 
 # Getting started
 
