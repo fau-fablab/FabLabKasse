@@ -29,7 +29,6 @@ from configparser import ConfigParser
 from configparser import Error as ConfigParserError
 import codecs
 from qtpy import QtGui, QtWidgets
-import traceback
 
 
 def setupLogging(logfile):
@@ -61,59 +60,6 @@ def setupSigInt():
         sys.exit(1)
 
     signal.signal(signal.SIGINT, sigint)
-
-
-def setupGraphicalExceptHook():
-    """open a Qt messagebox on fatal exceptions"""
-    if "--debug" in sys.argv:
-        # we don't want this when running in a debugger
-        return
-    sys.excepthook_old = sys.excepthook
-
-    def myNewExceptionHook(exctype, value, tb):
-        import datetime
-
-        # logging.exception()
-        try:
-            cfg = getConfig()
-            try:
-                email = cfg.get("general", "support_mail")
-            except ConfigParserError:
-                logging.warning(
-                    "could not read mail address from config in graphical except-hook."
-                )
-                email = "den Verantwortlichen"
-            msgbox = QtWidgets.QMessageBox()
-            txt = "Entschuldigung, das Programm wird wegen eines Fehlers beendet."
-            infotxt = """Bitte melde dich bei {0} und gebe neben einer
-             Fehlerbeschreibung folgende Uhrzeit an:{1}.""".format(
-                email, str(datetime.datetime.today())
-            )
-            detailtxt = "{0}\n{1}".format(
-                str(datetime.datetime.today()),
-                "".join(traceback.format_exception(exctype, value, tb, limit=10)),
-            )
-            logging.fatal(txt)
-            logging.fatal(
-                "Full exception details (stack limit 50):\n"
-                + "".join(traceback.format_exception(exctype, value, tb, limit=50))
-            )
-            msgbox.setText(txt)
-            msgbox.setInformativeText(infotxt)
-            msgbox.setDetailedText(detailtxt)
-            msgbox.setIcon(QtWidgets.QMessageBox.Critical)
-            msgbox.exec_()
-        except Exception as e:
-            try:
-                logging.error("graphical excepthook failed: " + repr(e))
-            except Exception:
-                logging.error(
-                    "graphical excepthook failed hard,  cannot print exception (IOCHARSET problems?)"
-                )
-        sys.excepthook_old(exctype, value, tb)
-        sys.exit(1)
-
-    sys.excepthook = myNewExceptionHook
 
 
 def getConfig(path="./"):

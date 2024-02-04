@@ -32,6 +32,7 @@ from decimal import Decimal, DecimalException
 from qtpy import QtGui, QtCore, QtWidgets
 import functools
 from configparser import Error as ConfigParserError
+import traceback
 
 from .libs.pxss import pxss
 from FabLabKasse.UI.GUIHelper import (
@@ -95,6 +96,7 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
         QtWidgets.QMainWindow.__init__(self)
 
         self.setupUi(self)
+        self.setupGraphicalExceptHook()
         # maximize window - WORKAROUND because showMaximized() doesn't work
         # when a default geometry is set in the Qt designer file
         QtCore.QTimer.singleShot(
@@ -929,6 +931,91 @@ class Kassenterminal(Ui_Kassenterminal, QtWidgets.QMainWindow):
             self.shoppingBackend.delete_current_order()
             self.updateOrder()
 
+    def setupGraphicalExceptHook(self):
+        """change system excpetion handler to open a Qt messagebox on fatal exceptions"""
+        if "--debug" in sys.argv:
+            # we don't want this when running in a debugger
+            return
+        sys.excepthook_old = sys.excepthook
+
+        def myNewExceptionHook(exctype, value, tb):
+            try:
+                cfg = scriptHelper.getConfig()
+                try:
+                    email = cfg.get("general", "support_mail")
+                except ConfigParserError:
+                    logging.warning(
+                        "could not read mail address from config in graphical except-hook."
+                    )
+                    email = "den Verantwortlichen"
+                txt = "Entschuldigung, das Programm wird wegen eines Fehlers beendet."
+                infotxt = """Bitte melde dich bei {0} und gebe neben einer
+                Fehlerbeschreibung folgende Uhrzeit an:{1}.""".format(
+                    email, str(datetime.datetime.today())
+                )
+                detailtxt = "{0}\n{1}".format(
+                    str(datetime.datetime.today()),
+                    "".join(traceback.format_exception(exctype, value, tb, limit=10)),
+                )
+                logging.fatal(txt)
+                logging.fatal(
+                    "Full exception details (stack limit 50):\n"
+                    + "".join(traceback.format_exception(exctype, value, tb, limit=50))
+                )
+                # Show exception messagebox.
+                # Simplified pseudocode:
+                #  - In the GUI thread: Show exception dialog, wait for user to press OK, try to exit via sys.exit(1).
+                #  - In the original thread: If exiting didn't work, force termination by os._exit().
+                if (
+                    QtWidgets.QApplication.instance().thread()
+                    == QtCore.QThread.currentThread()
+                ):
+                    self.showExceptionMessageAndTerminate(txt, infotxt, detailtxt)
+                else:
+                    logging.debug(
+                        "Exception occured outside the main thread, trying to show graphical error message in main thread. This may lead to deadlocks."
+                    )
+                    # exception occured in different thread, do some magic to call showExceptionMessageAndTerminate() in the GUI thread
+                    QtCore.QMetaObject.invokeMethod(
+                        self,
+                        "showExceptionMessageAndTerminate",
+                        QtCore.Qt.BlockingQueuedConnection,
+                        QtCore.Q_ARG(str, txt),
+                        QtCore.Q_ARG(str, infotxt),
+                        QtCore.Q_ARG(str, detailtxt),
+                    )
+            except Exception as e:
+                try:
+                    logging.error("graphical excepthook failed: " + repr(e))
+                except Exception:
+                    logging.error(
+                        "graphical excepthook failed hard,  cannot print exception (IOCHARSET problems?)"
+                    )
+            logging.debug("Exiting did not work, falling back to infinite loop.")
+            while True:
+                pass
+
+        sys.excepthook = myNewExceptionHook
+
+    @QtCore.Slot(str, str, str)
+    def showExceptionMessageAndTerminate(self, txt: str, infotxt: str, detailtxt: str):
+        """Show fatal error message, then terminate the application. Used by setupGraphicalExceptHook."""
+        try:
+            msgbox = QtWidgets.QMessageBox()
+            msgbox.setText(txt)
+            msgbox.setInformativeText(infotxt)
+            msgbox.setDetailedText(detailtxt)
+            msgbox.setIcon(QtWidgets.QMessageBox.Critical)
+            msgbox.exec_()
+        except Exception as e:
+            try:
+                logging.error("failed to show graphical exception message: " + repr(e))
+            except:
+                pass
+        # Note: sys.exit(1) does not work reliably outside the main thread. Therefore we fall back to the lowlevel os._exit().
+        logging.debug("Exiting.")
+        os._exit(os.EX_SOFTWARE)
+
 
 def main():
     if "--debug" in sys.argv:
@@ -940,9 +1027,6 @@ def main():
 
     # set up an application first (to be called before setupGraphicalExceptHook in order to have application for except hook)
     app = QtWidgets.QApplication(sys.argv)
-
-    # error message on exceptions
-    scriptHelper.setupGraphicalExceptHook()
 
     # Hide mouse cursor if configured
     if cfg.getboolean("general", "hide_cursor"):
