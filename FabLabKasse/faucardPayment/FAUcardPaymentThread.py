@@ -575,7 +575,7 @@ class FAUcardThread(QtCore.QObject):
             # if connection lost (1.b)
             if lost:
                 logging.warning("FAUcard: connection lost (1.b)")
-                value = []
+                value: Optional[magpos.LastTransactionResult] = None
                 while lost:
                     lost = False
 
