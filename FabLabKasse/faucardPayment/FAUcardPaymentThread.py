@@ -367,7 +367,10 @@ class FAUcardThread(QtCore.QObject):
         # Choose logging or nop based on check result
         if value[0] is magpos.codes.OK:  # Last transaction was successful
             logging.error(
-                "CheckTransaction: Kassenterminal vor erfolgreicher Buchung abgestürzt."
+                "CheckTransaction: Kassenterminal ist während des letzten Bezahlvorgangs abgestürzt. Dem Benutzer wurde bereits Geld von der Karte abgebucht. Es gab wahrscheinlich noch KEINE Buchung im Kassenterminal."
+            )
+            logging.error(
+                "CheckTransaction: Achtung - Manuelle Korrekturbuchung erforderlich!"
             )
             MagPosLog.save_transaction_result(
                 cur, con, value[1], Decimal(value[2]) / 100, Info.transaction_ok.value
@@ -383,7 +386,7 @@ class FAUcardThread(QtCore.QObject):
             pass
         else:  # Failure during last transaction
             logging.warning(
-                "CheckTransaction: Letzter Bezahlvorgang nicht erfolgreich ausgeführt."
+                "CheckTransaction: Kassenterminal ist während des letzten Bezahlvorgangs abgestürzt. Dem Benutzer wurde noch KEIN Geld von der Karte abgebucht. Es gab KEINE Buchung im Kassenterminal. Dieser Fehler ist harmlos."
             )
             MagPosLog.save_transaction_result(
                 cur,
