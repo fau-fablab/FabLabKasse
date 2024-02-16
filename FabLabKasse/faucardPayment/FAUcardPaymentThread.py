@@ -586,9 +586,11 @@ class FAUcardThread(QtCore.QObject):
                         logging.info(
                             "FAUcard: 3.a The payment was successfully executed"
                         )
-                        value[0] = value[1]
-                        value[1] = self.old_balance
-                        value[2] = self.old_balance - self.amount_cents
+                        tmp_value = list(value)  # TODO - ugly hack
+                        tmp_value[0] = value[1]
+                        tmp_value[1] = self.old_balance
+                        tmp_value[2] = self.old_balance - self.amount_cents
+                        value = tuple(tmp_value)  # TODO - ugly hack
                         break
                     else:
                         logging.warning("FAUcard: 3.b The payment aborted on error")
