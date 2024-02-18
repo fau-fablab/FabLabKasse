@@ -315,13 +315,8 @@ class FAUcardThread(QtCore.QObject):
             self.terminate()
         except self.UserAbortionError as e:
             logging.info(e)
-            if (
-                self.status is Status.decreasing_balance
-                and self.info is not Info.con_error
-            ):
-                assert self.pos is not None
-                # BUG??? The following comment makes no sense. Sending response_ack can be justified in some cases, but in other cases it can be wrong because it "deletes" the transaction info. --> Better remove response_ack here and instead use try-finally inside _decrease_balance?
-                self.pos.response_ack()  # Befehl zum abbuchen löschen
+            # User canceled.
+            # Note: we do not need to call self.pos.response_ack() here. The previous code is responsible for that.
             self.quit()
         except self.BalanceUnderflowError as e:
             logging.info(e)
