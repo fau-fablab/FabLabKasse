@@ -501,21 +501,18 @@ class FAUcardThread(QtCore.QObject):
             3. Check if the payment you tried has been successfully executed
              -> a: was successfully executed:
                 4. Continue with step 5
-             -> b: it aborted on error:
-                4. Quit the process
-             -> c: the transaction has not been executed:
+             -> b: the payment was not executed:
                 4: Go back to step 1
+             -> c: it is unclear if the payment was executed or not:
+                4. Quit the process by raising an Exception
         5. Check if payment was correct and log it
-        :return: New balance on success, 0 otherwise
+        :return: New balance on success. Otherwise an exception will be raised.
         :rtype: int
         :param card_number: Card number the balance should be decreased off
         :type card_number: int
         :param old_balance: The old balance of the card
         :type old_balance: int
         """
-
-        # BUG? how is "return ... 0 otherwise" handled by the caller? Looks the same as if the card was depleted completely.
-        # Maybe just "return" or "raise", without return argument?
 
         assert self.log is not None
         assert self.pos is not None
@@ -609,34 +606,44 @@ class FAUcardThread(QtCore.QObject):
                 self.response_ready.emit([Info.con_back])
 
                 # 3. Check last payment details
-                if value[1] == self.card_number and value[2] == self.amount_cents:
-                    if value[0] == magpos.codes.OK:
-                        logging.info(
-                            "FAUcard: 3.a The payment was successfully executed"
-                        )
-                        tmp_value = list(value)  # TODO - ugly hack
-                        tmp_value[0] = value[1]
-                        tmp_value[1] = self.old_balance
-                        tmp_value[2] = self.old_balance - self.amount_cents
-                        value = tuple(tmp_value)  # TODO - ugly hack
-                        break
-                    else:
-                        # ??? TODO DOCUMENT THIS BETTER. This is a very very rare case (never happened in ~5 years) but should still be handled properly (or at least raise an Exception and give up without trying to do something untested.)
-                        # There was a transaction (payment attempt) of the expected card number and amount.
-                        # but with status != OK.
-                        # This means that the payment failed for some reason, e.g., because the user removed his card early.
-                        # TODO this should be handled properly, with setting the status in the log DB etc.
-                        # --> Maybe just set retry=true as below?
-                        # TODO check usage of self.log.set_status, sometimes the status/info is changed without calling log.set_status. --> Add a setter/getter for status/info? Or a "update_status" function?
-                        logging.warning("FAUcard: 3.b The payment aborted on error")
-                        self.response_ready.emit([Info.unknown_error])
-                        self.info = Info.unknown_error
-                        self.quit()
-                        return  # BUG??? should be "raise magpos.SomeError"? Or does quit() never return?
-                else:
-                    logging.info("FAUcard: 3.b The transaction has not been executed")
+                if (
+                    value[0] == magpos.codes.OK
+                    and value[1] == self.card_number
+                    and value[2] == self.amount_cents
+                ):
+                    logging.info("FAUcard: 3.a The payment was successfully executed")
+                    tmp_value = list(value)  # TODO - ugly hack
+                    tmp_value[0] = value[1]
+                    tmp_value[1] = self.old_balance
+                    tmp_value[2] = self.old_balance - self.amount_cents
+                    value = tuple(tmp_value)  # TODO - ugly hack
+                    # Note: Response-ACK will be sent later, at the very end of this function.
+                    break
+                elif value[0] in [
+                    magpos.codes.BALANCE_UNDERFLOW_OR_OVERFLOW,
+                    magpos.codes.USER_CANCELLED,
+                    magpos.codes.NO_CARD,
+                    magpos.codes.TOKEN_UNDERFLOW,
+                ]:
+                    logging.info("FAUcard: 3.b The payment was not executed. Retrying.")
                     retry = True
+                    self.pos.response_ack()  # Note: if we get a broken connection here, the whole function will raise an Exception, the whole payment process will fail, and the case will be handled by check_last_transaction at the start of the next payment.
                     continue
+                else:
+                    # Unexpected status or wrong amount or card number
+
+                    # TODO: General: check usage of self.log.set_status, sometimes the status/info is changed without calling log.set_status. --> Add a setter/getter for status/info? Or a "update_status" function?
+                    # TODO: General: check usage of Status values. Some of the defined values like Status.balance_underflow or Status.unknown_error are never used.
+                    logging.error(
+                        "FAUcard: 3.c Cannot determine whether the payment was executed or not: Unexpected reply after reconnect. This is a serious error."
+                    )
+                    # Note: we do not send a response-ACK here since we don't know what to do. The case will be handled by check_last_transaction at the start of the next payment.
+                    raise magpos.TransactionError(
+                        card=self.card_number,
+                        old=float("NaN"),
+                        new=float("NaN"),
+                        amount=self.amount_cents,
+                    )
 
         # 5. Check if payment was correct and log it
         if (
