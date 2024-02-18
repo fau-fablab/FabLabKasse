@@ -1,6 +1,9 @@
 #!/bin/bash
 set -ex
 
+# On exit, kill all "background processes" started by this script (FAUCard emulator / dummy printserver)
+trap "jobs -pr | xargs --no-run-if-empty --max-args=1 pkill --signal SIGINT -P " EXIT SIGINT
+
 # ensure VM is up and up-to-date
 # (note: 'vagrant provision' is not run automatically)
 vagrant up
