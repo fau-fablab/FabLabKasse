@@ -4,6 +4,13 @@
 from enum import Enum
 
 
+# TODO: explain the difference between Status and Info.
+# Probably:
+# "Status" refers to the process steps during booking (init - wait for card - decreasing - decreased - booked).
+# (Alternatively, "status" can be "transaction_result" which means that an old unfinished transaction was detected.)
+# "Info" refers to sub-states within these steps, e.g., within decreasing there are multiple states like "all OK", "user aborted" or "lost connection".
+
+
 class Status(Enum):
     """
     Status Codes from FAUcardPayment for MagPosLog logging
