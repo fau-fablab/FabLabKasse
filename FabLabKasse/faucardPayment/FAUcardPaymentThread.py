@@ -291,7 +291,6 @@ class FAUcardThread(QtCore.QObject):
             logging.debug("FAUcardThread: New Balance: {}".format(self.new_balance))
 
             # 5. finish log entry
-            self._wait_for_ack()
             if self.should_finish_log is True:
                 self.finish_log()
 
@@ -665,17 +664,22 @@ class FAUcardThread(QtCore.QObject):
             )
 
         self.timestamp_payed = datetime.now()
-        # Update GUI and wait for response
+        # Update GUI. Do not wait for response because it is important that the result gets returned and later written to the database, independent of what the UI does.
         self.response_ready.emit([Status.decreasing_done])
 
-        self._wait_for_ack()
+        # Send ACK to decrease_card_balance_and_token command (1.a) or to get_last_transaction_result command (3.a)
         self.pos.response_ack()
         return new_balance
 
     def _wait_for_ack(self) -> None:
         """
         Waits for Acknowledge of the controlling Dialog,
-        to send an acknowledge to the MagnaBox and continue the process
+        to send an acknowledge to the MagnaBox and continue the process.
+
+        WARNING: This function calls check_user_abort().
+        Do not call it in process steps where user abortion is not allowed (e.g. between decreasing balance and saving to the database).
+
+        TODO: Why is this function needed?
         """
         while self.ack is False:
             self.check_user_abort("wait for acknowledge")  # contains processEvents
