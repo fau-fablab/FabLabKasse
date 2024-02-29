@@ -95,9 +95,11 @@ class FAUcardThread(QtCore.QObject):
         # Initialize class variables
         self.status = Status.initializing
         self.info = Info.OK
-        self.card_number = None
-        self.old_balance = None
-        self.new_balance = None
+        self.card_number: Optional[int] = None
+        self.old_balance: Optional[int] = None
+        self.new_balance: Optional[int] = None
+
+        assert amount > 0
         self.amount = amount
         self.amount_cents = int(
             float_to_decimal(amount * 100, 0)
@@ -108,7 +110,7 @@ class FAUcardThread(QtCore.QObject):
         self.last_sleep = 0
         self.should_finish_log = True
 
-        self.timestamp_payed = None
+        self.timestamp_payed: Optional[datetime] = None
 
         # Can not create sql connection here, needs to be done in worker thread
         self.con: Optional[sqlite3.Connection] = None
@@ -268,10 +270,8 @@ class FAUcardThread(QtCore.QObject):
 
             logging.debug("FAUcardThread: Reading Payment Card Information")
             # 3. read card
-            value = self._read_card()
-            self.card_number = value[0]
+            self.card_number, self.old_balance = self._read_card()
             self.log.set_cardnumber(self.card_number)
-            self.old_balance = value[1]
             self.log.set_oldbalance(self.old_balance)
             logging.debug(
                 "FAUcardThread: Card Number: {0} ; Old Balance: {1}".format(
@@ -353,13 +353,13 @@ class FAUcardThread(QtCore.QObject):
         :type con: sqlite3.Connection
         """
         cfg = scriptHelper.getConfig()
-        value = [False]
+        last_transaction_result = None
         try:
             pos = magpos.MagPOS(cfg.get("magna_carta", "device_port"))
-            if pos.start_connection() is True:
-                value = pos.get_last_transaction_result()
-                # BUG? what happens if there is an Exception during Response_ACK? Should this be delayed to the end of the function? Rewrite "return False"-logic?
-                pos.response_ack()
+            pos.start_connection()
+            last_transaction_result = pos.get_last_transaction_result()
+            # BUG? what happens if there is an Exception during Response_ACK? Should this be delayed to the end of the function? Rewrite "return False"-logic?
+            pos.response_ack()
             pos.close()
         except (magpos.serial.SerialException, magpos.ConnectionTimeoutError):
             logging.error(
@@ -373,7 +373,9 @@ class FAUcardThread(QtCore.QObject):
             return False
 
         # Choose logging or nop based on check result
-        if value[0] is magpos.codes.OK:  # Last transaction was successful
+        if (
+            last_transaction_result.status is magpos.codes.OK
+        ):  # Last transaction was successful
             logging.error(
                 "CheckTransaction: Kassenterminal ist während des letzten Bezahlvorgangs abgestürzt. Dem Benutzer wurde bereits Geld von der Karte abgebucht. Es gab wahrscheinlich noch KEINE Buchung im Kassenterminal."
             )
@@ -381,15 +383,21 @@ class FAUcardThread(QtCore.QObject):
                 "CheckTransaction: Achtung - Manuelle Korrekturbuchung erforderlich!"
             )
             MagPosLog.save_transaction_result(
-                cur, con, value[1], Decimal(value[2]) / 100, Info.transaction_ok.value
+                cur,
+                con,
+                last_transaction_result.card_number,
+                Decimal(last_transaction_result.amount) / 100,
+                Info.transaction_ok.value,
             )
             logging.error(
                 "CheckTransaction: Buchung für Karte {0} über Betrag {1} EURCENT fehlt".format(
-                    value[1], value[2]
+                    last_transaction_result.card_number, last_transaction_result.amount
                 )
             )
         elif (
-            value[0] is 0 and value[1] is 0 and value[2] is 0
+            last_transaction_result.status == 0
+            and last_transaction_result.card_number == 0
+            and last_transaction_result.amount == 0
         ):  # Last transaction was acknowledged
             pass
         else:  # Failure during last transaction
@@ -399,8 +407,8 @@ class FAUcardThread(QtCore.QObject):
             MagPosLog.save_transaction_result(
                 cur,
                 con,
-                value[1],
-                Decimal(value[2]) / 100,
+                last_transaction_result.card_number,
+                Decimal(last_transaction_result.amount) / 100,
                 Info.transaction_error.value,
             )
 
@@ -444,7 +452,7 @@ class FAUcardThread(QtCore.QObject):
         2. Check MagnaBox flag if there is a card on reader until its True
         3. Try to read the card data, ignore the NO_CARD Error if user took the card away again
         4. Check if the decreasing would end in balance underflow and stop routine at that point if True
-        :return: Card number and old balance on success, [0,0] otherwise
+        :return: Card number and old balance on success
         :rtype: list[int,int]
         """
 
@@ -454,9 +462,6 @@ class FAUcardThread(QtCore.QObject):
         # 1. Log status
         self.status = Status.waiting_card
         self.log.set_status(self.status, self.info)
-
-        card_number = 0
-        old_balance = 0
 
         # 2. Check if card on reader
         while True:
@@ -469,15 +474,14 @@ class FAUcardThread(QtCore.QObject):
         while retry is True:
             self.check_user_abort("read card: read card data")
             try:
+                card_number, old_balance = self.pos.get_long_card_number_and_balance()
                 retry = False
-                value = self.pos.get_long_card_number_and_balance()
-                card_number = value[0]
-                old_balance = value[1]
             except magpos.ResponseError as e:
-                if e.code is magpos.codes.NO_CARD:
-                    retry = True
-                else:
+                if e.code != magpos.codes.NO_CARD:
                     raise e
+                else:
+                    # here retry is still True => stay in while loop
+                    pass
 
         # 4. Check if enough balance on card
         if old_balance < self.amount_cents:
@@ -517,6 +521,7 @@ class FAUcardThread(QtCore.QObject):
         assert self.pos is not None
         assert self.amount_cents is not None
         assert self.card_number is not None
+        assert self.old_balance is not None
 
         # Log new status
         self.status = Status.decreasing_balance
@@ -526,7 +531,7 @@ class FAUcardThread(QtCore.QObject):
         retry = True
         lost = False
 
-        value = []
+        decrease_result = None
 
         # 1. Try to decrease balance
         while retry:
@@ -539,7 +544,7 @@ class FAUcardThread(QtCore.QObject):
                     "decreasing balance: User Aborted"
                 )  # Will only be executed if decrease command has not yet been executed
                 logging.debug("FAUcard: Trying to decrease balance")
-                value = self.pos.decrease_card_balance_and_token(
+                decrease_result = self.pos.decrease_card_balance_and_token(
                     self.amount_cents, self.card_number
                 )
 
@@ -573,7 +578,7 @@ class FAUcardThread(QtCore.QObject):
             # if connection lost (1.b)
             if lost:
                 logging.warning("FAUcard: connection lost (1.b)")
-                value: Optional[magpos.LastTransactionResult] = None
+                last_transaction_result: Optional[magpos.LastTransactionResult] = None
                 while lost:
                     lost = False
 
@@ -591,7 +596,7 @@ class FAUcardThread(QtCore.QObject):
                         self.pos.start_connection()
 
                         # 3. Check transaction result
-                        value = self.pos.get_last_transaction_result()
+                        last_transaction_result = self.pos.get_last_transaction_result()
 
                     # Ignore expected errors
                     except (
@@ -604,21 +609,27 @@ class FAUcardThread(QtCore.QObject):
                 self.info = Info.con_back
                 self.response_ready.emit([Info.con_back])
 
+                assert (
+                    last_transaction_result is not None
+                )  # None is not possible because last_transaction_result = self.pos.get_last_transaction_result() must have been called
+                assert self.old_balance is not None
+
                 # 3. Check last payment details
                 if (
-                    value[0] == magpos.codes.OK
-                    and value[1] == self.card_number
-                    and value[2] == self.amount_cents
+                    last_transaction_result.status == magpos.codes.OK
+                    and last_transaction_result.card_number == self.card_number
+                    and last_transaction_result.amount == self.amount_cents
                 ):
                     logging.info("FAUcard: 3.a The payment was successfully executed")
-                    tmp_value = list(value)  # TODO - ugly hack
-                    tmp_value[0] = value[1]
-                    tmp_value[1] = self.old_balance
-                    tmp_value[2] = self.old_balance - self.amount_cents
-                    value = tuple(tmp_value)  # TODO - ugly hack
+                    decrease_result = magpos.DecreaseCardBalanceAndTokenResult(
+                        card_number=last_transaction_result.card_number,
+                        old_balance=self.old_balance,
+                        new_balance=self.old_balance - self.amount_cents,
+                        token_id=0,  # token id is not used
+                    )
                     # Note: Response-ACK will be sent later, at the very end of this function.
                     break
-                elif value[0] in [
+                elif last_transaction_result.status in [
                     magpos.codes.BALANCE_UNDERFLOW_OR_OVERFLOW,
                     magpos.codes.USER_CANCELLED,
                     magpos.codes.NO_CARD,
@@ -644,23 +655,30 @@ class FAUcardThread(QtCore.QObject):
                         amount=self.amount_cents,
                     )
 
+        assert (
+            decrease_result is not None
+        )  # decrease_result has been set either in case 1a or in case 3a
+
         # 5. Check if payment was correct and log it
         if (
-            value[0] == self.card_number
-            and value[1] == self.old_balance
-            and (value[2] + self.amount_cents) == self.old_balance
+            decrease_result.card_number == self.card_number
+            and decrease_result.old_balance == self.old_balance
+            and (decrease_result.new_balance + self.amount_cents) == self.old_balance
         ):
             logging.info("FAUCard: payment correct, writing to log")
             self.status = Status.decreasing_done
             self.info = Info.OK
             self.log.set_status(self.status, self.info)
-            new_balance = value[2]
+            new_balance = decrease_result.new_balance
         else:
             logging.error(
                 "FAUCard: Payment went wrong (double booking, wrong amount, or similar error). This is a serious error. Check kassenbuch, the MagPosLog database, and gui.log to find out what exactly went wrong."
             )
             raise magpos.TransactionError(
-                value[0], value[1], value[2], self.amount_cents
+                card=decrease_result.card_number,
+                old=decrease_result.old_balance,
+                new=decrease_result.new_balance,
+                amount=self.amount_cents,
             )
 
         self.timestamp_payed = datetime.now()
