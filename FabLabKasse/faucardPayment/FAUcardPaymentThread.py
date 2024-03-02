@@ -10,6 +10,7 @@ import sqlite3
 from qtpy import QtCore, QtWidgets
 from decimal import Decimal
 from datetime import datetime
+import time
 
 from .faucardStates import Status, Info
 from .MagPosLog import MagPosLog
@@ -98,6 +99,7 @@ class FAUcardThread(QtCore.QObject):
         self.card_number: Optional[int] = None
         self.old_balance: Optional[int] = None
         self.new_balance: Optional[int] = None
+        self.run_finished = False
 
         assert amount > 0
         self.amount = amount
@@ -108,7 +110,6 @@ class FAUcardThread(QtCore.QObject):
         self.ack = False
         self.sleep_counter = 0
         self.last_sleep = 0
-        self.should_finish_log = True
 
         self.timestamp_payed: Optional[datetime] = None
 
@@ -152,16 +153,6 @@ class FAUcardThread(QtCore.QObject):
         self.ack = True
         self.cancel = cf
 
-    # set if thread should finish logfile with booking entry
-    @QtCore.Slot(bool)
-    def set_should_finish_log(self, val: bool) -> None:
-        """
-        Sets the finish logfile flag
-        :param val: Contains information if the thread should finish the log file
-        :type val: bool
-        """
-        self.should_finish_log = val
-
     @QtCore.Slot()
     def user_abortion(self) -> None:
         """sets cancel flag to cancel the payment"""
@@ -199,8 +190,7 @@ class FAUcardThread(QtCore.QObject):
             return
 
         counter = self.sleep_counter
-        # BUG? what happens if sleep_counter accidentally (timing glitch, ...) becomes larger than seconds*10?
-        while self.sleep_counter is not seconds * 10:
+        while self.sleep_counter < seconds * 10:
             if self.cancel == True:
                 raise self.UserAbortionError("sleep")
             if counter == self.sleep_counter:
@@ -235,12 +225,32 @@ class FAUcardThread(QtCore.QObject):
     @QtCore.Slot()
     def run(self) -> None:
         """
+        Run payment. See _run().
+        This function blocks until the payment has finished or an Exception was thrown.
+        Afterwards, run_finished is set to True.
+
+        This function may call the event-loop during the payment operation  ("voluntary preemption").
+        """
+        try:
+            self._run()
+        finally:
+            # Make sure that in all cases,
+            try:
+                # - the status is written to the database.
+                if self.log is not None:
+                    self.log.set_status(self.status, self.info)
+            finally:
+                # - and run_finished is set to True
+                self.run_finished = True
+
+    def _run(self) -> None:
+        """
         Billing routine for FAU-Card payment. Runs following steps:
         1. Check last transaction result
         2. Initialize log class and connection to MagnaBox
         3. Read the card the user puts on the reader
         4. Decrease the amount from card balance
-        (Optional: 5. finish log file)
+        (Note: The MagPosLog log entry is NOT marked as "booking done" here, because at the end of this function the booking in the cash register is not yet done. After the booking in the cash register was done, faucardPayment.faucard.finish_log() needs to be called to do that.)
         After each step the routine waits till the GUI sends a positive feedback by set_ack slot.
         The GUI can send a cancel flag with the response_ack signal and is able to quit the process after every step.
         """
@@ -289,10 +299,6 @@ class FAUcardThread(QtCore.QObject):
             self.log.set_newbalance(self.new_balance)
             self.log.set_timestamp_payed(self.timestamp_payed)
             logging.debug("FAUcardThread: New Balance: {}".format(self.new_balance))
-
-            # 5. finish log entry
-            if self.should_finish_log is True:
-                self.finish_log()
 
         except (magpos.ResponseError, self.ConnectionError) as e:
             logging.error("FAUcardThread: {}".format(e))
@@ -496,18 +502,21 @@ class FAUcardThread(QtCore.QObject):
     def _decrease_balance(self) -> int:
         """
         Decreases card balance by self.amount_cents by following steps:
+        0. If user aborted: Quit by raising UserAbortionError.
         1. Try to decrease balance
          -> a: Successful
-            2. Continue with step 5
-         -> b: Connection was lost?
+               Continue with step 5
+         -> aa: Payment was not executed (user removed card)
+               Continue with step 0.
+         -> b: Connection was lost (i.e., we don't know yet if the payment was successful)
             2. Try to reestablish connection, ignore connection relevant errors
             3. Check if the payment you tried has been successfully executed
              -> a: was successfully executed:
                 4. Continue with step 5
              -> b: the payment was not executed:
-                4: Go back to step 1
+                4: Go back to step 0
              -> c: it is unclear if the payment was executed or not:
-                4. Quit the process by raising an Exception
+                4. Quit by raising an Exception
         5. Check if payment was correct and log it
         :return: New balance on success. Otherwise an exception will be raised.
         :rtype: int
@@ -533,17 +542,18 @@ class FAUcardThread(QtCore.QObject):
 
         decrease_result = None
 
-        # 1. Try to decrease balance
+        # 0./1. Check for user abortion and try to decrease balance
         while retry:
             retry = False
             self.set_cancel_button_enabled.emit(
                 True
             )  # User must be able to abort if he decides to
             try:
+                logging.debug("FAUcard: 0. Check if user aborted")
                 self.check_user_abort(
                     "decreasing balance: User Aborted"
                 )  # Will only be executed if decrease command has not yet been executed
-                logging.debug("FAUcard: Trying to decrease balance")
+                logging.debug("FAUcard: 1. Trying to decrease balance")
                 decrease_result = self.pos.decrease_card_balance_and_token(
                     self.amount_cents, self.card_number
                 )
@@ -551,8 +561,9 @@ class FAUcardThread(QtCore.QObject):
             # Catch ResponseError if not Card on Reader and retry
             except magpos.ResponseError as e:
                 if e.code is magpos.codes.NO_CARD:
-                    logging.info("FAUcard: No card, retrying...")
+                    logging.info("FAUcard: No card, retrying... (1.aa)")
                     self.pos.response_ack()
+                    # -> Back to 0.
                     retry = True
                     continue
                 else:
@@ -569,11 +580,11 @@ class FAUcardThread(QtCore.QObject):
                 self.response_ready.emit([Info.con_error])
                 lost = True
 
-            # Abortion of the process not allowed
-            # self.set_cancel_button_enabled.emit(False)
-            # Clear cancel Flag if user tried to abort: no abortion allowed after this tep
-            QtCore.QCoreApplication.processEvents()
-            self.cancel = False
+            # From now on (all lines in this function below this comment), abortion of the process not allowed.
+            # The only exception is when we are sure that the payment did not succeed (the amount was not deducted from the card), in which case we can go back to step 0 and retry the payment.
+            #
+            # "Abortion not allowed" is implemented by NOT calling _wait_for_ack() of check_user_abort() in any line below this comment.
+            # The user can still click on the cancel button and therefore set self.cancel=True, but this will be ignored until we get to a point at which canceling is allowed.
 
             # if connection lost (1.b)
             if lost:
@@ -582,7 +593,7 @@ class FAUcardThread(QtCore.QObject):
                 while lost:
                     lost = False
 
-                    logging.debug("FAUcard: 2 Try to reastablish connect")
+                    logging.debug("FAUcard: 2 Try to reestablish connect")
                     try:
                         # release serial port
                         self.pos.close()
@@ -605,6 +616,9 @@ class FAUcardThread(QtCore.QObject):
                         IOError,
                     ):
                         lost = True
+                        # wait a short time to avoid flooding the harddrive with error messages when the connection is permanently lost
+                        # we don't use self.sleep() here because we do NOT want to process cancel-events
+                        time.sleep(10)
 
                 self.info = Info.con_back
                 self.response_ready.emit([Info.con_back])
