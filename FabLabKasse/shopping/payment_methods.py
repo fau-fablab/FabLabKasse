@@ -353,8 +353,6 @@ class FAUCardPayment(AbstractPaymentMethod):
         self.amount_paid = pay_func.getPaidAmount()
         self.amount_returned = 0
 
-        pay_func.close()
-
     def _end_of_payment(self):
         """
         Is required to complete the MagPosLog logging after the payment routine.

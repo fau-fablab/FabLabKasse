@@ -11,6 +11,7 @@ import sqlite3
 from datetime import datetime
 from decimal import Decimal
 from qtpy import QtCore, QtWidgets, QtGui
+import logging
 
 from .MagPosLog import MagPosLog
 from ..UI.FAUcardPaymentDialogCode import FAUcardPaymentDialog
@@ -39,16 +40,24 @@ class PayupFAUCard(QtCore.QObject):
         self.dialog = FAUcardPaymentDialog(
             parent=parent, amount=self.amount, shopping_backend=self.shopping_backend
         )
-        self.dialog.request_termination.connect(
-            self.threadTerminationRequested, type=QtCore.Qt.DirectConnection
-        )
         self.worker = FAUcardThread(
             dialog=self.dialog, amount=self.amount, thread=self.thread
         )
 
     def executePayment(self):
         """
-        Starts the Payment-process and Dialog
+        Runs the Payment-process: Open dialog, wait for payment to complete (or to fail), close dialog, clean up.
+
+        Expected usage when the user requests "Start FAUCard payment":
+        1. Call this function
+        2. If it returned True:
+             The payment has succeeded.
+             a.  Write the corresponding booking into the accounting / cash register database.
+             b. call finish_log(), which then notes in the FAUCard MagPosLog logging that the payment has been fully booked.
+                Note that if a) crashes, then we can see this in the MagPos database status.
+           Else:
+             The payment has failed, go back to the shopping-cart view so that the user can restart the payment.
+
         :return: True on success, False otherwise
         :rtype: bool
         """
@@ -56,15 +65,27 @@ class PayupFAUCard(QtCore.QObject):
         self.thread.start()
         self.dialog.show()
 
-        # Execute the GUI
+        # Execute the GUI and wait until the dialog has closed.
         success = self.dialog.exec_()
 
-        if success == QtWidgets.QDialog.Accepted:
-            return True
-        else:
-            # Wait for thread to finish cleanup
-            self.thread.wait(1000)
-            return False
+        # Now, the payment routine (FAUCardThread.run()) has returned (or raised an Exception).
+        # double-check this:
+        while not self.worker.run_finished:
+            # TODO: rewrite the code so that it is obvious that this can not happen.
+            #  --> FAUCardThread itself should subclass QThread and override run().
+            logging.error(
+                "Payment routine did not finish (deadlock?), waiting...   This should never happen."
+            )
+            time.sleep(10)
+
+        # Stop thread's event loop, it is no longer needed
+        self.thread.quit()
+        while not self.thread.wait(10000):
+            logging.error(
+                "thread refuses to stop, waiting...    This should never happen except when e.g. the system is under extreme CPU load."
+            )
+
+        return success == QtWidgets.QDialog.Accepted
 
     def getPaidAmount(self):
         """
@@ -82,54 +103,6 @@ class PayupFAUCard(QtCore.QObject):
         """
         # always output a receipt due to legal requirements
         return True
-
-    def finishLogEntry(self):
-        """
-        Completes the log entry in the MagPosLog and closes all open threads and dialogs
-        """
-        if self.thread.isRunning():
-            QtCore.QMetaObject.invokeMethod(
-                self.worker,
-                "set_ack",
-                QtCore.Qt.QueuedConnection,
-                QtCore.Q_ARG(bool, False),
-            )
-        self.close()
-
-    @QtCore.Slot()
-    def threadTerminationRequested(self):
-        """
-        Terminates the self.thread if requested.
-        """
-        self.thread.wait(100)
-        self.thread.quit()
-        if not self.thread.wait(1000):
-            self.thread.terminate()
-
-    def close(self):
-        """
-        Quits self.thread, closes self.dialog
-        """
-        self.dialog.close()
-        if self.thread.isRunning():
-            QtCore.QMetaObject.invokeMethod(
-                self.worker,
-                "set_should_finish_log",
-                QtCore.Qt.QueuedConnection,
-                QtCore.Q_ARG(bool, False),
-            )
-            QtCore.QMetaObject.invokeMethod(
-                self.worker,
-                "set_ack",
-                QtCore.Qt.QueuedConnection,
-                QtCore.Q_ARG(bool, False),
-            )
-            self.thread.wait(100)
-            if not self.thread.isRunning():
-                return
-            self.thread.quit()
-            if not self.thread.wait(1000):
-                self.thread.terminate()
 
 
 def check_last_transaction():
