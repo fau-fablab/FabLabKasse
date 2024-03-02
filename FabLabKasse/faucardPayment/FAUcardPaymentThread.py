@@ -380,7 +380,7 @@ class FAUcardThread(QtCore.QObject):
                 "CheckTransaction: Kassenterminal ist während des letzten Bezahlvorgangs abgestürzt. Dem Benutzer wurde bereits Geld von der Karte abgebucht. Es gab wahrscheinlich noch KEINE Buchung im Kassenterminal."
             )
             logging.error(
-                "CheckTransaction: Achtung - Manuelle Korrekturbuchung erforderlich!"
+                "CheckTransaction: Achtung - Manuelle Prüfung erforderlich. Wahrscheinlich ist eine manuelle Korrekturbuchung im Kassenbuch erforderlich."
             )
             MagPosLog.save_transaction_result(
                 cur,
