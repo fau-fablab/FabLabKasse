@@ -299,7 +299,7 @@ class ClientPayment(AbstractClientPaymentMethod):
             self.successful = False
             self._end_of_payment()
             msgBox = QtWidgets.QMessageBox(self.parent)
-            msgBox.setText(e.message)
+            msgBox.setText(str(e))
             msgBox.setIcon(QtWidgets.QMessageBox.Warning)
             msgBox.exec_()
 
